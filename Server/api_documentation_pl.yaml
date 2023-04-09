@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: SNPManager - OpenAPI 3.0
+  description: |-
+    API aplikacji SNPManager umożliwia komunikację aplikacji klienckich z serwerem aplikacji. W poniższej dokumentacji znajduje się opis wszystkich obsługiwanych zapytań API umożliwiających bezpieczny dostęp do danych klientów.
+
+    Ważne linki:
+    - [GitHub](https://github.com/tkozl/SNPManager.git)
+  
+  version: 1.0.0
+
+tags:
+  - name: Konta
+    description: Obsługa mechanizmów uwierzytelniania oraz zarządzania kontami użytkowników
+  - name: Katalogi
+    description: Zarządzanie drzewem katalogów na koncie uzytkownika
+  - name: Wpisy
+    description: Zarządzanie wpisami użytkowników
+
+paths:
+  /account:
+    post:
+      tags:
+        - Konta
+      summary: Utworzenie nowego konta użytkownika
+      description: Rejestracja w systemie nowego konta użytkownika poprzez podanie adresu mailowego oraz hasła. Konto takie musi być następnie potwierdzone.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAuth'
+        required: true
+      responses:
+        '201':
+          description: Konto utworzone
+        '400':
+          description: Nieprawidłowy adres email lub hasło niespełniające zasad złożoności
+
+  /account/create_verification_code:
+    post:
+      tags:
+        - Konta
+      summary: Generowanie kodu weryfikującego adres email
+      description: Po założeniu konta użytkownika konieczne jest zweryfikowanie konta aby móc z niego korzystać. Kod po wygenerowaniu umieszczany jest w odpowiednio przygotowanym linku a następnie wysyłany na adres email przypisany do konta
+      responses:
+        '201':
+          description: Link weryfikacyjny wysłany na adres email
+      security:
+        - BearerAuth: []
+  
+  /account/login:
+    post:
+      tags:
+        - Konta
+      summary: Logowanie do konta użytkownika
+      description: Logowanie do konta użytkownika wymaga przesłania nazwy użytkownika oraz hasła. Po poprawnym zalogowaniu zostanie odesłany token dostępowy ważny maksymalnie 12 godzin. Zostanie również odesłana informacja czy jest wymagane logowanie dwuskładnikowe. Jeśli tak, należy dosłać kod 2fa osobnym zapytaniem.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAuth'
+        required: true
+      responses:
+        '200':
+          description: Poprawnie zalogowano
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          description: Dane logowania są błędne
+  
+  /account/2fa_passcode:
+    post:
+      tags:
+        - Konta
+      summary: Weryfikacja dwuskładnikowa podczas logowania użytkownika
+      description: Zapytanie umożliwia dosłanie kodu 2fa w sytuacji kiedy jest on potrzebny aby uzyskać dostęp do konta.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                passcode:
+                  type: integer
+        required: true
+      responses:
+        '200':
+          description: Kod zaakceptowany
+        '401':
+          description: Podano błędny kod
+      security:
+        - BearerAuth: []
+
+  /account/logout:
+    post:
+      tags:
+        - Konta
+      summary: Wylogowanie się z konta użytkownika
+      description: Wylogowanie się z konta użytkownika jest rónoznaczne z unieważnieniem tokenu dostępowego.
+      responses:
+        '200':
+          description: Poprawnie wylogowano
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+
+components:
+  schemas:
+    UserAuth:
+      type: object
+      properties:
+        mail:
+          type: string
+          example: user@example.com
+        password:
+          type: string
+          example: securepassword
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+        expiration:
+          type: number
+          example: 1694256060
+        is2faRequired:
+          type: boolean
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int64
+              msg:
+                type: string
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
