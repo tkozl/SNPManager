@@ -106,13 +106,13 @@ paths:
       parameters:
         - in: query
           name: max_correct_logins
-          description: Maksymalna liczba zwracanych prób zalogowania się zakończonych sukcesem. Domyślnie 10.
+          description: Maksymalna liczba zwracanych prób zalogowania się zakończonych sukcesem. Domyślnie `10`.
           schema:
             type: integer
           required: false
         - in: query
           name: max_incorrect_logins
-          description: Maksymalna liczba zwracanych nieudanych prób zalogowania się. Domyślnie 10.
+          description: Maksymalna liczba zwracanych nieudanych prób zalogowania się. Domyślnie `10`.
           schema:
             type: integer
           required: false
@@ -595,7 +595,7 @@ paths:
       parameters:
         - in: query
           name: include
-          description: Dane wpisów jakie mają być pobrane oprócz ID, oddzielone znakiem plus (`+`). Dostępne są ID katalogu (`directoryID`), nazwa wpisu (`entryName`), nazwa użytkownika (`username`), hasło (`password`), notatka (`note`), powiązane z wpisem okna (`relatedWindows`), oraz lista parametrów wpisu (`parameters`).
+          description: Dane wpisów jakie mają być pobrane oprócz ID, oddzielone znakiem plus (`+`). Dostępne są ID katalogu (`directoryID`), nazwa wpisu (`entryName`), nazwa użytkownika (`username`), hasło (`password`), notatka (`note`), czas życia hasła wyrażony w dniach (`lifetime`), powiązane z wpisem okna (`relatedWindows`), oraz lista parametrów wpisu (`parameters`).
           required: false
           schema:
             type: string
@@ -635,6 +635,12 @@ paths:
           description: Notatki załączone do wpisu, wyrażenie regularne
           schema:
             type: string
+          required: false
+        - in: query
+          name: lifetime
+          description: Liczba dni pozostała do zmiany hasła, zwracane są wartości mniejsze lub równe
+          schema:
+            type: integer
           required: false
         - in: query
           name: related-windows
@@ -753,6 +759,13 @@ paths:
       description: Zapytanie zwraca datę utworzenia wpisu, datę ostatniej zmiany hasła we wpisie, oraz max 5 ostatnich haseł
       parameters:
         - $ref: '#/components/parameters/EntryID'
+        - in: query
+          name: oldPasswordsLimit
+          description: Limit starych haseł jaki zostanie zwrócony. Domyślnie `5`
+          schema:
+            type: integer
+            example: 10
+          required: false
       responses:
         '200':
           description: OK
@@ -763,12 +776,17 @@ paths:
                 properties:
                   creationDate:
                     type: integer
-                  modDate:
+                  lastPassChange:
                     type: integer
-                  lastPasswords:
+                  oldPasswords:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        chDate:
+                          type: integer
+                        password:
+                          type: string
         '401':
           $ref: '#/components/responses/401Unauthorized'
         '404':
@@ -847,6 +865,8 @@ components:
           type: string
         note:
           type: string
+        lifetime:
+          type: integer
         relatedWindows:
           type: array
           items:
