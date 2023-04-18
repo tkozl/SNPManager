@@ -1,0 +1,930 @@
+openapi: 3.0.3
+info:
+  title: SNPManager - OpenAPI 3.0
+  description: |-
+    API aplikacji SNPManager umożliwia komunikację aplikacji klienckich z serwerem aplikacji. W poniższej dokumentacji znajduje się opis wszystkich obsługiwanych zapytań API umożliwiających bezpieczny dostęp do danych klientów.
+
+    Repozytorium aplikacji:
+    [kliknij tutaj](https://github.com/tkozl/SNPManager.git)
+
+    ### Dostęp
+    Do dostępu do większości zasobów konieczne jest załączenie do zapytania tokenu dostępowego. Token ten jest przesyłany przez serwer w odpowiedzi na dostarczenie poprawnych danych autoryzacyjnych użytkownika.
+
+    ### Błędy zapytań
+    Niektóre zapytania mogą zwrócić błąd `400` oznaczający wprowadzenie w zapytaniu nieprawidłowych danych. W takiej sytuacji w odpowiedzi serwer umieszcza id oraz opisy przyczyn odrzucenia zapytania. Informacje o możliwych błędach są umieszczone w specyfikacji poszczególnych zapytań. Lista możliwych błędów:
+    - `invalid_email` - nieprawidłowy format adresu mailowego
+    - `wrong_password` - błędne hasło - używane po zalogowaniu się na konto w operacjach wymagających potwierdzenia hasłem
+    - `too_low_password_complexity` - zbyt niska złożoność hasła - hasło jest zbyt krótkie lub zdiagnozowano podatność na ataki słownikowe
+    - `invalid_name` - podana nazwa zawiera niedozwolone znaki
+    - `too_long_string` - został przekroczony maksymalny dopuszczalny rozmiar danych wejściowych
+    - `already_exists` wskazany zasób już istnieje
+    - `unknown_encryption_type` - nierozpoznany typ szyfru
+  
+  version: 1.0.0
+
+tags:
+  - name: Konta
+    description: Obsługa mechanizmów uwierzytelniania oraz zarządzania kontami użytkowników
+  - name: Katalogi
+    description: Zarządzanie drzewem katalogów na koncie użytkownika
+  - name: Wpisy
+    description: Zarządzanie wpisami użytkowników
+  - name: Hasła
+    description: Funkcje związane z obsługą haseł
+
+paths:
+  /account:
+    post:
+      tags:
+        - Konta
+      summary: Utworzenie nowego konta użytkownika
+      description: Rejestracja w systemie nowego konta użytkownika poprzez podanie adresu mailowego, hasła oraz mechanizmu który zostanie wykorzystany do szyfrowania bazy danych (`aes-128`, `aes-192`, `aes-256`, `twofish-128`, `twofish-192`, `twofish-256`, `serpent-128`, `serpent-192`, `serpent-256`). Aby móc w pełni korzystać z konta należy potwierdzić adres email.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mail:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: securepassword
+                encryptionType:
+                  type: string
+                  example: aes-256
+        required: true
+      responses:
+        '201':
+          description: Konto utworzone
+        '400':
+          description: Nieprawidłowy adres email (`invalid_email`), hasło niespełniające zasad złożoności (`too_low_password_complexity`), zbyt długi ciąg tekstowy (`too_long_string`) lub nieznany algorytm szyfrujący (`unknown_encryption_type`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+                
+    put:
+      tags:
+        - Konta
+      summary: Modyfikacja konta użytkownika
+      description: Umożliwia zmianę adresu email lub hasła użytkownika. Po zmianie adresu email konieczna jest weryfikacja nowego przed dalszym korzystaniem z konta. Wszelkie zmiany wymagają podania obecnego hasła.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+                newMail:
+                  type: string
+                newPassword:
+                  type: string
+        required: true
+      responses:
+        '201':
+          description: Zmiany zapisane
+        '400':
+          description:
+            Nieprawidłowo wprowadzone dane. Możliwe ID błędów to `invalid_email`, `wrong_password`, `too_low_password_complexity`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+      - BearerAuth: []
+      
+    get:
+      tags:
+        - Konta
+      summary: Informacje o aktywnym koncie
+      description: Pobranie danych koncie na które użytkownik jest aktualnie zalogowany. Zwraca adres email, stosowany algorytm szyfrowania, informację czy ustawiona jest weryfikacja dwuskładnikowa, informację czy adres email jest potwierdzony, datę założenia konta, data ostatniej zmiany hasła, ilość wpisów, listę ostatnich poprawnych logowań oraz listę ostatnich nieudanych logowań
+      parameters:
+        - in: query
+          name: max_correct_logins
+          description: Maksymalna liczba zwracanych prób zalogowania się zakończonych sukcesem. Domyślnie `10`.
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: max_incorrect_logins
+          description: Maksymalna liczba zwracanych nieudanych prób zalogowania się. Domyślnie `10`.
+          schema:
+            type: integer
+          required: false
+      responses:
+        '200':
+          description: Pobrano dane o koncie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mail:
+                    type: string
+                    example: user@example.com
+                  encryptionType:
+                    type: string
+                    example: aes-256
+                  is2faActive:
+                    type: boolean
+                  isMailActive:
+                    type: boolean
+                  creationDate:
+                    type: integer
+                    example: 1681040805
+                  numberOfEntries:
+                    type: integer
+                  lastPasswordChange:
+                    type: integer
+                    example: 1681040805
+                  lastAccess:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        time:
+                          type: integer
+                          example: 1681044405
+                        ip:
+                          type: string
+                          example: 82.139.4.22
+                  lastLoginErrors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        time:
+                          type: integer
+                          example: 1681044345
+                        ip:
+                          type: string
+                          example: 82.139.4.22
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - BearerAuth: []
+
+  /account/verify-email:
+    post:
+      tags:
+        - Konta
+      summary: Generowanie kodu weryfikującego adres email
+      description: Po założeniu konta użytkownika konieczne jest zweryfikowanie konta aby móc z niego korzystać. Kod po wygenerowaniu umieszczany jest w odpowiednio przygotowanym linku a następnie wysyłany na adres email przypisany do konta. Bez zweryfikowania adresu email wszystkie zapytania z kategorii `Katalogi` oraz `Wpisy` zwrócą błąd `403 Forbidden`
+      responses:
+        '204':
+          description: Link weryfikacyjny wysłany na adres email
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Adres email już zweryfikowany
+      security:
+        - BearerAuth: []
+  
+  /account/2fa:
+    post:
+      tags:
+        - Konta
+      summary: Konfiguracja mechanizmu 2fa
+      description: Zapytanie umożliwia konfigurację mechanizmu 2fa. Jeśli 2fa jest już ustawione, należy najpierw wyłączyć aktywny mechanizm metodą `delete`.
+      responses:
+        '201':
+          description: Mechanizm 2fa został aktywowany
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secretCode:
+                    type: string
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Mechanizm 2fa jest już aktywny
+      security:
+        - BearerAuth: []
+        
+    delete:
+      tags:
+        - Konta
+      summary: Usuwanie mechanizmu 2fa
+      description: Zapytanie pozwala na deaktywację obecnego mechanizmu 2fa z konta
+      responses:
+        '204':
+          description: Mechanizm 2fa wyłączony
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - BearerAuth: []
+  
+  /account/delete:
+    post:
+      tags:
+        - Konta
+      summary: Utworzenie żądania usunięcia konta
+      description: Aby bezpowrotnie usunąć konto należy wysłać niniejsze zapytanie zawierające aktualne hasło. Serwer wyśle następnie link ważny 1h na adres mailowy przypisany do konta. Po kliknięciu w link konto zostanie usunięte. Jeśli adres mailowy nie został potwierdzony, konto usuwane jest od razu.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+        required: true
+      responses:
+        '204':
+          description: Żądanie zakceptowane
+        '400':
+          description: Błędne hasło. ID błędu `wrong_password`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - BearerAuth: []
+  
+  /account/token:
+    post:
+      tags:
+        - Konta
+      summary: Wygenerowanie nowego tokenu dostępowego
+      description: Zapytanie umożliwia przedłużenie ważności tokenu dostępowego, dopóki nie przekroczy on maksymalnego czasu ważności. Jeśli przedłużenie jest możliwe zwracany jest nowy token, a ten załączony do nagłówka zapytania jest unieważniany.
+      responses:
+        '201':
+          description: Wygenerowano nowy token dostępowy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Nie można wygenerować nowego tokenu - osiągnięto maksymalny dopuszczony czas aktywnej sesji
+      security:
+          - BearerAuth: []
+          
+    get:
+      tags:
+        - Konta
+      summary: Aktywne tokeny dostępowe
+      description: Zapytanie zwraca adresy IP mające w danej chwili dostęp do konta a także liczbę aktywnych tokenów dostępowych dla każdego z nich
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ip:
+                      type: string
+                      example: '83.140.2.33'
+                    activeTokens:
+                      type: integer
+                      example: 2
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+          - BearerAuth: []
+    
+    delete:
+      tags:
+        - Konta
+      summary: Usuwanie aktywnych tokenów dostępowych
+      description: Zapytanie unieważnia wszystkie aktywne tokeny dostępowe oprócz tego załączonego do nagłówka zapytania.
+      responses:
+        '204':
+          description: Tokeny zostały unieważnione
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+          - BearerAuth: []
+  
+  /login:
+    post:
+      tags:
+        - Konta
+      summary: Logowanie do konta użytkownika
+      description: Logowanie do konta użytkownika wymaga przesłania nazwy użytkownika oraz hasła. Po poprawnym zalogowaniu zostanie odesłany token dostępowy ważny maksymalnie 12 godzin. Zostanie również odesłana informacja czy jest wymagane logowanie dwuskładnikowe. Jeśli tak, należy dosłać kod 2fa osobnym zapytaniem.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mail:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: securepassword
+        required: true
+      responses:
+        '200':
+          description: Poprawnie zalogowano
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/AccessToken'
+                  - type: object
+                    properties:
+                      is2faRequired:
+                        type: boolean
+        '401':
+          description: Dane logowania są błędne
+        '403':
+          description: Odrzucone z powodu bezpieczeństwa
+    delete:
+      tags:
+        - Konta
+      summary: Wylogowanie się z konta użytkownika
+      description: Wylogowanie się z konta użytkownika jest równoznaczne z unieważnieniem tokenu dostępowego załączonego do nagłówka zapytania.
+      responses:
+        '204':
+          description: Poprawnie wylogowano
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - BearerAuth: []
+  
+  /login/2fa:
+    post:
+      tags:
+        - Konta
+      summary: Weryfikacja dwuskładnikowa podczas logowania się na konto
+      description: Zapytanie umożliwia dosłanie kodu 2fa w sytuacji kiedy jest on potrzebny aby uzyskać dostęp do konta.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                passcode:
+                  type: integer
+        required: true
+      responses:
+        '204':
+          description: Kod zaakceptowany
+        '401':
+          description: Podano błędny kod lub użytkownik nie jest zalogowany do systemu
+      security:
+        - BearerAuth: []
+        
+  /directory:
+    post:
+      tags:
+        - Katalogi
+      summary: Utworzenie nowego katalogu
+      description: Zapytanie umożliwia utworzenie nowego katalogu w wybranej lokalizacji. Zwraca ID utworzonego katalogu.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Directory'
+        required: true
+      responses:
+        '201':
+          description: Katalog utworzony
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+        '400':
+          description: Nie można utworzyć katalogu ponieważ nazwa katalogu zawiera niedozwolone znaki (`invalid_name`), nazwa jest zbyt długa (`too_long_string`), lub wskazany katalog już istnieje (`already_exists`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Tworzenie podkatalogów w wybranej lokalizacji zabronione (kosz)
+        '404':
+          description: Podano błędną ścieżkę dostępu
+      security:
+        - BearerAuth: []
+        
+    get:
+      tags:
+        - Katalogi
+      summary: Pobranie struktury katalogów użytkownika
+      description: Zapytanie zwraca listę katalogów w całej bazie użytkownika, lub w wybranym znajdującym się w niej katalogu.
+      parameters:
+        - in: query
+          name: parentID
+          description: Domyślnie zwracane są wszystkie katalogi w bazie, jednak można określić ID katalogu którego podkatalogi mają być zwrócone
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: recursive
+          description: Informacja czy listowanie ma być rekurencyjne. Domyślnie `true`.
+          schema:
+            type: boolean
+          required: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        id:
+                          type: integer
+                    - $ref: '#/components/schemas/Directory'
+        '404':
+          description: Nie znaleziono katalogu określonego w parametrze `parentID`
+      security:
+          - BearerAuth: []
+  
+  /directory/{id}:
+    get:
+      tags:
+        - Katalogi
+      summary: Pobranie danych katalogu
+      description: Zwraca nazwę katalogu oraz ID jego rodzica
+      parameters:
+        - $ref: '#/components/parameters/DirectoryID'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Directory'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Katalog specjalny
+        '404':
+          description: Nie znaleziono katalogu
+      security:
+        - BearerAuth: []
+    
+    put:
+      tags:
+        - Katalogi
+      summary: Zmiana nazwy lub lokalizacji katalogu
+      description: Zapytanie umożliwia przenoszenie katalogu i zapisywanie go w dowolnej lokalizacji pod starą bądź nową nazwą
+      parameters:
+        - $ref: '#/components/parameters/DirectoryID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Directory'
+        required: true
+      responses:
+        '204':
+          description: Katalog przeniesiony
+        '403':
+          description: Wskazano katalog który nie może być przedmiotem niniejszesgo zapytania
+        '400':
+          description: Nie można przenieść katalogu ponieważ nazwa katalogu zawiera niedozwolone znaki (`invalid_name`), nazwa jest zbyt długa (`too_long_string`), lub wskazany katalog docelowy już istnieje (`already_exists`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          description: Nie znaleziono katalogu
+      security:
+        - BearerAuth: []
+        
+    delete:
+      tags:
+        - Katalogi
+      summary: Usuwanie katalogu
+      description: Zapytanie umożliwia usunięcie dowolnego katalogu w wybranej lokalizacji. Katalog taki zostanie przeniesiony do kosza.
+      parameters:
+      - $ref: '#/components/parameters/DirectoryID'
+      responses:
+        '204':
+          description: Katalog pomyślnie usunięty
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Usuwanie wskazanego katalogu jest zabronione (katalog specjalny lub katalog znajdujący się już w koszu)
+        '404':
+          description: Nie znaleziono katalogu
+      security:
+        - BearerAuth: []
+
+  /directory/special:
+    get:
+      tags:
+        - Katalogi
+      summary: ID katalogów specjalnych
+      description: Zapytanie zwraca id katalogów specjalnych
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  root:
+                    type: integer
+                  trash:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - BearerAuth: []
+  
+  /entry:
+    post:
+      tags:
+        - Wpisy
+      summary: Utworzenie nowego wpisu
+      description: Tworzy wpis we wskazanym katalogu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Entry'
+      responses:
+        '201':
+          description: Wpis utworzony, zwraca ID wpisu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+        '400':
+          description: Wpis nie został utworzony. Możliwe błędy to nieprawidłowa nazwa wpisu (`invalid_name`), zbyt długi ciąg tekstowy (`too_long_string`), lub wpis o zadanej nazwie już istnieje (`already_exists`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Zabroniona lokalizacja
+        '404':
+          description: Nie znaleziono katalogu
+      security:
+          - BearerAuth: []
+    
+    get:
+      tags:
+        - Wpisy
+      summary: Pobranie listy wpisów według zadanych kryteriów
+      description: Zapytanie umożliwia pobranie listy wpisów z bazy danych użytkownika. Umożliwia sprecyzowanie katalogu oraz kryteriów jakie muszą spełniać zwracane wpisy. Informacje o wpisach które mają być zwrócone oprócz ID możliwe są do określenia w parametrze `include`.
+      parameters:
+        - in: query
+          name: include
+          description: Dane wpisów jakie mają być pobrane oprócz ID, oddzielone znakiem plus (`+`). Dostępne są ID katalogu (`directoryID`), nazwa wpisu (`entryName`), nazwa użytkownika (`username`), hasło (`password`), notatka (`note`), czas życia hasła wyrażony w dniach (`lifetime`), powiązane z wpisem okna (`relatedWindows`), oraz lista parametrów wpisu (`parameters`).
+          required: false
+          schema:
+            type: string
+            example: entryName+directoryID+relatedWindows
+        - in: query
+          name: directoryID
+          description: Domyślnie zwracane są wpisy z całej bazy danych użytkownika, aby zwrócić wpisy z konkretnego katalogu należy podać ID katalogu
+          required: false
+          schema:
+            type: boolean
+        - in: query
+          name: recursive
+          description: Informacja czy należy szukać wpisów również w podkatalogach, domyślnie `true`
+          required: false
+          schema:
+            type: boolean
+        - in: query
+          name: name
+          description: Nazwa wpisu, wyrażenie regularne
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: username
+          description: Nazwa użytkownika we wpisie, wyrażenie regularne
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: password
+          description: Hasło we wpisie, wyrażenie regularne
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: notes
+          description: Notatki załączone do wpisu, wyrażenie regularne
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: lifetime
+          description: Liczba dni pozostała do zmiany hasła, zwracane są wartości mniejsze lub równe
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: related-windows
+          description: Nazwa okna powiązana z wpisem, wyrażenie regularne
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: parameters-names
+          description: Nazwa parametru przypisanego do wpisu, wyrażenie regularne
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: parameters-values
+          description: Wartość parametru przypisanego do wpisu, wyrażenie regularne
+          schema:
+            type: string
+          required: false
+      responses:
+        '200':
+          description: Zwracana jest lista wpisów z opisanym ID wpisu oraz każdym polem wybranym w parametrze `include`
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        entryID:
+                          type: integer
+                    - $ref: '#/components/schemas/Entry'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          description: Nie znaleziono katalogu określonego w parametrze `directoryID`
+      security:
+          - BearerAuth: []
+                    
+  /entry/{id}:
+    get:
+      tags:
+        - Wpisy
+      summary: Pobranie danych wpisu
+      description: Pobranie wszystkich danych związanych z zawartością wpisu
+      parameters:
+        - $ref: '#/components/parameters/EntryID'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          description: Nie znaleziono wpisu
+      security:
+        - BearerAuth: []
+    
+    put:
+      tags:
+        - Wpisy
+      summary: Edycja wpisu
+      description: Nadpisanie wpisu nowymi danymi
+      parameters:
+        - $ref: '#/components/parameters/EntryID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Entry'
+        required: true
+      responses:
+        '204':
+          description: Zmiany zapisane
+        '400':
+          description: Wpis nie został zaktualizowany. Możliwe błędy to nieprawidłowa nazwa wpisu (`invalid_name`), zbyt długi ciąg tekstowy (`too_long_string`), lub wpis o zadanej nazwie już istnieje (`already_exists`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          description: Nie znaleziono wpisu
+      security:
+        - BearerAuth: []
+    
+    delete:
+      tags:
+        - Wpisy
+      summary: Usuwanie wpisu
+      description: Usunięcie wpisu oznacza przeniesienie go do kosza
+      parameters:
+        - $ref: '#/components/parameters/EntryID'
+      responses:
+        '204':
+          description: Wpis został usunięty
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Wpis nie może zostać usunięty ponieważ znajduje się już w koszu.
+        '404':
+          description: Nie znaleziono wpisu
+      security:
+        - BearerAuth: []
+          
+  /entry/{id}/stats:
+    get:
+      tags:
+        - Wpisy
+      summary: Statystyki wpisu
+      description: Zapytanie zwraca datę utworzenia wpisu, datę ostatniej zmiany hasła we wpisie, oraz max 5 ostatnich haseł
+      parameters:
+        - $ref: '#/components/parameters/EntryID'
+        - in: query
+          name: oldPasswordsLimit
+          description: Limit starych haseł jaki zostanie zwrócony. Domyślnie `5`
+          schema:
+            type: integer
+            example: 10
+          required: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  creationDate:
+                    type: integer
+                  lastPassChange:
+                    type: integer
+                  oldPasswords:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        chDate:
+                          type: integer
+                        password:
+                          type: string
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          description: Nie znaleziono wpisu
+      security:
+        - BearerAuth: []
+  
+  /check-password-strength:
+    post:
+      tags:
+        - Hasła
+      summary: Wygenerowanie wskaźnika siły hasła
+      description: Weryfikacja siły hasła pod kątem występowania w przeszłych wyciekach danych. Po przesłaniu hasła serwer odpowiada czy kiedyś ono wyciekło czy nie.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  strong:
+                    type: boolean
+  
+  /weak-passwords:
+    get:
+      tags:
+        - Hasła
+      summary: pobranie listy słabych haseł z bazy
+      description: Zapytanie zwraca listę id wpisów ze słabym hasłem znalezionych w bazie.
+      responses:
+        '200':
+          description: Zwrócona zostaje lista z ID wpisów zawierających słabe hasło
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+        '202':
+          description: Zapytanie przyjęte do realizacji. Należy ponowić je za jakiś czas aby otrzymać wynik.
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - BearerAuth: []     
+      
+components:
+  schemas:
+    Directory:
+      type: object
+      properties:
+        name:
+          type: string
+        parentID:
+          type: integer
+          
+    Entry:
+      type: object
+      properties:
+        directoryID:
+          type: integer
+        entryName:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        note:
+          type: string
+        lifetime:
+          type: integer
+        relatedWindows:
+          type: array
+          items:
+            type: string
+        parameters:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              value:
+                type: string
+    
+    AccessToken:
+      type: object
+      properties:
+        token:
+          type: string
+        expiration:
+          type: number
+          example: 1694256060
+                
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              errorID:
+                type: string
+              description:
+                type: string
+  
+  parameters:
+    DirectoryID:
+      in: path
+      name: id
+      description: ID katalogu będącego przedmiotem zapytania
+      schema:
+        type: integer
+      required: true
+      
+    EntryID:
+      in: path
+      name: id
+      description: ID wpisu będącego przedmiotem zapytania
+      schema:
+        type: integer
+      required: true
+  
+  responses:
+    401Unauthorized:
+      description: Dostęp do zasobu wymaga autoryzacji
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
