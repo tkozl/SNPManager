@@ -15,7 +15,8 @@ class SNPMServer(Flask):
             'server': getenv('SQL_SERVER'),
             'database': getenv('SQL_SERVER_DATABASE'),
             'username': getenv('SQL_SERVER_USERNAME'),
-            'password': getenv('SQL_SERVER_PASS')
+            'password': getenv('SQL_SERVER_PASS'),
+            'sql_driver': getenv('SQL_DRIVER')
         }
         self.__sql = SNPMSqlServer(**sql_access)
     

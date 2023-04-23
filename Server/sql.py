@@ -4,35 +4,20 @@ import pyodbc
 
 class SNPMSqlServer:
     
-    def __init__(self, server :str, database :str, username :str, password :str) -> None:
+    def __init__(self, server :str, database :str, username :str, password :str, sql_driver :str) -> None:
         self.__server = server
         self.__database = database
         self.__username = username
         self.__password = password
+        self.__sql_driver = sql_driver
         self.__cnxn = None
         self.connect()
     
     def __quit__(self) -> None:
        self.disconnect()
     
-    @property
-    def server(self) -> str:
-        return self.__server
-    
-    @property
-    def database(self) -> str:
-        return self.__database
-    
-    @property
-    def username(self) -> str:
-        return self.__username
-    
-    @property
-    def password(self) -> str:
-        return self.__password
-    
     def connect(self) -> None:
-        self.__cnxn = pyodbc.connect('DRIVER={SQL Server};SERVER='+self.server+';DATABASE='+self.database+';UID='+self.username+';PWD='+self.password)
+        self.__cnxn = pyodbc.connect('DRIVER={'+self.__sql_driver+'};SERVER='+self.__server+';DATABASE='+self.__database+';UID='+self.__username+';PWD='+self.__password)
     
     def disconnect(self) -> None:
         if self.__cnxn != None:
