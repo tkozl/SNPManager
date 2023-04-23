@@ -22,6 +22,9 @@ info:
   
   version: 1.0.0
 
+servers:
+  - url: https://20.243.253.150/
+
 tags:
   - name: Konta
     description: Obsługa mechanizmów uwierzytelniania oraz zarządzania kontami użytkowników
