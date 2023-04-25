@@ -17,7 +17,7 @@ class SNPMSqlServer:
        self.disconnect()
     
     def connect(self) -> None:
-        self.__cnxn = pyodbc.connect('DRIVER={'+self.__sql_driver+'};SERVER='+self.__server+';DATABASE='+self.__database+';UID='+self.__username+';PWD='+self.__password+';sslverify=0')
+        self.__cnxn = pyodbc.connect('DRIVER={'+self.__sql_driver+'};SERVER='+self.__server+';DATABASE='+self.__database+';UID='+self.__username+';PWD='+self.__password+';TrustServerCertificate=yes')
     
     def disconnect(self) -> None:
         if self.__cnxn != None:
