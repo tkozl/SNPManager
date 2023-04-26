@@ -52,8 +52,13 @@ class SNPMServer(Flask):
             'username': getenv('MAIL_USERNAME'),
             'password': getenv('MAIL_PASSWORD')
         }
+        trust_server_cert = getenv('SQL_TRUST_SERVER_CERTIFICATE')
+        if trust_server_cert == '1':
+            trust_server_cert = True
+        else:
+            trust_server_cert = False
         self.__secret_key = getenv('SERVER_SECRET_KEY')
-        self.__sql = SNPMSqlServer(**sql_access)
+        self.__sql = SNPMSqlServer(**sql_access, trust_server_certificate=trust_server_cert)
         self.__mail = Mail(**mail_access)
         self.__api = Api(self)
     
