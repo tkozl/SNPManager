@@ -22,7 +22,6 @@ class Mail:
         else:
             message.attach(MIMEText(content, 'plain'))
         
-        
         message['Subject'] = subject
         message['From'] = formataddr((sender_name, self.__username))
         message['To'] = receiver

@@ -1,7 +1,0 @@
-Flask==2.2.3
-flask-restx==1.1.0
-python-dotenv==1.0.0
-pyodbc==4.0.39
-html2text==2020.1.16
-pyjwt==2.6.0
-cryptography==36.0.2
