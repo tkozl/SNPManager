@@ -20,4 +20,11 @@ from src.models.related_windows import RelatedWindow
 from src.models.special_directories import SpecialDir
 
 # Load database views
-from src.models.entry_current_password_view import CurrentPasswordView
+from src.models.view_entry_current_password import CurrentPasswordView
+from src.models.view_entry_old_passwords import EntryOldPasswordView
+from src.models.view_incorrect_logins_24h import UserIncorrectLogins24hView
+from src.models.view_last_incorrect_logins import UserLastIncorrectLoginView
+from src.models.view_locked_users import LockedUserView
+from src.models.view_unlocked_users import UnlockedUserView
+from src.models.view_users_directories import UserDirectoryView
+from src.models.view_users_entries import UserEntryView
