@@ -1,4 +1,5 @@
 import pytest
+from config import Config
 
 
 def pytest_addoption(parser):
