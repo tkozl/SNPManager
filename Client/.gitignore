@@ -11,6 +11,7 @@
 *.sln.docstates
 *.exe
 *.dll
+*.vsidx
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
