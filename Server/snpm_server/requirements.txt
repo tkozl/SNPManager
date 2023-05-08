@@ -8,3 +8,4 @@ flask-sqlalchemy==3.0.3
 flask-swagger-ui==4.11.1
 pytest==7.3.1
 requests==2.27.1
+uwsgi==2.0.21
