@@ -24,7 +24,7 @@ def generate_token(user_id :int, user_ip :str, user_mail :str, user_password :st
         algorithm_id (int): id of user cryptographic algorithm (from CryptoDB class)
         lifetime (int): token lifetime in seconds (defaul: 300)
     Return:
-        Access JWE token encrypted with base64 (str)
+        Access JWE token encoded with base64 (str)
     """
 
     # Loading key from server secret key
