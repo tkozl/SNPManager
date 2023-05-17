@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SNPM.Core
 {
-    internal class PlaceholderServerConnection : IServerConnection
+    internal class PlaceholderServerConnection
     {
         public string servAddr { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }

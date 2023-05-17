@@ -59,5 +59,14 @@ namespace SNPM.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        /// Wyszukuje zlokalizowany ciąg podobny do ciągu .
+        /// </summary>
+        internal static string j {
+            get {
+                return ResourceManager.GetString("j", resourceCulture);
+            }
+        }
     }
 }

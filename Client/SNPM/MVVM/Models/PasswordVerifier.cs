@@ -1,4 +1,5 @@
-﻿using SNPM.Core.Interfaces;
+﻿using SNPM.Core;
+using SNPM.Core.Interfaces;
 using System;
 using System.Threading.Tasks;
 
@@ -22,7 +23,7 @@ namespace SNPM.MVVM.Models
 
     internal class PasswordVerifier : IPasswordVerifier
     {
-        public delegate bool RemoteDictionaryVerifier(string passwordHash);
+        //public delegate bool RemoteDictionaryVerifier(string passwordHash);
         
         private static readonly CharacterGroup DefaultGroups = 
             CharacterGroup.Lowercase | 
@@ -30,14 +31,17 @@ namespace SNPM.MVVM.Models
             CharacterGroup.Numeric | 
             CharacterGroup.Special;
 
-        private RemoteDictionaryVerifier RemoteVerifier;
+        private Func<string, Task<bool>> RemoteVerifier;
         private HashType RemoteHashType;
+        private IPasswordPolicy PasswordPolicy;
         
 
-        public PasswordVerifier(RemoteDictionaryVerifier verifier, HashType hashType)
+        public PasswordVerifier(Func<string, Task<bool>> verifier, HashType hashType)
         {
             RemoteVerifier = verifier;
             RemoteHashType = hashType;
+
+            PasswordPolicy = new PasswordPolicy(10, true);
         }
 
         public async Task<PasswordQuality> VerifyPassword(string password)
@@ -45,7 +49,7 @@ namespace SNPM.MVVM.Models
             var dictionaryVerificationTask = VerifyDictionary(password);
 
             var lengthVerification = VerifyLength(password);
-            var groupVerification = VerifyWordGroups(password, null);
+            var groupVerification = VerifyWordGroups(password);
 
             var dictionaryVerification = await dictionaryVerificationTask;
 
@@ -56,15 +60,12 @@ namespace SNPM.MVVM.Models
 
         private bool VerifyLength(string password)
         {
-            return false;
+            return password.Length >= PasswordPolicy.Length;
         }
 
-        private bool VerifyWordGroups(string password, CharacterGroup? requiredGroups)
+        private bool VerifyWordGroups(string password)
         {
-            if (requiredGroups == null)
-            {
-                requiredGroups = DefaultGroups;
-            }
+            //if (PasswordPolicy.PasswordQuality.HasFlag())
 
             return false;
         }
