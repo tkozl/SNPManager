@@ -11,7 +11,7 @@ class RelatedWindow(db.Model, SNPMDB):
     entry_id = db.Column(db.Integer, db.ForeignKey('entries.entry_id'), nullable=False)
     __name = db.Column('window_name', db.LargeBinary, nullable=False)
     deleted_at = db.Column(db.DateTime, nullable=True)
-    deleted_by = db.Column(db.String, nullable=True)
+    __deleted_by = db.Column(db.String, nullable=True)
 
     @property
     def name(self) -> str:
@@ -20,3 +20,11 @@ class RelatedWindow(db.Model, SNPMDB):
     @name.setter
     def name(self, name :str) -> None:
         self.__name = self.crypto.encrypt(name)
+
+    @property
+    def deleted_by(self) -> str:
+        return self.crypto.decrypt(self.__deleted_by)
+    
+    @deleted_by.setter
+    def deleted_by(self, deleted_by :str) -> None:
+        self.__deleted_by = self.crypto.encrypt(deleted_by)
