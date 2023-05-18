@@ -1,45 +1,64 @@
 from flask import request, abort
 from functools import wraps
-import jwt
-from time import time
+from jwcrypto import jwk, jwe
 
 from src.schemas import ErrorRsp
+from src.models.users import User
+from src.models.view_locked_users import LockedUserView
+from src.utils.db import CryptoDB
+from src.utils.token import AccessToken, IncorrectTokenError
 from config import Config
 
 
 
-def generate_token(user_id :int, password :str, lifetime :int=300) -> str:
-    token = jwt.encode({
-            'user_id': user_id,
-            'expiration': int(time() + lifetime),
-            'user_secret': password
-        },
-        Config.SECRET_KEY,
-        algorithm="HS512"
-    )
-    return token
-
-
 def token_required(f):
+    """
+    Decorator indicating that a given endpoint requires tokenization.
+    Sends a 401 message with an error description to the remote host if something is wrong with the attached token or if token is missing.
+    Return:
+        user (src.models.User), token (AccessToken)
+    """
+
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
+        errors = ErrorRsp()
+        # Getting token from request header
         if "Authorization" in request.headers:
-            token = request.headers["Authorization"].split(" ")[1]
-
-        if not token:
-            errors = ErrorRsp()
+            try:
+                tokenb64 = request.headers["Authorization"].split(" ")[1]
+            except IndexError:
+                tokenb64 = ''
+            token = AccessToken()
+            try:
+                token.import_token(tokenb64)
+            except IncorrectTokenError:
+                errors.add(ErrorRsp.INVALID_TOKEN)
+                return errors.json, 401
+        else:
+            # Token is missing
             errors.add(ErrorRsp.TOKEN_REQUIRED)
             return errors.json, 401
         try:
-            data=jwt.decode(token, Config.SECRET_KEY, algorithms=["HS512"])
-            current_user_id, current_user_secret, token_expiration = data.get('user_id', None), data.get('user_secret', ''), data.get('expiration', 0)
-            if current_user_id is None or int(token_expiration) <= time():
-                errors = ErrorRsp()
+            # Validating token lifetime and user ip address
+            if token.user_id is None or not token.is_valid or request.remote_addr != token.user_ip:
                 errors.add(ErrorRsp.INVALID_TOKEN)
                 return errors.json, 401
+
+            # Getting user model from database
+            user = User.query.filter_by(id=token.user_id).first()
+            user.crypto = CryptoDB(token.algorithm_id)
+            user.crypto.generate_key(token.user_password, token.user_email)
+
+            # Checking if account isn't locked
+            if user.is_locked:
+                errors.add(ErrorRsp.INVALID_TOKEN)
+                return errors.json, 401
+
         except Exception as e:
+            # Unknown error
             abort(500)
 
-        return f(current_user_id, current_user_secret, *args, **kwargs)
+        # Token has been verified
+        return f(user, token, *args, **kwargs)
     return decorated

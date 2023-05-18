@@ -1,6 +1,8 @@
 from src.utils.db import SNPMDB, CryptoDB
 from src.models import db
 
+from src.models.view_locked_users import LockedUserView
+
 
 
 class User(db.Model, SNPMDB):
@@ -20,8 +22,17 @@ class User(db.Model, SNPMDB):
     user_del_token = db.Column(db.String, nullable=True)
     user_del_token_exp = db.Column(db.DateTime, nullable=True)
 
-    def __init__(self, email :str, crypto :CryptoDB) -> None:
+    def __init__(self, email :str, password :str, ) -> None:
         pass
 
     def __repr__(self):
         return f'<User {self.id}>'
+
+    @property
+    def is_locked(self) -> bool:
+        """Is user locked (bool)"""
+        locked = LockedUserView.query.filter_by(id=self.user_id).first()
+        if locked == None:
+            return False
+        else:
+            return True
