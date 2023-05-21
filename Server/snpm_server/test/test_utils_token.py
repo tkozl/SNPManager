@@ -12,7 +12,7 @@ def test_access_token():
         user_id=1,
         user_ip='82.4.2.66',
         user_email='test@example.com',
-        user_password='password',
+        user_password='🏳️‍🌈 password 🔥\n',
         algorithm_id=1,
         lifetime=300,
         total_lifetime=700
@@ -34,7 +34,7 @@ def test_access_token():
     assert token2.user_id == 1
     assert token2.user_ip == '82.4.2.66'
     assert token2.user_email == 'test@example.com'
-    assert token2.user_password == 'password'
+    assert token2.user_password == '🏳️‍🌈 password 🔥\n'
     assert token2.algorithm_id == 1
     
     # Testing renew
