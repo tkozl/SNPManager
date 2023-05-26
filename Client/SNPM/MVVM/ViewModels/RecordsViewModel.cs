@@ -1,4 +1,5 @@
 ﻿using SNPM.Core;
+using SNPM.MVVM.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.Windows.Input;

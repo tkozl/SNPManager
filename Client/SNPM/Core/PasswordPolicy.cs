@@ -4,7 +4,7 @@ using System;
 
 namespace SNPM.Core
 {
-    internal class PasswordPolicy : IPasswordPolicy
+    public class PasswordPolicy : IPasswordPolicy
     {
         public PasswordPolicy(int Length, bool ShouldBeRemotelyVerified) : this(Length, ShouldBeRemotelyVerified, MaximumQuality, AllCharacterGroups) { }
 

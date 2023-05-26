@@ -7,13 +7,13 @@ namespace SNPM.Core.Interfaces
     public enum PasswordQuality
     {
         None = 0,
-        InvalidLength,
-        NotEnoughWordGroups, // Uppercase, lowercase etc
-        DictionaryFailed, // Checked remotely
-        ContainsCommonWord // Password contains username, service name etc
+        InvalidLength = 1,
+        NotEnoughWordGroups = 2, // Uppercase, lowercase etc
+        DictionaryFailed = 4, // Checked remotely
+        ContainsCommonWord = 8 // Password contains username, service name etc
     }
 
-    internal interface IPasswordPolicy
+    public interface IPasswordPolicy
     {
 
         public int Length { get; }

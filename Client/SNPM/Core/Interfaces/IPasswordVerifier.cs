@@ -3,8 +3,10 @@ using System.Threading.Tasks;
 
 namespace SNPM.Core.Interfaces
 {
-    internal interface IPasswordVerifier
+    public interface IPasswordVerifier
     {
         public Task<PasswordQuality> VerifyPassword(string password);
+
+        public IPasswordPolicy PasswordPolicy { get; set; }
     }
 }

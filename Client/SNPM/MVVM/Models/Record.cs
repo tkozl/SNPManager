@@ -1,11 +1,12 @@
-﻿using SNPM.Core.Interfaces;
+﻿using SNPM.Core;
+using SNPM.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SNPM.Core
+namespace SNPM.MVVM.Models
 {
     public class Record : ObservableObject, IRecord
     {
@@ -49,8 +50,6 @@ namespace SNPM.Core
             set { _lastAccess = value; }
         }
 
-
-
         public Record(
             string name,
             string location,
@@ -58,11 +57,11 @@ namespace SNPM.Core
             string comment
         )
         {
-            this.Name = name;
-            this.Location = location;
-            this.Username = username;
-            this.Comment = comment;
-            this.LastAccess = DateTime.Now;
+            Name = name;
+            Location = location;
+            Username = username;
+            Comment = comment;
+            LastAccess = DateTime.Now;
         }
     }
 }
