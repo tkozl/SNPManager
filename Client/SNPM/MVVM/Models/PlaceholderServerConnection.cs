@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SNPM.Core
+namespace SNPM.MVVM.Models
 {
     internal class PlaceholderServerConnection
     {

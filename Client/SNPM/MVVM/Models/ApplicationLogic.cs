@@ -1,5 +1,7 @@
 ﻿using SNPM.Core;
+using SNPM.Core.Api;
 using SNPM.Core.Interfaces;
+using SNPM.Core.Interfaces.Api;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +15,15 @@ namespace SNPM.MVVM.Models
     {
         private Window MainView;
 
-        private IServerConnection serverConnection;
+        private IApiService ApiService;
+        private IPasswordVerifier PasswordVerifierService;
         public ApplicationLogic()
         {
             MainView = new Views.MainView();
 
-            serverConnection = new ServerConnection();
+            ApiService = new PlaceholderApiService();
+
+            PasswordVerifierService = new PasswordVerifier(ApiService.GetRemoteVerifier(), HashType.SHA256);
         }
 
         public void Initialize()
@@ -28,7 +33,6 @@ namespace SNPM.MVVM.Models
                 
             });
             loginView.Show();
-
         }
     }
 }

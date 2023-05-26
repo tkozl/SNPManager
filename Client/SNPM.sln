@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SNPM", "SNPM\SNPM.csproj", "{D188F424-83B2-4B74-B081-0AFD77435F44}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SNPM", "SNPM\SNPM.csproj", "{D188F424-83B2-4B74-B081-0AFD77435F44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SNPM.Tests", "SNPM.Tests\SNPM.Tests.csproj", "{169C13C9-D68B-4A92-BCFA-1FB9A5671795}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{D188F424-83B2-4B74-B081-0AFD77435F44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D188F424-83B2-4B74-B081-0AFD77435F44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D188F424-83B2-4B74-B081-0AFD77435F44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{169C13C9-D68B-4A92-BCFA-1FB9A5671795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{169C13C9-D68B-4A92-BCFA-1FB9A5671795}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{169C13C9-D68B-4A92-BCFA-1FB9A5671795}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{169C13C9-D68B-4A92-BCFA-1FB9A5671795}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
