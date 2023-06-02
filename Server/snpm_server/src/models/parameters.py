@@ -12,7 +12,7 @@ class EntryParameter(db.Model, SNPMDB):
     __name = db.Column('parameter_name', db.LargeBinary, nullable=False)
     __value = db.Column('parameter_value', db.LargeBinary, nullable=False)
     deleted_at = db.Column(db.DateTime, nullable=True)
-    __deleted_by = db.Column(db.String, nullable=True)
+    __deleted_by = db.Column('deleted_by', db.LargeBinary, nullable=True)
 
     @property
     def name(self) -> str:

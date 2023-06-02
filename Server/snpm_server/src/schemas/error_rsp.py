@@ -24,3 +24,7 @@ class ErrorRsp:
     @property
     def json(self) -> dict:
         return self.__errors
+
+    @property
+    def quantity(self) -> int:
+        return len(self.__errors['errors'])

@@ -19,3 +19,6 @@ class Config:
     MAIL_PORT = getenv('MAIL_PORT')
     MAIL_USERNAME = getenv('MAIL_USERNAME')
     MAIL_PASSWORD = getenv('MAIL_PASSWORD')
+
+    MAX_PASSWORD_LEN = 128
+    MAX_EMAIL_LEN = 128

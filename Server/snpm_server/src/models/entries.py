@@ -12,10 +12,10 @@ class Entry(db.Model, SNPMDB):
     __name = db.Column('entry_name', db.LargeBinary, nullable=False)
     __username = db.Column('username', db.LargeBinary, nullable=False)
     __note = db.Column('note', db.LargeBinary, nullable=False)
-    __created_at = db.Column(db.DateTime, nullable=False)
-    __pass_lifetime = db.Column(db.Integer, nullable=False)
+    __created_at = db.Column('created_at', db.LargeBinary, nullable=False)
+    __pass_lifetime = db.Column('pass_lifetime', db.LargeBinary, nullable=False)
     deleted_at = db.Column(db.DateTime, nullable=True)
-    __deleted_by = db.Column(db.String, nullable=True)
+    __deleted_by = db.Column('deleted_by', db.LargeBinary, nullable=True)
 
     @property
     def name(self) -> str:

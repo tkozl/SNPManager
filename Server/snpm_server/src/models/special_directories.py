@@ -10,3 +10,7 @@ class SpecialDir(db.Model, SNPMDB):
     id = db.Column('special_directory_id', db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     special_directory_type_id = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, user_id :int, special_directory_type_id :int) -> None:
+        self.special_directory_type_id = special_directory_type_id
+        self.user_id = user_id
