@@ -117,7 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="j" xml:space="preserve">
-    <value />
+  <data name="NightMode" xml:space="preserve">
+    <value>Night Mode</value>
+  </data>
+  <data name="TextSize" xml:space="preserve">
+    <value>Text Size</value>
+  </data>
+  <data name="UserPreferencesTitle" xml:space="preserve">
+    <value>User Preferences</value>
   </data>
 </root>

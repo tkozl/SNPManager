@@ -1,4 +1,6 @@
-﻿using System;
+﻿using SNPM.MVVM.ViewModels;
+using SNPM.MVVM.Views.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,11 +16,19 @@ using System.Windows.Shapes;
 
 namespace SNPM.MVVM.Views
 {
-    public partial class MainView : Window
+    public partial class MainView : Window, IMainView
     {
         public MainView()
         {
             InitializeComponent();
+            var viewModel = new MainViewModel();
+            this.DataContext = viewModel;
+            this.Closing += OnWindowClosing;
+        }
+
+        private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            System.Windows.Application.Current.Shutdown();
         }
     }
 }

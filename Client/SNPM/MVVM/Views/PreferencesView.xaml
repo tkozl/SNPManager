@@ -1,0 +1,39 @@
+﻿<Window x:Class="SNPM.MVVM.Views.PreferencesView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SNPM.MVVM.Views"
+        xmlns:viewModel="clr-namespace:SNPM.MVVM.ViewModels"
+        xmlns:types="clr-namespace:SNPM.Core.Options"
+        Title="{Binding Title}" Height="750" Width="1200"
+        mc:Ignorable="d">
+    <Window.Resources>
+        <Style TargetType="StackPanel" >
+            <Setter Property="Orientation" Value="Vertical" />
+            <Setter Property="Margin" Value="200" />
+        </Style>
+        
+    </Window.Resources>
+    
+    <ScrollViewer>
+        <ItemsControl 
+            ItemsSource="{Binding Options}">
+            <ItemsControl.Resources>
+                <DataTemplate DataType="{x:Type types:TextBoxOption}">
+                    <StackPanel Margin="200">
+                        <TextBlock Text="{Binding Name}" />
+                        <TextBox Text="{Binding Value, Mode=TwoWay}" />
+                    </StackPanel>
+                </DataTemplate>
+
+                <DataTemplate DataType="{x:Type types:CheckBoxOption}">
+                    <StackPanel Margin="200">
+                        <TextBlock Text="{Binding Name}" />
+                        <CheckBox />
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.Resources>
+        </ItemsControl>
+    </ScrollViewer>
+</Window>

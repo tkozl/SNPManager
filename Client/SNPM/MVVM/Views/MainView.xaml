@@ -12,6 +12,12 @@
         <viewModel:MainViewModel/>
     </Window.DataContext>
 
+    <Window.Resources>
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="Black"/>
+        </Style>
+    </Window.Resources>
+
     <Grid TextElement.Foreground="Black">
         <Grid.RowDefinitions>
             <RowDefinition Height="4*"/>
@@ -36,9 +42,14 @@
                 <MenuItem Header="_New Entry"/>
                 <MenuItem Header="_addsd"/>
             </MenuItem>
+            
             <MenuItem Header="_Find">
                 <MenuItem Header="_asd"/>
                 <MenuItem Header="_addsd"/>
+            </MenuItem>
+
+            <MenuItem Header="_Options">
+                <MenuItem Header="_User Preferences" Command="{Binding PreferencesCommand}"/>
             </MenuItem>
         </Menu>
 

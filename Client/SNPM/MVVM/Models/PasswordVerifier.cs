@@ -1,5 +1,6 @@
 ﻿using SNPM.Core;
 using SNPM.Core.Interfaces;
+using SNPM.Core.Interfaces.Api;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -25,7 +26,9 @@ namespace SNPM.MVVM.Models
     }
 
     public class PasswordVerifier : IPasswordVerifier
-    {   
+    {
+        public static HashType HashType;
+
         private static readonly CharacterGroup DefaultGroups = 
             CharacterGroup.Lowercase | 
             CharacterGroup.Uppercase | 
@@ -45,10 +48,10 @@ namespace SNPM.MVVM.Models
            {CharacterGroup.Special, new Regex(@"[^a-zA-Z0-9]") } // TODO: (Przemek) Make a switch in preferences to allow whitespaces in passwords.
         };
 
-      public PasswordVerifier(Func<string, Task<bool>> verifier, HashType hashType)
+      public PasswordVerifier(IApiService ApiService)
         {
-            RemoteVerifier = verifier;
-            RemoteHashType = hashType;
+            RemoteVerifier = ApiService.GetRemoteVerifier();
+            RemoteHashType = PasswordVerifier.HashType; // TODO: (Przemek) We should load it from user preferences
 
             PasswordPolicy = new PasswordPolicy(10, true);
         }

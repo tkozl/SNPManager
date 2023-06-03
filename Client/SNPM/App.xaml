@@ -2,9 +2,11 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:SNPM"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:viewModel="clr-namespace:SNPM.MVVM.ViewModels"
              xmlns:view="clr-namespace:SNPM.MVVM.Views"
-             ShutdownMode="OnLastWindowClose">
+             ShutdownMode="OnLastWindowClose"
+             Exit="Application_Exit">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -14,9 +16,24 @@
             <DataTemplate DataType="{x:Type viewModel:MainViewModel}">
                 <view:MainView/>
             </DataTemplate>
+            
             <DataTemplate DataType="{x:Type viewModel:RecordsViewModel}">
                 <view:RecordsView/>
             </DataTemplate>
+
+            <sys:Double x:Key="TextSize">14</sys:Double>
+
+            <Style TargetType="{x:Type Control}" x:Key="BaseTextStyle">
+                <Setter Property="FontSize" Value="{DynamicResource TextSize}" />
+            </Style>
+
+            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource BaseTextStyle}" />
+            <Style TargetType="{x:Type Label}" BasedOn="{StaticResource BaseTextStyle}" />
+            <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseTextStyle}" />
+            <Style TargetType="{x:Type ListView}" BasedOn="{StaticResource BaseTextStyle}" />
+            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BaseTextStyle}" />
+            <Style TargetType="{x:Type Menu}" BasedOn="{StaticResource BaseTextStyle}" />
+            <Style TargetType="{x:Type ContentControl}" BasedOn="{StaticResource BaseTextStyle}" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

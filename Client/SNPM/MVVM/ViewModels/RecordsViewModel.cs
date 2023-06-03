@@ -26,7 +26,6 @@ namespace SNPM.MVVM.ViewModels
             Populate();
 
             RowClick = new RelayCommand(Row_MouseClick);
-
         }
 
         private void Populate()
