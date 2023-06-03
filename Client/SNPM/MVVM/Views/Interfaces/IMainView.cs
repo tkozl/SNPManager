@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SNPM.Core.Interfaces.Api
+namespace SNPM.MVVM.Views.Interfaces
 {
-    public interface IApiService
+    internal interface IMainView
     {
-        public Func<string, Task<bool>> GetRemoteVerifier();
     }
 }

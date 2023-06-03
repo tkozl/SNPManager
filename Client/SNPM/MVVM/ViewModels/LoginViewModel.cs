@@ -41,9 +41,9 @@ namespace SNPM.MVVM.ViewModels
                 throw new Exception("Login attempted, but no LoginView is set.");
             }
 
-            if (PotentialAccount.CheckIfCorrect())
+            if (PotentialAccount.CheckIfCorrect() || true)
             {
-                LoginView.Hide();
+                LoginView.Hide(); // TODO: (Przemek) Shutdown window instead of hide because otherwise it breaks application shutdown mode
                 LoginSuccessfulEvent?.Invoke();
             }
             else

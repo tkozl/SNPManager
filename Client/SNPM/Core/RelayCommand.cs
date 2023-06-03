@@ -6,7 +6,7 @@ namespace SNPM.Core
     public class RelayCommand : ICommand
     {
         private Action<object> _execute;
-        private Func<Object, bool> _canExecute;
+        private Func<object, bool> _canExecute;
 
         public event EventHandler CanExecuteChanged
         {
