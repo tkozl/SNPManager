@@ -7,6 +7,9 @@ class SpecialDir(db.Model, SNPMDB):
 
     __tablename__ = 'special_directories'
 
+    ROOT_ID = 1
+    TRASH_ID = 2
+
     id = db.Column('special_directory_id', db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     special_directory_type_id = db.Column(db.Integer, nullable=False)

@@ -48,7 +48,7 @@ def token_required(f):
             # Getting user model from database
             user = User.query.filter_by(id=token.user_id).first()
             user.crypto = CryptoDB(token.algorithm_id)
-            user.crypto.generate_key(token.user_password, token.user_email)
+            user.crypto.create_key(token.user_password, token.user_email)
 
             # Checking if account isn't locked
             if user.is_locked:

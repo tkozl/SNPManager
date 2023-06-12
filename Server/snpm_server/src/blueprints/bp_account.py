@@ -51,8 +51,8 @@ def create_account():
     models.db.session.commit()
     
     # Creating special directories
-    root_dir = models.SpecialDir(user.id, 1)
-    trash_dir = models.SpecialDir(user.id, 2)
+    root_dir = models.SpecialDir(user.id, models.SpecialDir.ROOT_ID)
+    trash_dir = models.SpecialDir(user.id, models.SpecialDir.TRASH_ID)
     models.db.session.add(root_dir)
     models.db.session.add(trash_dir)
     models.db.session.commit()

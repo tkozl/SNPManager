@@ -1,5 +1,9 @@
+from datetime import datetime
+from sqlalchemy.sql import null
+
 from src.utils.db import SNPMDB, CryptoDB
 from src.models import db
+from src.models.errors import EntryAlreadyExists
 
 
 
@@ -8,7 +12,8 @@ class Entry(db.Model, SNPMDB):
     __tablename__ = 'entries'
 
     id = db.Column('entry_id', db.Integer, primary_key=True)
-    directory_id = db.Column(db.Integer, db.ForeignKey('directories.directory_id'), nullable=False)
+    directory_id = db.Column(db.Integer, db.ForeignKey('directories.directory_id'), nullable=True)
+    special_directory_id = db.Column(db.Integer, db.ForeignKey('special_directories.special_directory_id'), nullable=False)
     __name = db.Column('entry_name', db.LargeBinary, nullable=False)
     __username = db.Column('username', db.LargeBinary, nullable=False)
     __note = db.Column('note', db.LargeBinary, nullable=False)
@@ -17,6 +22,27 @@ class Entry(db.Model, SNPMDB):
     deleted_at = db.Column(db.DateTime, nullable=True)
     __deleted_by = db.Column('deleted_by', db.LargeBinary, nullable=True)
 
+    def __init__(self, crypto :CryptoDB, directory_id :int, special_directory_id :int, name :str, username :str, note :str, pass_lifetime :str) -> None:
+        self.crypto = crypto
+        directory_entries = Entry.query.filter_by(directory_id=directory_id, deleted_at=None).all()
+        for directory_entry in directory_entries:
+            directory_entry.crypto = crypto
+            if directory_entry.name == name:
+                raise EntryAlreadyExists(f'Entry with name "{name}" already exists in directory {directory_id}')
+        
+        if directory_id == None:
+            self.directory_id = null()
+        else:
+            self.directory_id = directory_id
+        self.special_directory_id = special_directory_id
+        self.name = name
+        self.username = username
+        self.note = note
+        self.created_at = datetime.now()
+        self.pass_lifetime = pass_lifetime
+        self.__deleted_at = null()
+        self.__deleted_by = null()
+    
     @property
     def name(self) -> str:
         return self.crypto.decrypt(self.__name)
@@ -38,23 +64,23 @@ class Entry(db.Model, SNPMDB):
         return self.crypto.decrypt(self.__note)
     
     @note.setter
-    def name(self, note :str) -> None:
+    def note(self, note :str) -> None:
         self.__note = self.crypto.encrypt(note)
 
     @property
-    def created_at(self) -> str:
-        return self.crypto.decrypt(self.__created_at)
+    def created_at(self) -> datetime:
+        return datetime.strptime(self.crypto.decrypt(self.__created_at), '%Y-%m-%d %H:%M:%S')
     
     @created_at.setter
-    def created_at(self, created_at :str) -> None:
-        self.__created_at = self.crypto.encrypt(created_at)
+    def created_at(self, created_at :datetime) -> None:
+        self.__created_at = self.crypto.encrypt(created_at.strftime('%Y-%m-%d %H:%M:%S'))
 
     @property
     def pass_lifetime(self) -> int:
         return int(self.crypto.decrypt(self.__pass_lifetime))
     
     @pass_lifetime.setter
-    def created_at(self, pass_lifetime :int) -> None:
+    def pass_lifetime(self, pass_lifetime :int) -> None:
         self.__pass_lifetime = self.crypto.encrypt(str(int(pass_lifetime)))
     
     @property
