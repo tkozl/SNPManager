@@ -28,3 +28,4 @@ from src.models.view_locked_users import LockedUserView
 from src.models.view_unlocked_users import UnlockedUserView
 from src.models.view_users_directories import UserDirectoryView
 from src.models.view_users_entries import UserEntryView
+from src.models.view_entry_user_password import EntryUserPasswordView

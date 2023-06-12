@@ -5,6 +5,9 @@ from sqlalchemy.sql import null
 from src.utils.db import SNPMDB, CryptoDB
 from src.models import db
 from src.models.view_locked_users import LockedUserView
+from src.models.special_directories import SpecialDir
+from src.models.view_users_directories import UserDirectoryView
+from src.models.directories import Directory
 import src.models.errors as e
 
 
@@ -61,8 +64,57 @@ class User(db.Model, SNPMDB):
     @property
     def is_locked(self) -> bool:
         """Is user locked (bool)"""
-        locked = LockedUserView.query.filter_by(id=self.user_id).first()
+        locked = LockedUserView.query.filter_by(user_id=self.id).first()
         if locked == None:
             return False
         else:
             return True
+
+    @property
+    def root_dir_id(self) -> int:
+        """Id of root directory"""
+        root_directory = SpecialDir.query.filter_by(user_id=self.id, special_directory_type_id=SpecialDir.ROOT_ID).first()
+        if root_directory == None:
+            raise e.ModelError(f'Not found root directory for user {self.id}')
+        return root_directory.id
+    
+    @property
+    def trash_id(self) -> int:
+        """Id of trash directory"""
+        trash_directory = SpecialDir.query.filter_by(user_id=self.id, special_directory_type_id=SpecialDir.TRASH_ID).first()
+        if trash_directory == None:
+            raise e.ModelError(f'Not found trash for user {self.id}')
+        return trash_directory.id
+
+    def get_directories(self, parent_id :int=None, recursive :bool=True) -> list[dict]:
+        """
+        Gets list of directory in specified parent directory
+        Args:
+            parent_id (int): id of parent directory, defaults: None
+            recursive (bool): is True, then returns all subdirectories (defaults: True)
+        Return:
+            list of directories dictionaries:
+            {
+                'directory_id': int,
+                'special_directory_id': int,
+                'parent_id': int,
+                'directory_name': str
+            }
+        """
+
+        db.session.expire_all()
+        directories = UserDirectoryView.query.filter_by(user_id=self.id, parent_id=parent_id).all()
+        res = []
+        for directory in directories:
+            directory.crypto = self.crypto
+            if directory.deleted_at != None:
+                continue
+            res.append({
+                'directory_id': directory.directory_id,
+                'special_directory_id': directory.special_directory_id,
+                'parent_id': directory.parent_id,
+                'directory_name': directory.name
+            })
+            if recursive:
+                res += self.get_directories(directory.directory_id)
+        return res

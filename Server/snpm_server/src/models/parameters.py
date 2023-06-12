@@ -1,5 +1,6 @@
 from src.utils.db import SNPMDB, CryptoDB
 from src.models import db
+from src.models.errors import EntryParameterAlreadyExists
 
 
 
@@ -13,6 +14,19 @@ class EntryParameter(db.Model, SNPMDB):
     __value = db.Column('parameter_value', db.LargeBinary, nullable=False)
     deleted_at = db.Column(db.DateTime, nullable=True)
     __deleted_by = db.Column('deleted_by', db.LargeBinary, nullable=True)
+
+    def __init__(self, crypto :CryptoDB, entry_id :int, parameter_name :str, parameter_value :str) -> None:
+        self.crypto = crypto
+
+        entry_parameters = EntryParameter.query.filter_by(entry_id=entry_id, deleted_at=None).all()
+        for entry_parameter in entry_parameters:
+            entry_parameter.crypto = crypto
+            if entry_parameter.name == parameter_name:
+                raise EntryParameterAlreadyExists(f'Parameter with name "{parameter_name}" already exists in entry {entry_id}')
+
+        self.entry_id = entry_id
+        self.name = parameter_name
+        self.value = parameter_value
 
     @property
     def name(self) -> str:

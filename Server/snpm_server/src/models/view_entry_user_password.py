@@ -3,13 +3,14 @@ from src.models import db
 
 
 
-class UserEntryView(db.Model, SNPMDB):
+class EntryUserPasswordView(db.Model, SNPMDB):
 
-    __tablename__ = 'users_entries'
+    __tablename__ = 'entry_user_password'
 
+    __password = db.Column('password', db.LargeBinary, nullable=False)
     user_id = db.Column(db.Integer, primary_key=True)
-    entry_id = db.Column(db.Integer, nullable=False)
-    directory_id = db.Column(db.Integer, db.ForeignKey('directories.directory_id'), nullable=True)
+    entry_id = db.Column(db.Integer, nullable=True)
+    directory_id = db.Column(db.Integer, db.ForeignKey('directories.directory_id'), nullable=False)
     special_directory_id = db.Column(db.Integer, db.ForeignKey('special_directories.special_directory_id'), nullable=False)
     __name = db.Column('entry_name', db.LargeBinary, nullable=False)
     __username = db.Column('username', db.LargeBinary, nullable=False)
@@ -42,3 +43,7 @@ class UserEntryView(db.Model, SNPMDB):
     @property
     def deleted_by(self) -> str:
         return self.crypto.decrypt(self.__deleted_by)
+    
+    @property
+    def password(self) -> str:
+        return self.crypto.decrypt(self.__password)

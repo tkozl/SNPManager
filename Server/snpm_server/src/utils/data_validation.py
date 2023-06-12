@@ -52,3 +52,31 @@ def user_encryption_type_to_id(encryption_type :str) -> int:
     if encryption_type not in encryption_type_id.keys():
         raise ValueError(f'Incorrect encryption_type "{encryption_type}')
     return encryption_type_id.get(encryption_type)
+
+
+def is_dir_name_correct(directory_name :str) -> bool:
+    """
+    Checks if directory name is allowed
+    Args:
+        directory_name (str): checking directory name
+    Return:
+        bool
+    """
+
+    blacklist = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+    for char in directory_name:
+        if char in blacklist:
+            return False
+    return True
+
+
+def is_entry_name_correct(entry_name :str) -> bool:
+    """
+    Checks if entry name is allowed
+    Args:
+        entry_name (str): checking entry name
+    Return:
+        bool
+    """
+
+    return is_dir_name_correct(entry_name)
