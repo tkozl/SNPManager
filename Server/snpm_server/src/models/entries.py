@@ -3,6 +3,7 @@ from sqlalchemy.sql import null
 
 from src.utils.db import SNPMDB, CryptoDB
 from src.models import db
+from src.models.view_users_entries import UserEntryView
 from src.models.errors import EntryAlreadyExists
 
 
@@ -22,9 +23,9 @@ class Entry(db.Model, SNPMDB):
     deleted_at = db.Column(db.DateTime, nullable=True)
     __deleted_by = db.Column('deleted_by', db.LargeBinary, nullable=True)
 
-    def __init__(self, crypto :CryptoDB, directory_id :int, special_directory_id :int, name :str, username :str, note :str, pass_lifetime :str) -> None:
+    def __init__(self, crypto :CryptoDB, user_id :int, directory_id :int, special_directory_id :int, name :str, username :str, note :str, pass_lifetime :str) -> None:
         self.crypto = crypto
-        directory_entries = Entry.query.filter_by(directory_id=directory_id, deleted_at=None).all()
+        directory_entries = UserEntryView.query.filter_by(directory_id=directory_id, user_id=user_id, deleted_at=None).all()
         for directory_entry in directory_entries:
             directory_entry.crypto = crypto
             if directory_entry.name == name:
