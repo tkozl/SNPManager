@@ -3,10 +3,14 @@ from datetime import datetime
 from sqlalchemy.sql import null
 
 from src.utils.db import SNPMDB, CryptoDB
+from src.schemas.entry import EntryJSON
 from src.models import db
 from src.models.view_locked_users import LockedUserView
 from src.models.special_directories import SpecialDir
 from src.models.view_users_directories import UserDirectoryView
+from src.models.view_entry_user_password import EntryUserPasswordView
+from src.models.parameters import EntryParameter
+from src.models.related_windows import RelatedWindow
 from src.models.directories import Directory
 import src.models.errors as e
 
@@ -117,4 +121,65 @@ class User(db.Model, SNPMDB):
             })
             if recursive:
                 res += self.get_directories(directory.directory_id)
+        return res
+
+    def get_entries(self, parent_dir_id :int=None, recursive :bool=True, append_parameters :bool=False, append_related_windows :bool=False) -> list[EntryJSON]:
+        """
+        Gets list of user entries
+        Args:
+            parent_dir_id (int): id of the parent directory (defaults: None)
+            recursive (bool): if True, then returns entries recurrently
+            append_parameters (bool): if True, then appends enties parameters to the result (defaults: False)
+            append_related_windows (bool): if True, then appends enties related windows to the result (defaults: False)
+        Return:
+            list of EntryJSON objects
+        """
+
+        db.session.expire_all()
+        entries = EntryUserPasswordView.query.filter_by(user_id=self.id, directory_id=parent_dir_id).all()
+        res = []
+        for entry in entries:
+            entry.crypto = self.crypto
+            if entry.deleted_at != None:
+                continue
+            entry_json = EntryJSON()
+            entry_json.entry_id = entry.entry_id
+            entry_json.directory_id = entry.directory_id
+            entry_json.entry_name = entry.name
+            entry_json.lifetime = entry.pass_lifetime
+            entry_json.note = entry.note
+            entry_json.username = entry.username
+            entry_json.password = entry.password
+
+            if append_parameters:
+                parameters = EntryParameter.query.filter_by(entry_id=self.id)
+                parameters_list = []
+                for parameter in parameters:
+                    parameter.crypto = self.crypto
+                    if parameter.deleted_at != None:
+                        continue
+                    parameters_list.append({
+                        'name': parameter.name,
+                        'value': parameter.value
+                    })
+                entry_json.parameters = parameters_list
+            
+            if append_related_windows:
+                related_windows = RelatedWindow.query.filter_by(entry_id=self.id)
+                related_windows_list = []
+                for related_window in related_windows:
+                    related_window.crypto = self.crypto
+                    if related_window.deleted_at != None:
+                        continue
+                    related_windows_list.append(related_window.name)
+                entry_json.related_windows = related_windows_list
+            
+            res.append(entry_json)
+        
+        if recursive:
+            directories = UserDirectoryView.query.filter_by(user_id=self.id, parent_id=parent_dir_id).all()
+            for directory in directories:
+                directory.crypto = self.crypto
+                res += self.get_entries(directory.directory_id, recursive, append_parameters, append_related_windows)
+        
         return res
