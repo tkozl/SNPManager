@@ -45,3 +45,4 @@ def test_entry_json():
 
     entry.entry_id = '2'
     assert len(entry.export_json().keys()) == 9
+    assert list(entry.export_json('entryName+note').keys()) == ['entryName', 'note', 'entryID']
