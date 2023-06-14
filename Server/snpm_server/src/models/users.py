@@ -152,7 +152,7 @@ class User(db.Model, SNPMDB):
             entry_json.password = entry.password
 
             if append_parameters:
-                parameters = EntryParameter.query.filter_by(entry_id=self.id)
+                parameters = EntryParameter.query.filter_by(entry_id=self.id).all()
                 parameters_list = []
                 for parameter in parameters:
                     parameter.crypto = self.crypto
@@ -165,7 +165,7 @@ class User(db.Model, SNPMDB):
                 entry_json.parameters = parameters_list
             
             if append_related_windows:
-                related_windows = RelatedWindow.query.filter_by(entry_id=self.id)
+                related_windows = RelatedWindow.query.filter_by(entry_id=self.id).all()
                 related_windows_list = []
                 for related_window in related_windows:
                     related_window.crypto = self.crypto
