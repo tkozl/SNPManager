@@ -6,6 +6,9 @@ from config import Config
 
 class EntryJSON:
 
+    def __init__(self) -> None:
+        self.entry_id = None
+
     def import_json(self, entry_json :dict) -> None:
         """
         Imports entry json schema
@@ -13,6 +16,7 @@ class EntryJSON:
             entry_json (dict): entry data
         """
 
+        self.entry_id = entry_json.get('entryID')
         self.directory_id = entry_json.get('directoryID')
         self.entry_name = entry_json.get('entryName')
         self.username = entry_json.get('username')
@@ -22,23 +26,51 @@ class EntryJSON:
         self.related_windows = entry_json.get('relatedWindows')
         self.parameters = entry_json.get('parameters')
     
-    def export_json(self) -> dict:
+    def export_json(self, include_str :str=None) -> dict:
         """
         Exports entry json
+        Args:
+            include_str (str): string received from user defines what entry parts should be placed in json, if None returns whole json (defaults: None)
         Return:
             entry data dict
         """
 
-        return {
-            'directoryID': self.directory_id,
-            'entryName': self.entry_name,
-            'username': self.username,
-            'password': self.password,
-            'note': self.note,
-            'lifetime': self.lifetime,
-            'relatedWindows': self.related_windows,
-            'parameters': self.parameters
-        }
+        if include_str == None:
+            res = {
+                'directoryID': self.directory_id,
+                'entryName': self.entry_name,
+                'username': self.username,
+                'password': self.password,
+                'note': self.note,
+                'lifetime': self.lifetime,
+                'relatedWindows': self.related_windows,
+                'parameters': self.parameters
+            }
+            if self.entry_id != None:
+                res.update({'entryID': self.entry_id})
+            return res
+        else:
+            required_parts = include_str.replace(' ', '+').split('+')
+            res = {}
+            if 'directoryID' in required_parts:
+                res.update({'directoryID': self.directory_id})
+            if 'entryName' in required_parts:
+                res.update({'entryName': self.entry_name})
+            if 'username' in required_parts:
+                res.update({'username': self.username})
+            if 'password' in required_parts:
+                res.update({'password': self.password})
+            if 'note' in required_parts:
+                res.update({'note': self.note})
+            if 'lifetime' in required_parts:
+                res.update({'lifetime': self.lifetime})
+            if'relatedWindows' in required_parts:
+                res.update({'relatedWindows': self.related_windows})
+            if 'parameters' in required_parts:
+                res.update({'parameters': self.parameters})
+            if self.entry_id != None:
+                res.update({'entryID': self.entry_id})
+            return res
     
     def get_errors(self) -> ErrorRsp:
         """
@@ -77,6 +109,17 @@ class EntryJSON:
         except Exception:
             return False
         return True
+
+    @property
+    def entry_id(self) -> int:
+        return self.__entry_id
+    
+    @entry_id.setter
+    def entry_id(self, value) -> None:
+        if value == None:
+            self.__entry_id = None
+        else:
+            self.__entry_id = int(value)
     
     @property
     def directory_id(self) -> int:

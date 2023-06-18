@@ -39,7 +39,7 @@ def create_entry(user :models.User, token :AccessToken):
     
     # Create new entry
     try:
-        entry = models.Entry(user.crypto, entry_data.directory_id, user.root_dir_id, entry_data.entry_name, entry_data.username, entry_data.note, entry_data.lifetime)
+        entry = models.Entry(user.crypto, user.id, entry_data.directory_id, user.root_dir_id, entry_data.entry_name, entry_data.username, entry_data.note, entry_data.lifetime)
     except e.EntryAlreadyExists:
         errors.add(ErrorRsp.ALREADY_EXISTS, 'Entry with the same name already exists in specified directory')
         return errors.json, 400
@@ -69,6 +69,52 @@ def create_entry(user :models.User, token :AccessToken):
     return {
         'id': entry.id
     }, 201
+
+
+@bp_entry.route('', methods=['GET'])
+@token_required
+def get_entries(user :models.User, token :AccessToken):
+    """Gets list of entries"""
+    
+    # Loading request data
+    include = request.args.get('include', '')
+    directory_id = request.args.get('directoryID', '')
+    recursive = request.args.get('recursive', 'true')
+
+    requested_parts = include.replace(' ', '+').split('+')
+    if len(directory_id) == 0:
+        directory_id = None
+    if recursive == 'true':
+        recursive = True
+    else:
+        recursive = False
+    
+    # Checking if directory id is correct
+    if directory_id != None:
+        try:
+            directory_id = int(directory_id)
+        except ValueError:
+            abort(404)
+        directory = models.UserDirectoryView.query.filter_by(user_id=user.id, directory_id=directory_id).first()
+        if directory == None:
+            abort(404)
+    
+    # Interpreting request data
+    if 'parameters' in requested_parts:
+        append_parameters = True
+    else:
+        append_parameters = False
+    if 'relatedWindows' in requested_parts:
+        append_related_windows = True
+    else:
+        append_related_windows = False
+    
+    # Loading entries data from sql db
+    entries = user.get_entries(directory_id, recursive, append_parameters, append_related_windows)
+    rsp = []
+    for entry in entries:
+        rsp.append(entry.export_json(include))
+    return rsp, 200
 
 
 @bp_entry.route('/<entry_id>', methods=['GET'])
