@@ -13,6 +13,7 @@ from src.models.parameters import EntryParameter
 from src.models.related_windows import RelatedWindow
 from src.models.directories import Directory
 import src.models.errors as e
+from src.schemas.api_special_dir import ApiSpecialDir
 
 
 
@@ -90,12 +91,13 @@ class User(db.Model, SNPMDB):
             raise e.ModelError(f'Not found trash for user {self.id}')
         return trash_directory.id
 
-    def get_directories(self, parent_id :int=None, recursive :bool=True) -> list[dict]:
+    def get_directories(self, parent_id :int=None, recursive :bool=True, trash :bool=False) -> list[dict]:
         """
         Gets list of directory in specified parent directory
         Args:
             parent_id (int): id of parent directory, defaults: None
-            recursive (bool): is True, then returns all subdirectories (defaults: True)
+            recursive (bool): if True, then returns all subdirectories (defaults: True)
+            trash (bool): if True, then searchs only in trash (defaults: False)
         Return:
             list of directories dictionaries:
             {
@@ -106,8 +108,12 @@ class User(db.Model, SNPMDB):
             }
         """
 
-        db.session.expire_all()
-        directories = UserDirectoryView.query.filter_by(user_id=self.id, parent_id=parent_id).all()
+        if trash:
+            special_dir = self.trash_id
+        else:
+            special_dir = self.root_dir_id
+
+        directories = UserDirectoryView.query.filter_by(user_id=self.id, parent_id=parent_id, special_directory_id=special_dir).all()
         res = []
         for directory in directories:
             directory.crypto = self.crypto
@@ -120,10 +126,10 @@ class User(db.Model, SNPMDB):
                 'directory_name': directory.name
             })
             if recursive:
-                res += self.get_directories(directory.directory_id)
+                res += self.get_directories(directory.directory_id, trash=trash)
         return res
 
-    def get_entries(self, parent_dir_id :int=None, recursive :bool=True, append_parameters :bool=False, append_related_windows :bool=False) -> list[EntryJSON]:
+    def get_entries(self, parent_dir_id :int=None, recursive :bool=True, append_parameters :bool=False, append_related_windows :bool=False, trash :bool=False) -> list[EntryJSON]:
         """
         Gets list of user entries
         Args:
@@ -131,12 +137,17 @@ class User(db.Model, SNPMDB):
             recursive (bool): if True, then returns entries recurrently
             append_parameters (bool): if True, then appends enties parameters to the result (defaults: False)
             append_related_windows (bool): if True, then appends enties related windows to the result (defaults: False)
+            trash (bool): if True, then searchs only in trash (defaults: False)
         Return:
             list of EntryJSON objects
         """
 
-        db.session.expire_all()
-        entries = EntryUserPasswordView.query.filter_by(user_id=self.id, directory_id=parent_dir_id).all()
+        if trash:
+            special_dir = self.trash_id
+        else:
+            special_dir = self.root_dir_id
+
+        entries = EntryUserPasswordView.query.filter_by(user_id=self.id, directory_id=parent_dir_id, special_directory_id=special_dir).all()
         res = []
         for entry in entries:
             entry.crypto = self.crypto
@@ -145,6 +156,11 @@ class User(db.Model, SNPMDB):
             entry_json = EntryJSON()
             entry_json.entry_id = entry.entry_id
             entry_json.directory_id = entry.directory_id
+            if entry_json.directory_id == None:
+                if trash:
+                    entry_json.directory_id = ApiSpecialDir.TRASH
+                else:
+                    entry_json.directory_id = ApiSpecialDir.ROOT
             entry_json.entry_name = entry.name
             entry_json.lifetime = entry.pass_lifetime
             entry_json.note = entry.note
@@ -152,7 +168,7 @@ class User(db.Model, SNPMDB):
             entry_json.password = entry.password
 
             if append_parameters:
-                parameters = EntryParameter.query.filter_by(entry_id=self.id).all()
+                parameters = EntryParameter.query.filter_by(entry_id=entry.entry_id).all()
                 parameters_list = []
                 for parameter in parameters:
                     parameter.crypto = self.crypto
@@ -165,7 +181,7 @@ class User(db.Model, SNPMDB):
                 entry_json.parameters = parameters_list
             
             if append_related_windows:
-                related_windows = RelatedWindow.query.filter_by(entry_id=self.id).all()
+                related_windows = RelatedWindow.query.filter_by(entry_id=entry.entry_id).all()
                 related_windows_list = []
                 for related_window in related_windows:
                     related_window.crypto = self.crypto
@@ -177,9 +193,9 @@ class User(db.Model, SNPMDB):
             res.append(entry_json)
         
         if recursive:
-            directories = UserDirectoryView.query.filter_by(user_id=self.id, parent_id=parent_dir_id).all()
+            directories = UserDirectoryView.query.filter_by(user_id=self.id, parent_id=parent_dir_id, special_directory_id=special_dir).all()
             for directory in directories:
                 directory.crypto = self.crypto
-                res += self.get_entries(directory.directory_id, recursive, append_parameters, append_related_windows)
+                res += self.get_entries(directory.directory_id, recursive, append_parameters, append_related_windows, trash)
         
         return res

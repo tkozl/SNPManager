@@ -6,6 +6,7 @@ from src.utils.auth import token_required
 from src.utils.token import AccessToken
 from src.schemas.error_rsp import ErrorRsp
 from src.schemas.entry import EntryJSON
+from src.schemas.api_special_dir import ApiSpecialDir
 
 
 bp_entry = Blueprint(name="blueprint_entry", import_name=__name__)
@@ -30,16 +31,21 @@ def create_entry(user :models.User, token :AccessToken):
         return errors.json, 400
     
     # Validate if directory id is correct
-    if entry_data.directory_id != None:
+    entry_directory_id = entry_data.directory_id
+    if entry_data.directory_id == ApiSpecialDir.TRASH:
+        abort(403)
+    if entry_data.directory_id != ApiSpecialDir.ROOT:
         directory = models.UserDirectoryView.query.filter_by(user_id=user.id, directory_id=entry_data.directory_id).first()
         if directory == None:
             abort(404)
         if directory.special_directory_id == user.trash_id:
             abort(403)
+    else:
+        entry_directory_id = None
     
     # Create new entry
     try:
-        entry = models.Entry(user.crypto, user.id, entry_data.directory_id, user.root_dir_id, entry_data.entry_name, entry_data.username, entry_data.note, entry_data.lifetime)
+        entry = models.Entry(user.crypto, user.id, entry_directory_id, user.root_dir_id, entry_data.entry_name, entry_data.username, entry_data.note, entry_data.lifetime)
     except e.EntryAlreadyExists:
         errors.add(ErrorRsp.ALREADY_EXISTS, 'Entry with the same name already exists in specified directory')
         return errors.json, 400
@@ -78,11 +84,21 @@ def get_entries(user :models.User, token :AccessToken):
     
     # Loading request data
     include = request.args.get('include', '')
-    directory_id = request.args.get('directoryID', '')
+    directory_id = request.args.get('directoryID')
     recursive = request.args.get('recursive', 'true')
 
+    if directory_id == None:
+        abort(400)
+
+    try:
+        directory_id = int(directory_id)
+    except ValueError:
+        abort(404)
     requested_parts = include.replace(' ', '+').split('+')
-    if len(directory_id) == 0:
+    trash = False
+    if directory_id == ApiSpecialDir.TRASH:
+        trash = True
+    if directory_id in (ApiSpecialDir.ROOT, ApiSpecialDir.TRASH):
         directory_id = None
     if recursive == 'true':
         recursive = True
@@ -98,6 +114,8 @@ def get_entries(user :models.User, token :AccessToken):
         directory = models.UserDirectoryView.query.filter_by(user_id=user.id, directory_id=directory_id).first()
         if directory == None:
             abort(404)
+        if directory.special_directory_id == user.trash_id:
+            trash = True
     
     # Interpreting request data
     if 'parameters' in requested_parts:
@@ -110,7 +128,7 @@ def get_entries(user :models.User, token :AccessToken):
         append_related_windows = False
     
     # Loading entries data from sql db
-    entries = user.get_entries(directory_id, recursive, append_parameters, append_related_windows)
+    entries = user.get_entries(directory_id, recursive, append_parameters, append_related_windows, trash)
     rsp = []
     for entry in entries:
         rsp.append(entry.export_json(include))
@@ -135,7 +153,13 @@ def get_entry(user :models.User, token :AccessToken, entry_id :str):
     entry.crypto = user.crypto
 
     entry_data = EntryJSON()
-    entry_data.directory_id = entry.directory_id
+    if entry.directory_id == None:
+        if entry.special_directory_id == user.trash_id:
+            entry_data.directory_id = ApiSpecialDir.TRASH
+        else:
+            entry_data.directory_id = ApiSpecialDir.ROOT
+    else:
+        entry_data.directory_id = entry.directory_id
     entry_data.entry_name = entry.name
     entry_data.username = entry.username
     entry_data.password = entry.password
