@@ -74,4 +74,4 @@ def renew_token(user :models.User, token :AccessToken):
     return {
         'token': token.export_token(),
         'expiration': token.expiration
-    }
+    }, 200
