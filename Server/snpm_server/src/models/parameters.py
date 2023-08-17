@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from src.utils.db import SNPMDB, CryptoDB
 from src.models import db
 from src.models.errors import EntryParameterAlreadyExists
@@ -51,3 +53,8 @@ class EntryParameter(db.Model, SNPMDB):
     @deleted_by.setter
     def deleted_by(self, deleted_by :str) -> None:
         self.__deleted_by = self.crypto.encrypt(deleted_by)
+
+    def delete(self, ip :str) -> None:
+        """Deletes entry parameter"""
+        self.deleted_at = datetime.now()
+        self.deleted_by = ip

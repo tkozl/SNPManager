@@ -149,6 +149,11 @@ def get_entry(user :models.User, token :AccessToken, entry_id :str):
     entry = models.EntryUserPasswordView.query.filter_by(entry_id=entry_id, user_id=user.id).first()
     if entry == None:
         abort(404)
+    
+    passwords = models.Password.query.filter_by(entry_id=entry_id)
+    for password in passwords:
+        password.crypto = user.crypto
+        print(password.value, password.created_at)
 
     entry.crypto = user.crypto
 
@@ -167,7 +172,7 @@ def get_entry(user :models.User, token :AccessToken, entry_id :str):
     entry_data.lifetime = entry.pass_lifetime
     
     # Loading entry related windows
-    related_windows = models.RelatedWindow.query.filter_by(entry_id=entry_id)
+    related_windows = models.RelatedWindow.query.filter_by(entry_id=entry_id, deleted_at=None)
     related_windows_list = []
     for related_window in related_windows:
         related_window.crypto = user.crypto
@@ -175,7 +180,7 @@ def get_entry(user :models.User, token :AccessToken, entry_id :str):
     entry_data.related_windows = related_windows_list
 
     # Loading entry parameters
-    parameters = models.EntryParameter.query.filter_by(entry_id=entry_id)
+    parameters = models.EntryParameter.query.filter_by(entry_id=entry_id, deleted_at=None)
     parameters_list = []
     for parameter in parameters:
         parameter.crypto = user.crypto
@@ -186,3 +191,114 @@ def get_entry(user :models.User, token :AccessToken, entry_id :str):
     entry_data.parameters = parameters_list
 
     return entry_data.export_json(), 200
+
+
+@bp_entry.route('/<entry_id>', methods=['PUT'])
+@token_required
+def edit_entry(user :models.User, token :AccessToken, entry_id :str):
+    """Edits entry"""
+
+    try:
+        entry_id = int(entry_id)
+    except ValueError:
+        abort(404)
+    
+    # Loading entry
+    entry_view = models.EntryUserPasswordView.query.filter_by(entry_id=entry_id, user_id=user.id, deleted_at=None).first()
+    if entry_view == None:
+        abort(404)
+
+    entry_view.crypto = user.crypto
+    entry = models.Entry.query.filter_by(id=entry_id).first()
+    entry.crypto = user.crypto
+
+    entry_data = EntryJSON()
+    try:
+        entry_data.import_json(request.json)
+    except ValueError:
+        abort(400)
+
+    errors = entry_data.get_errors()
+    if errors.quantity > 0:
+        return errors.json, 400
+    
+    # Moving entry to new location if required
+    if entry_data.directory_id != None:
+        if entry_data.directory_id in (ApiSpecialDir.ROOT, ApiSpecialDir.TRASH):
+            new_directory_id = None
+            if entry_data.directory_id == ApiSpecialDir.ROOT:
+                new_special_dir_id = user.root_dir_id
+            else:
+                new_special_dir_id = user.trash_id
+        else:
+            new_directory_id = entry_data.directory_id
+            new_special_dir_id = entry.special_directory_id
+        if new_directory_id != None:
+            # Validate if directory id is correct
+            directory = models.UserDirectoryView.query.filter_by(user_id=user.id, directory_id=entry_data.directory_id).first()
+            if directory == None:
+                abort(404)
+            if directory.special_directory_id == user.trash_id:
+                abort(403)
+        
+        if new_directory_id != entry.directory_id or new_special_dir_id != entry.special_directory_id or entry_data.entry_name != entry.name:
+            print('hejo')
+            try:
+                entry.move(new_directory_id, new_special_dir_id, entry_data.entry_name)
+            except e.EntryAlreadyExists:
+                errors = ErrorRsp()
+                errors.add(errors.ALREADY_EXISTS, 'Entry with specified name already exist in destination directory')
+                return errors.json
+    
+    # Changing entry data
+    if entry_data.lifetime != None:
+        entry.pass_lifetime = entry_data.lifetime
+    if entry_data.note != None:
+        entry.note = entry_data.note
+    if entry_data.password != None and entry_data.password != entry_view.password:
+        password = models.Password(user.crypto, entry_id, entry_data.password)
+        models.db.session.add(password)
+    if entry_data.username != None:
+        entry.username = entry_data.username
+
+    # Changing entry parameters list
+    if entry_data.parameters != None:
+        parameters = models.EntryParameter.query.filter_by(entry_id=entry_id, deleted_at=None).all()
+        for parameter in parameters:
+            updated = False
+
+            parameter.crypto = user.crypto
+            for new_parameter in entry_data.parameters:
+                if new_parameter['name'] == parameter.name:
+                    parameter.value = new_parameter['value']
+                    updated = True
+                    entry_data.parameters.remove(new_parameter)
+                    break
+            if not updated:
+                parameter.delete(request.remote_addr)
+        for new_parameter in entry_data.parameters:
+            parameter = models.EntryParameter(user.crypto, entry_id, new_parameter['name'], new_parameter['value'])
+            models.db.session.add(parameter)
+    
+    # Changing entry related windows list
+    if entry_data.related_windows != None:
+        related_windows = models.RelatedWindow.query.filter_by(entry_id=entry_id, deleted_at=None).all()
+        for rw in related_windows:
+            exists = False
+
+            rw.crypto = user.crypto
+            for new_rw in entry_data.related_windows:
+                if new_rw == rw.name:
+                    exists = True
+                    entry_data.related_windows.remove(new_rw)
+                    break
+            if not exists:
+                rw.delete(request.remote_addr)
+        for new_rw in entry_data.related_windows:
+            rw = models.RelatedWindow(user.crypto, entry_id, new_rw)
+            models.db.session.add(rw)
+
+    # Saving changes
+    models.db.session.commit()
+
+    return '', 204

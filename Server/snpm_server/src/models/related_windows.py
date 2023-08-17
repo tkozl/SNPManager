@@ -1,4 +1,5 @@
 from sqlalchemy.sql import null
+from datetime import datetime
 
 from src.utils.db import SNPMDB, CryptoDB
 from src.models import db
@@ -18,7 +19,7 @@ class RelatedWindow(db.Model, SNPMDB):
 
     def __init__(self, crypto :CryptoDB, entry_id :int, related_window_name :str) -> None:
         self.crypto = crypto
-        exists_windows = RelatedWindow.query.filter_by(entry_id=entry_id)
+        exists_windows = RelatedWindow.query.filter_by(entry_id=entry_id, deleted_at=None)
         for exists_window in exists_windows:
             exists_window.crypto = crypto
             if exists_window.name == related_window_name:
@@ -43,3 +44,8 @@ class RelatedWindow(db.Model, SNPMDB):
     @deleted_by.setter
     def deleted_by(self, deleted_by :str) -> None:
         self.__deleted_by = self.crypto.encrypt(deleted_by)
+
+    def delete(self, ip :str) -> None:
+        """Deletes entry related window"""
+        self.deleted_at = datetime.now()
+        self.deleted_by = ip

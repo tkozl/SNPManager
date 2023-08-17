@@ -80,15 +80,15 @@ class EntryJSON:
         """
 
         errors = ErrorRsp()
-        if len(self.entry_name) > Config.MAX_ENTRY_NAME_LEN:
+        if self.entry_name != None and len(self.entry_name) > Config.MAX_ENTRY_NAME_LEN:
             errors.add(ErrorRsp.TOO_LONG_STRING, f'Max entry name length is {Config.MAX_ENTRY_NAME_LEN}')
-        if not is_entry_name_correct(self.entry_name):
+        if self.entry_name != None and not is_entry_name_correct(self.entry_name):
             errors.add(ErrorRsp.INVALID_NAME, 'Invalid entry name')
-        if len(self.username) > Config.MAX_ENTRY_USERNAME_LEN:
+        if self.username != None and len(self.username) > Config.MAX_ENTRY_USERNAME_LEN:
             errors.add(ErrorRsp.TOO_LONG_STRING, f'Max entry username length is {Config.MAX_ENTRY_USERNAME_LEN}')
-        if len(self.password) > Config.MAX_ENTRY_PASSWORD_LEN:
+        if self.password != None and len(self.password) > Config.MAX_ENTRY_PASSWORD_LEN:
             errors.add(ErrorRsp.TOO_LONG_STRING, f'Max entry password length is {Config.MAX_ENTRY_PASSWORD_LEN}')
-        if len(self.note) > Config.MAX_ENTRY_NOTE_LEN:
+        if self.note != None and len(self.note) > Config.MAX_ENTRY_NOTE_LEN:
             errors.add(ErrorRsp.TOO_LONG_STRING, f'Max entry note length is {Config.MAX_ENTRY_NOTE_LEN}')
         for related_window in self.related_windows:
             if len(related_window) > Config.MAX_ENTRY_RELATED_WINDOW_LEN:
@@ -170,7 +170,10 @@ class EntryJSON:
     
     @lifetime.setter
     def lifetime(self, value) -> None:
-        self.__lifetime = int(value)
+        if value == None:
+            self.__lifetime = None
+        else:
+            self.__lifetime = int(value)
     
     @property
     def related_windows(self) -> list[str]:

@@ -91,3 +91,28 @@ class Entry(db.Model, SNPMDB):
     @deleted_by.setter
     def deleted_by(self, deleted_by :str) -> None:
         self.__deleted_by = self.crypto.encrypt(deleted_by)
+    
+    def move(self, directory_id :int, special_directory_id :int, entry_name :str) -> None:
+        """
+        Moves entry
+        Args:
+            directory_id (int): new directory id
+            special_directory_id (int): new special directory id
+            entry_name (str): new entry name
+        """
+
+        self.special_directory_id = special_directory_id
+
+        if directory_id != self.directory_id:
+            directory_entries = Entry.query.filter_by(directory_id=directory_id).all()
+            for directory_entry in directory_entries:
+                directory_entry.crypto = self.crypto
+                if directory_entry.name == entry_name:
+                    raise EntryAlreadyExists(f'Entry with name "{entry_name}" already exists in directory {directory_id}')
+            
+            if directory_id == None:
+                self.directory_id = null()
+            else:
+                self.directory_id = directory_id
+
+        self.name = entry_name

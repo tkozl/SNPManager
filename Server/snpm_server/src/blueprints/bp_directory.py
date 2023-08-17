@@ -117,6 +117,127 @@ def get_directories(user :models.User, token :AccessToken):
     return rsp
 
 
+@bp_directory.route('/<directory_id>', methods=['GET'])
+@token_required
+def get_directory_info(user :models.User, token :AccessToken, directory_id :str):
+    """Gets directory info"""
+
+    try:
+        directory_id = int(directory_id)
+    except ValueError:
+        abort(404)
+    
+    # Loading directory
+    directory = models.UserDirectoryView.query.filter_by(user_id=user.id, directory_id=directory_id, deleted_at=None).first()
+    if directory == None:
+        if directory_id in (ApiSpecialDir.ROOT, ApiSpecialDir.TRASH):
+            abort(403)
+        else:
+            abort(404)
+    
+    directory.crypto = user.crypto
+    
+    parent_dir_id = directory.parent_id
+    if parent_dir_id == None:
+        if directory.special_directory_id == user.root_dir_id:
+            parent_dir_id = ApiSpecialDir.ROOT
+        else:
+            parent_dir_id = ApiSpecialDir.TRASH
+    
+    return {
+        'name': directory.name,
+        'parentID': parent_dir_id
+    }, 200
+
+
+@bp_directory.route('/<directory_id>', methods=['PUT'])
+@token_required
+def edit_directory(user :models.User, token :AccessToken, directory_id :str):
+    """Gets directory info"""
+
+    # Loading request data
+    new_directory_name = request.json.get('name')
+    new_parent_id = request.json.get('parentID')
+    if new_directory_name == None or new_parent_id == None:
+        abort(400)
+    
+    errors = ErrorRsp()
+
+    # Validating data
+    try:
+        directory_id = int(directory_id)
+        new_parent_id = int(new_parent_id)
+    except ValueError:
+        abort(404)
+
+    if directory_id == new_parent_id:
+        abort(403)
+
+    if not is_dir_name_correct(new_directory_name):
+        errors.add(ErrorRsp.INVALID_NAME, error_msg='Invalid destination directory name')
+        return errors.json, 400
+    
+    if len(new_directory_name) > Config.MAX_DIR_LEN:
+        errors.add(ErrorRsp.TOO_LONG_STRING, error_msg=f'Max allowed directory name length is {Config.MAX_DIR_LEN}')
+        return errors.json, 400
+    
+    # Loading directory
+    directory = models.UserDirectoryView.query.filter_by(user_id=user.id, directory_id=directory_id, deleted_at=None).first()
+    if directory == None:
+        if directory_id in (ApiSpecialDir.ROOT, ApiSpecialDir.TRASH):
+            abort(403)
+        else:
+            abort(404)
+    
+    directory.crypto = user.crypto
+
+    new_special_dir_id = directory.special_directory_id
+    if new_parent_id == ApiSpecialDir.ROOT:
+        new_parent_id = None
+        new_special_dir_id = user.root_dir_id
+    elif new_parent_id == ApiSpecialDir.TRASH:
+        new_parent_id = None
+        new_special_dir_id = user.trash_id
+
+    # Checking if requested destination id and name are available
+    if new_parent_id != None:
+        dst_directory = models.UserDirectoryView.query.filter_by(user_id=user.id, directory_id=new_parent_id, deleted_at=None).first()
+        if dst_directory == None:
+            abort(404)
+    dst_dir_content = models.UserDirectoryView.query.filter_by(user_id=user.id, parent_id=new_parent_id, deleted_at=None).all()
+    for dst_dir_element in dst_dir_content:
+        dst_dir_element.crypto = user.crypto
+        if dst_dir_element.name == new_directory_name and dst_dir_element.directory_id != directory.directory_id:
+            errors.add(ErrorRsp.ALREADY_EXISTS, 'Directory with specified name already exists in selected directory')
+            return errors.json, 400
+    
+    # Changing directory data
+    directory = models.Directory.query.filter_by(id=directory_id).first()
+    directory.crypto = user.crypto
+    directory.name = new_directory_name
+    directory.parent_id = new_parent_id
+
+    # Changing special dir id for each child entry and directory if special dir id has been changed
+    if new_special_dir_id != directory.special_directory_id:
+        directory.special_directory_id = new_special_dir_id
+        trash = False
+        if new_special_dir_id == user.trash_id:
+            trash = True
+        child_directories = user.get_directories(parent_id=directory_id, recursive=True, trash=not trash)
+        child_entries = user.get_entries(parent_dir_id=directory_id, recursive=True, trash=not trash)
+        for child_dir in child_directories:
+            child = models.Directory.query.filter_by(id=child_dir['directory_id']).first()
+            child.crypto = user.crypto
+            child.special_directory_id = new_special_dir_id
+        for child_entry in child_entries:
+            child = models.Entry.query.filter_by(id=child_entry.entry_id).first()
+            child.special_directory_id = new_special_dir_id
+
+    # Saving changes
+    models.db.session.commit()
+    return '', 204
+
+
 @bp_directory.route('/special', methods=['GET'])
 @token_required
 def get_special_dir_id(user :models.User, token :AccessToken):
