@@ -4,6 +4,7 @@ import re
 import src.models as models
 import src.models.errors as e
 from src.utils.auth import token_required
+from src.utils.token import AccessToken, TokenExpiredError
 from src.utils.db import CryptoDB
 from src.utils.data_validation import is_mail_correct, is_password_strong_enough, user_encryption_type_to_id
 from src.schemas.error_rsp import ErrorRsp
@@ -58,3 +59,19 @@ def create_account():
     models.db.session.commit()
 
     return '', 201
+
+
+@bp_account.route('/token', methods=['POST'])
+@token_required
+def renew_token(user :models.User, token :AccessToken):
+    """Renews user access token"""
+
+    try:
+        token.renew_token(Config.ACCESS_TOKEN_LIFETIME)
+    except TokenExpiredError:
+        abort(403)
+    
+    return {
+        'token': token.export_token(),
+        'expiration': token.expiration
+    }

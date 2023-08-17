@@ -58,7 +58,9 @@ def login():
         user_ip=request.remote_addr,
         user_email=mail,
         user_password=password,
-        algorithm_id=user.encryption_type_id
+        algorithm_id=user.encryption_type_id,
+        lifetime=Config.ACCESS_TOKEN_LIFETIME,
+        total_lifetime=Config.ACCESS_TOKEN_TOTAL_LIFETIME
     )
     rsp = {
         'token': token.export_token(),

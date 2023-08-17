@@ -100,7 +100,7 @@ class AccessToken:
         else:
             raise IncorrectTokenError
 
-    def generate_token(self, user_id :int, user_ip :str, user_email :str, user_password :str, algorithm_id :int, lifetime :int=300, total_lifetime :int=43200) -> int:
+    def generate_token(self, user_id :int, user_ip :str, user_email :str, user_password :str, algorithm_id :int, lifetime :int, total_lifetime :int) -> int:
         """
         Generates access token
         Args:
@@ -144,7 +144,7 @@ class AccessToken:
 
         return self.__data['expiration']
     
-    def renew_token(self, lifetime :int=300) -> int:
+    def renew_token(self, lifetime :int) -> int:
         """
         Renews the token without exceeding renewal_expiration time
         Args:
