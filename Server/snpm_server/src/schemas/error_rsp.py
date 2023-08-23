@@ -9,6 +9,7 @@ class ErrorRsp:
     UNKNOWN_ENCRYPTION_TYPE = 'unknown_encryption_type'
     TOKEN_REQUIRED = 'token_required'
     INVALID_TOKEN = 'invalid_token'
+    TWO_FACTOR_REQUIRED = '2fa_required'
 
     def __init__(self):
         self.__errors = {

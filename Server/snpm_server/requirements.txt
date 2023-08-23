@@ -11,3 +11,4 @@ requests~=2.27.1
 uwsgi~=2.0.21
 pycryptodome~=3.17
 jwcrypto~=1.4.2
+pyotp~=2.9.0

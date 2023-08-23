@@ -2,10 +2,11 @@ from flask import Blueprint, jsonify, request, abort
 from Crypto.Hash import SHA512
 from random import uniform
 from time import sleep
+import pyotp
 
 import src.models as models
 import src.models.errors as e
-from src.utils.auth import token_required
+from src.utils.auth import token_without_2fa_required
 from src.utils.db import CryptoDB
 from src.utils.data_validation import is_mail_correct
 from src.utils.token import AccessToken
@@ -51,6 +52,11 @@ def login():
         models.db.session.commit()
         return '', 401
     
+    # Checking if 2fa is required
+    required_2fa = False
+    if user.secret_2fa != None:
+        required_2fa = True
+    
     # Generating access token and sending it to client
     token = AccessToken()
     token.generate_token(
@@ -60,12 +66,13 @@ def login():
         user_password=password,
         algorithm_id=user.encryption_type_id,
         lifetime=Config.ACCESS_TOKEN_LIFETIME,
-        total_lifetime=Config.ACCESS_TOKEN_TOTAL_LIFETIME
+        total_lifetime=Config.ACCESS_TOKEN_TOTAL_LIFETIME,
+        twofa_passed=not required_2fa
     )
     rsp = {
         'token': token.export_token(),
         'expiration': token.expiration,
-        'is2faRequired': False
+        'is2faRequired': required_2fa
     }
 
     incorrect_login_log = models.ActivityLog(user, 1, request.remote_addr, public_ip=False)
@@ -73,3 +80,31 @@ def login():
     models.db.session.commit()
     
     return rsp
+
+
+@bp_login.route('/2fa', methods=['POST'])
+@token_without_2fa_required
+def login_2fa(user :models.User, token :AccessToken):
+    """Second step of logging in"""
+
+    # Loading and validating data
+    passcode = request.json.get('passcode')
+    if passcode == None:
+        abort(400)
+    if user.secret_2fa == None or token.twofa_passed:
+        return '', 422
+    
+    # Verifying passcode
+    totp = pyotp.TOTP(user.secret_2fa)
+    correct = totp.verify(passcode)
+    correct = True
+    if not correct:
+        return '', 401
+    
+    # Creating new token
+    token.pass_2fa()
+    token.renew_token(Config.ACCESS_TOKEN_LIFETIME)
+    return {
+        'token': token.export_token(),
+        'expiration': token.expiration
+    }

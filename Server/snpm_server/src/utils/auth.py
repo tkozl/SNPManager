@@ -11,9 +11,9 @@ from config import Config
 
 
 
-def token_required(f):
+def token_without_2fa_required(f):
     """
-    Decorator indicating that a given endpoint requires tokenization.
+    Decorator indicating that a given endpoint requires tokenization without 2fa.
     Sends a 401 message with an error description to the remote host if something is wrong with the attached token or if token is missing.
     Return:
         user (src.models.User), token (AccessToken)
@@ -61,4 +61,24 @@ def token_required(f):
 
         # Token has been verified
         return f(user, token, *args, **kwargs)
+    return decorated
+
+
+def token_required(f):
+    """
+    Decorator indicating that a given endpoint requires tokenization.
+    Sends a 401 message with an error description to the remote host if something is wrong with the attached token or if token is missing.
+    Return:
+        user (src.models.User), token (AccessToken)
+    """
+
+    @wraps(f)
+    @token_without_2fa_required
+    def decorated(user :User, token :AccessToken, *args, **kwargs):
+        if token.twofa_passed:
+            return f(user, token, *args, **kwargs)
+        else:
+            errors = ErrorRsp()
+            errors.add(ErrorRsp.TWO_FACTOR_REQUIRED)
+            return errors.json, 401
     return decorated

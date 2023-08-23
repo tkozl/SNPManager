@@ -15,11 +15,19 @@ def test_access_token():
         user_password='🏳️‍🌈 password 🔥\n',
         algorithm_id=1,
         lifetime=300,
-        total_lifetime=700
+        total_lifetime=700,
+        twofa_passed=False
     )
     assert token.is_valid == True
 
+    # Testing 2fa
+    token2fa_str = token.export_token
+    assert token.twofa_passed == False
+    token.pass_2fa()
+    assert token.twofa_passed == True
+
     token_str = token.export_token()
+    assert token_str != token2fa_str
 
     # Testing import
     token2 = AccessToken()

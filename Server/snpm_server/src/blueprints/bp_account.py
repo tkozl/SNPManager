@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, abort
 import re
+import pyotp
 
 import src.models as models
 import src.models.errors as e
@@ -69,9 +70,37 @@ def renew_token(user :models.User, token :AccessToken):
     try:
         token.renew_token(Config.ACCESS_TOKEN_LIFETIME)
     except TokenExpiredError:
-        abort(403)
+        return '', 403
     
     return {
         'token': token.export_token(),
         'expiration': token.expiration
     }, 200
+
+
+@bp_account.route('/2fa', methods=['POST'])
+@token_required
+def create_2fa(user :models.User, token :AccessToken):
+    """Creates 2fa mechanism"""
+
+    if user.secret_2fa != None:
+        return '', 403
+    
+    secret_2fa = pyotp.random_base32()
+    user.secret_2fa = secret_2fa
+    models.db.session.commit()
+
+    return {
+        'secretCode': secret_2fa
+    }, 201
+
+
+@bp_account.route('/2fa', methods=['DELETE'])
+@token_required
+def disable_2fa(user :models.User, token :AccessToken):
+    """Deletes 2fa mechanism"""
+
+    user.secret_2fa = None
+    models.db.session.commit()
+
+    return '', 204

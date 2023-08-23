@@ -365,7 +365,7 @@ paths:
       tags:
         - Konta
       summary: Weryfikacja dwuskładnikowa podczas logowania się na konto
-      description: Zapytanie umożliwia dosłanie kodu 2fa w sytuacji kiedy jest on potrzebny aby uzyskać dostęp do konta.
+      description: Zapytanie umożliwia dosłanie kodu 2fa w sytuacji kiedy jest on potrzebny aby uzyskać dostęp do konta. W odpowiedzi generuje nowy token dostępowy umożliwiający korzystanie z konta.
       requestBody:
         content:
           application/json:
@@ -376,10 +376,16 @@ paths:
                   type: integer
         required: true
       responses:
-        '204':
-          description: Kod zaakceptowany
+        '200':
+          description: Poprawnie zalogowano
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
         '401':
           description: Podano błędny kod lub użytkownik nie jest zalogowany do systemu
+        '422':
+          description: Weryfikacja nie jest konieczna
       security:
         - BearerAuth: []
         
