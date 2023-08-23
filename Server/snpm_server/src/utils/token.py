@@ -28,7 +28,8 @@ class AccessToken:
             'renewal_expiration': 0,
             'user_mail': None,
             'user_password': None,
-            'algorithm_id': None
+            'algorithm_id': None,
+            '2fa_passed': False
         }
     
     @property
@@ -58,6 +59,10 @@ class AccessToken:
     @property
     def user_password(self) -> str:
         return self.__data['user_password']
+    
+    @property
+    def twofa_passed(self) -> bool:
+        return self.__data['2fa_passed']
     
     @property
     def is_valid(self) -> bool:
@@ -100,7 +105,7 @@ class AccessToken:
         else:
             raise IncorrectTokenError
 
-    def generate_token(self, user_id :int, user_ip :str, user_email :str, user_password :str, algorithm_id :int, lifetime :int, total_lifetime :int) -> int:
+    def generate_token(self, user_id :int, user_ip :str, user_email :str, user_password :str, algorithm_id :int, lifetime :int, total_lifetime :int, twofa_passed :bool=True) -> int:
         """
         Generates access token
         Args:
@@ -127,7 +132,8 @@ class AccessToken:
             'renewal_expiration': int(cur_time + total_lifetime),
             'user_mail': user_email,
             'user_password': user_password,
-            'algorithm_id': algorithm_id
+            'algorithm_id': algorithm_id,
+            '2fa_passed': twofa_passed
         }
         if self.__data['expiration'] > self.__data['renewal_expiration']:
             self.__data['expiration'] = self.__data['renewal_expiration']
@@ -160,7 +166,18 @@ class AccessToken:
             lifetime = total_lifetime
         if total_lifetime <= 0:
             raise TokenExpiredError(f'Token expired on {self.renewal_expiration}')
-        expiration = self.generate_token(self.user_id, self.user_ip, self.user_email, self.__data['user_password'], self.algorithm_id, lifetime, total_lifetime)
+        expiration = self.generate_token(self.user_id, self.user_ip, self.user_email, self.__data['user_password'], self.algorithm_id, lifetime, total_lifetime, self.twofa_passed)
         if expiration <= 0:
             raise TokenExpiredError(f'Token expired on {self.renewal_expiration}')
         return expiration
+
+    def pass_2fa(self) -> None:
+        """Accepts 2fa in token"""
+
+        if not self.is_valid:
+            raise TokenExpiredError(f'Token expired on {self.expiration}')
+        total_lifetime = int(self.renewal_expiration - time())
+        lifetime = int(self.expiration - time())
+        if total_lifetime <= 0:
+            raise TokenExpiredError(f'Token expired on {self.renewal_expiration}')
+        self.generate_token(self.user_id, self.user_ip, self.user_email, self.__data['user_password'], self.algorithm_id, lifetime, total_lifetime, twofa_passed=True)
