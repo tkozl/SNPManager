@@ -1,55 +1,111 @@
-﻿using SNPM.Core;
+﻿using Microsoft.Extensions.DependencyInjection;
+using SNPM.Core;
 using SNPM.Core.Interfaces;
+using SNPM.MVVM.Models.UiModels;
+using SNPM.MVVM.Models.UiModels.Interfaces;
+using SNPM.MVVM.ViewModels.Interfaces;
 using SNPM.MVVM.Views;
 using SNPM.MVVM.Views.Interfaces;
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace SNPM.MVVM.ViewModels
 {
-
-    public delegate void OnLoginSucessful();
-    public class LoginViewModel
+    public class LoginViewModel : ILoginViewModel
     {
-        public ILoginView? LoginView { get; set; }
+        public Window LoginView { get; set; }
 
-        private IAccount PotentialAccount;
-        public string Username { get => PotentialAccount.Username; set { PotentialAccount.Username = value; } }
-        public string Password { get => PotentialAccount.Password; set { PotentialAccount.Password = value; } }
+        private IUiAccount Account;
+        private readonly IProxyService proxyService;
+        private readonly IDialogService dialogService;
+
+        public string Username { get => Account.Username; set { Account.Username = value; } }
+        public string Password { get => Account.Password; set { Account.Password = value; } }
+
+        public ObservableCollection<string> Errors => Account.Errors;
 
         public event OnLoginSucessful? LoginSuccessfulEvent;
         public ICommand LoginCommand { get; set; }
 
-        public LoginViewModel()
-        {
-            PotentialAccount = new Account();
+        public ICommand RegisterCommand { get; set; }
 
-            Username = string.Empty;
-            Password = string.Empty;
+        public LoginViewModel(IProxyService proxyService, IDialogService dialogService, IServiceProvider serviceProvider)
+        {
+            this.proxyService = proxyService;
+            this.dialogService = dialogService;
+            Account = new UiAccount();
+
+            //Username = $"testujeRejestracje@{DateTime.UtcNow.ToString("HH.mm.ss")}";
+            //Password = "Abcdefg1234567@";
+            Username = "user@example.com";
+            Password = "securepassword";
+            //Password = new string('a', 10000);
 
             LoginCommand = new RelayCommand(OnLoginAttempt);
+            RegisterCommand = new RelayCommand(OnRegisterAttempt);
+
+            LoginView = serviceProvider.GetService<ILoginView>() as Window ?? throw new Exception("LoginView not registered");
+            LoginView.DataContext = this;
         }
 
-        private void OnLoginAttempt(object sender)
+        private async void OnLoginAttempt(object sender)
         {
-            if (LoginView == null)
+            if (Account.CheckIfCorrect())
             {
-                throw new Exception("Login attempted, but no LoginView is set.");
-            }
+                await proxyService.Login(Account);
 
-            if (PotentialAccount.CheckIfCorrect() || true)
-            {
-                LoginView.Hide(); // TODO: (Przemek) Shutdown window instead of hide because otherwise it breaks application shutdown mode
-                LoginSuccessfulEvent?.Invoke();
+                if (!Account.Errors.Any())
+                {
+                    LoginView.Hide();
+                    LoginSuccessfulEvent?.Invoke();
+                }
+                else
+                {
+                    string mainMessage = "Login failed";
+                    string supportiveMessage = String.Empty;
+                    foreach (var error in Account.Errors)
+                    {
+                        supportiveMessage += $"{error}{Environment.NewLine}";
+                    }
+                    string affirmativeMessage = "OK";
+
+                    await dialogService.CreateDialogWindow(mainMessage, supportiveMessage, affirmativeMessage);
+                }
             }
-            else
+        }
+
+        private async void OnRegisterAttempt(object sender)
+        {
+            if (Account.CheckIfCorrect())
             {
-                // TODO: (Przemek) make error
+                await proxyService.CreateAccount(Account);
+
+                if (!Account.Errors.Any())
+                {
+                    string mainMessage = "Account creation succeeded";
+                    string supportiveMessage = "You can now login.";
+                    string affirmativeMessage = "OK";
+
+                    await dialogService.CreateDialogWindow(mainMessage, supportiveMessage, affirmativeMessage);
+                }
+                else
+                {
+                    // Account creation failed
+                }
             }
+        }
+
+        public void ShowView()
+        {
+            LoginView.Show();
+        }
+
+        public void HideView()
+        {
+            LoginView.Hide();
         }
     }
 }

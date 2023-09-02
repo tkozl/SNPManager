@@ -4,6 +4,8 @@ using SNPM.Core.Api;
 using SNPM.Core.Interfaces;
 using SNPM.Core.Interfaces.Api;
 using SNPM.MVVM.ViewModels;
+using SNPM.MVVM.ViewModels.Interfaces;
+using SNPM.MVVM.Views.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,24 +19,35 @@ namespace SNPM.MVVM.Models
 {
     public class ApplicationLogic : IApplicationLogic
     {
-        private Window MainView;
-        private IApiService ApiService;
-        private IPasswordVerifier? PasswordVerifierService;
-        private ServiceProvider ServiceProvider;
+        private readonly IApiService apiService;
+        private readonly IProxyService proxyService;
+        private readonly IPasswordVerifier? passwordVerifierService;
 
+        private IMainViewModel mainViewModel;
+        private ILoginViewModel loginViewModel;
+        
         public event OptionChanged OnOptionChange;
 
-        public ApplicationLogic(IPasswordVerifier PasswordVerifierService, IApiService ApiService)
+        public ApplicationLogic(
+            IPasswordVerifier passwordVerifierService,
+            IApiService apiService,
+            IProxyService proxyService,
+            IDialogService dialogService,
+            IServiceProvider serviceProvider)
         {
-            var mainVm = new MainViewModel();
-            mainVm.SubscribeToPreferenceUpdate(OnPreferenceUpdate);
+            //mainView = new Views.MainView()
+            //{
+            //    DataContext = mainVm
+            this.apiService = apiService;
+            this.proxyService = proxyService;
+            this.passwordVerifierService = passwordVerifierService;
 
-            MainView = new Views.MainView()
-            {
-                DataContext = mainVm
-            }; // TODO: (Przemek) Need a dependency injection class for views and viewmodels
-            this.ApiService = ApiService;
-            this.PasswordVerifierService = PasswordVerifierService;
+            mainViewModel = new MainViewModel();
+            mainViewModel.SubscribeToPreferenceUpdate(OnPreferenceUpdate);
+
+            loginViewModel = serviceProvider.GetService<ILoginViewModel>() ?? throw new Exception("LoginViewModel not registered");
+            loginViewModel.LoginSuccessfulEvent += mainViewModel.ShowView;
+            loginViewModel.ShowView();
 
             OnExit = new Action(Shutdown);
         }
@@ -43,11 +56,14 @@ namespace SNPM.MVVM.Models
 
         public void Initialize()
         {
-            Window loginView = new Views.LoginView(() => { 
-                MainView.Show();
-                
-            });
-            loginView.Show();
+            //var loginVm = new LoginViewModel(proxyService);
+
+            //Window loginView = new Views.LoginView(() => { MainView.Show(); })
+            //{
+            //    DataContext = loginVm
+            //};
+            //loginView.Show();
+            //loginViewModel = new 
         }
 
         private void Shutdown()

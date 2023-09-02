@@ -1,5 +1,7 @@
 ﻿using SNPM.Core.Interfaces;
+using SNPM.Core.Interfaces.Api;
 using System;
+using System.Collections.Generic;
 
 namespace SNPM.Core
 {
@@ -11,10 +13,12 @@ namespace SNPM.Core
         public DateTime TokenExpirationDate { get; set; }
         public bool IsAuthenticated => SessionToken == string.Empty || DateTime.Now > TokenExpirationDate;
 
-        public Account() : this(string.Empty, string.Empty, string.Empty) { }
-        public Account(string username, string password) : this(username, password, string.Empty) { }
+        public EncryptionType Encryption => EncryptionType.Aes256;
 
-        public Account(string username, string password, string sessionToken)
+        public IDictionary<AccountError, string> Errors { get; }
+
+        public Account() : this(string.Empty, string.Empty, string.Empty) { }
+        private Account(string username, string password, string sessionToken)
         {
             Username = username;
             Password = password;
@@ -28,11 +32,10 @@ namespace SNPM.Core
             {
                 TokenExpirationDate = DateTime.MinValue;
             }
-        }
 
-        public bool CheckIfCorrect()
-        {
-            return Username != null && Username.Length > 5 && Password != null && Password.Length > 5;
+            Errors = new Dictionary<AccountError, string>
+            {
+            };
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SNPM.Core;
 using SNPM.Core.Interfaces;
 using SNPM.MVVM.Models;
+using Moq;
+using SNPM.Core.Interfaces.Api;
 
 namespace SNPM.Test.MVVM.Models
 {
@@ -16,7 +16,10 @@ namespace SNPM.Test.MVVM.Models
         [TestInitialize]
         public void Init()
         {
-            PasswordVerifierService = new PasswordVerifier(remoteVerifierMock, HashType.SHA256);
+            var mockApiService = new Mock<IApiService>();
+            mockApiService.Setup(x => x.GetRemoteVerifier()).Returns(remoteVerifierMock);
+
+            PasswordVerifierService = new PasswordVerifier(mockApiService.Object);
         }
 
         [DataTestMethod]

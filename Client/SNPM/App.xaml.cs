@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using SNPM.Core;
 using SNPM.Core.Api;
+using SNPM.Core.BusinessLogic;
 using SNPM.Core.Interfaces;
 using SNPM.Core.Interfaces.Api;
 using SNPM.MVVM.Models;
@@ -8,6 +10,7 @@ using SNPM.MVVM.ViewModels.Interfaces;
 using SNPM.MVVM.Views;
 using SNPM.MVVM.Views.Interfaces;
 using System;
+using System.Net;
 using System.Windows;
 
 namespace SNPM
@@ -18,7 +21,7 @@ namespace SNPM
     public partial class App : Application
     {
         private IApplicationLogic? ApplicationLogic;
-        private ServiceProvider ServiceProvider;
+        private IServiceProvider ServiceProvider;
 
         public double TextSize;
 
@@ -30,12 +33,14 @@ namespace SNPM
 
             IServiceCollection services = new ServiceCollection();
             ConfigureServices(services);
+            ConfigureViewModels(services);
+            ConfigureViews(services);
             ServiceProvider = services.BuildServiceProvider();
+            services.AddSingleton(ServiceProvider);
 
             ApplicationLogic = ServiceProvider.GetService<IApplicationLogic>();
             if (ApplicationLogic != null)
             {
-                ApplicationLogic.Initialize();
                 ApplicationLogic.OnOptionChange += HandleOptionChange;
             }
             else
@@ -49,13 +54,23 @@ namespace SNPM
             services.AddSingleton<IPasswordVerifier, PasswordVerifier>();
             services.AddSingleton<IMainView, MainView>();
             services.AddSingleton<IApplicationLogic, ApplicationLogic>();
-            services.AddSingleton<IApiService, PlaceholderApiService>();
+            services.AddSingleton<IApiService, ApiService>();
+            services.AddSingleton<IProxyService, ProxyService>();
+            services.AddSingleton<IAccountBlService, AccountBlService>();
+            services.AddSingleton<IDialogService, DialogService>();
         }
 
         private void ConfigureViewModels(IServiceCollection services)
         {
-            services.AddSingleton<IMainView, MainView>();
             services.AddSingleton<IMainViewModel, MainViewModel>();
+            services.AddSingleton<ILoginViewModel, LoginViewModel>();
+            services.AddSingleton<IDialogViewModel, DialogViewModel>();
+        }
+
+        private void ConfigureViews(IServiceCollection services)
+        {
+            services.AddSingleton<ILoginView, LoginView>();
+            services.AddSingleton<IDialogView, DialogView>();
         }
 
         protected override void OnExit(ExitEventArgs e)

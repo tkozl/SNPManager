@@ -5,7 +5,7 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:viewModel="clr-namespace:SNPM.MVVM.ViewModels"
              xmlns:view="clr-namespace:SNPM.MVVM.Views"
-             ShutdownMode="OnLastWindowClose"
+             ShutdownMode="OnExplicitShutdown"
              Exit="Application_Exit">
     <Application.Resources>
         <ResourceDictionary>
