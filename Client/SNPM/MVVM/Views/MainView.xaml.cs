@@ -21,8 +21,8 @@ namespace SNPM.MVVM.Views
         public MainView()
         {
             InitializeComponent();
-            var viewModel = new MainViewModel();
-            this.DataContext = viewModel;
+            //var viewModel = new MainViewModel();
+            //this.DataContext = viewModel;
             this.Closing += OnWindowClosing;
         }
 

@@ -35,6 +35,8 @@ namespace SNPM.MVVM.ViewModels
 
         public ICommand PreferencesCommand { get; set; }
 
+        private MainView mainView;
+
         public MainViewModel()
         {
             Title = "Secure Network Password Manager";
@@ -52,6 +54,11 @@ namespace SNPM.MVVM.ViewModels
                 PreferencesView.Hide();
             });
             PreferencesCommand = new RelayCommand(OnPreferenceOpen);
+
+            mainView = new MainView()
+            {
+                DataContext = this
+            };
         }
 
         public void SubscribeToPreferenceUpdate(PreferenceHandler handler)
@@ -68,6 +75,16 @@ namespace SNPM.MVVM.ViewModels
         private void OnPreferenceOpen(object sender)
         {
             PreferencesView.Show();
+        }
+
+        public void ShowView()
+        {
+            mainView.Show();
+        }
+
+        public void HideView()
+        {
+            mainView.Hide();
         }
     }
 }

@@ -12,11 +12,11 @@ namespace SNPM.MVVM.Models
     [Flags]
     public enum CharacterGroup
     {
-      None = 0,
-      Lowercase = 1,
-      Uppercase = 2,
-      Numeric = 4,
-      Special = 8
+        None = 0,
+        Lowercase = 1,
+        Uppercase = 2,
+        Numeric = 4,
+        Special = 8
     }
 
     public enum HashType
@@ -29,10 +29,10 @@ namespace SNPM.MVVM.Models
     {
         public static HashType HashType;
 
-        private static readonly CharacterGroup DefaultGroups = 
-            CharacterGroup.Lowercase | 
-            CharacterGroup.Uppercase | 
-            CharacterGroup.Numeric | 
+        private static readonly CharacterGroup DefaultGroups =
+            CharacterGroup.Lowercase |
+            CharacterGroup.Uppercase |
+            CharacterGroup.Numeric |
             CharacterGroup.Special;
 
         private Func<string, Task<bool>> RemoteVerifier;
@@ -48,7 +48,7 @@ namespace SNPM.MVVM.Models
            {CharacterGroup.Special, new Regex(@"[^a-zA-Z0-9]") } // TODO: (Przemek) Make a switch in preferences to allow whitespaces in passwords.
         };
 
-      public PasswordVerifier(IApiService ApiService)
+        public PasswordVerifier(IApiService ApiService)
         {
             RemoteVerifier = ApiService.GetRemoteVerifier();
             RemoteHashType = PasswordVerifier.HashType; // TODO: (Przemek) We should load it from user preferences
@@ -61,12 +61,12 @@ namespace SNPM.MVVM.Models
             bool dictionaryVerification;
             if (PasswordPolicy.ShouldBeRemotelyVerified)
             {
-               var dictionaryVerificationTask = VerifyDictionary(password);
-               dictionaryVerification = await dictionaryVerificationTask;
+                var dictionaryVerificationTask = VerifyDictionary(password);
+                dictionaryVerification = await dictionaryVerificationTask;
             }
             else
             {
-               dictionaryVerification = true;
+                dictionaryVerification = true;
             }
 
             var lengthVerification = VerifyLength(password);
@@ -86,10 +86,10 @@ namespace SNPM.MVVM.Models
         {
             foreach (CharacterGroup flag in PasswordPolicy.RequiredCharacterGroups.GetUniqueFlags())
             {
-               if (!RegexTests[flag].IsMatch(password))
-               {
-                  return false;
-               }
+                if (!RegexTests[flag].IsMatch(password))
+                {
+                    return false;
+                }
             }
 
             return true;

@@ -8,9 +8,9 @@
         mc:Ignorable="d"
         Title="{Binding Title}" Height="750" Width="1200"
         Background="#fafafa">
-    <Window.DataContext>
+    <!--<Window.DataContext>
         <viewModel:MainViewModel/>
-    </Window.DataContext>
+    </Window.DataContext>-->
 
     <Window.Resources>
         <Style TargetType="MenuItem">

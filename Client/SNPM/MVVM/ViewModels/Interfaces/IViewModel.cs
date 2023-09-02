@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace SNPM.MVVM.ViewModels.Interfaces
 {
-    internal interface IMainViewModel : IViewModel
+    public interface IViewModel
     {
-        public Action CloseAction { get; set; }
+        public void ShowView();
 
-        public void SubscribeToPreferenceUpdate(PreferenceHandler handler);
+        public void HideView();
     }
 }

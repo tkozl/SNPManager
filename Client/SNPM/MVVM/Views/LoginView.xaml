@@ -6,10 +6,30 @@
         xmlns:local="clr-namespace:SNPM.MVVM.Views"
         xmlns:viewModel="clr-namespace:SNPM.MVVM.ViewModels"
         mc:Ignorable="d"
-        Title="{Binding Title}" Height="450" Width="800">
-    <Window.DataContext>
+        Title="{Binding Title}" Height="450" Width="800"
+        Closed="Window_Closed">
+    <!--<Window.DataContext>
         <viewModel:LoginViewModel/>
-    </Window.DataContext>
+    </Window.DataContext>-->
+    <Window.Resources>
+        <Style TargetType="TextBox" x:Key="ErrorDisplay">
+            
+        </Style>
+        <Style TargetType="{x:Type Control}" x:Key="Default">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="Black" />
+        </Style>
+
+        <Style BasedOn="{StaticResource Default}" TargetType="Label"/>
+        <Style BasedOn="{StaticResource Default}" TargetType="ComboBox"/>
+        <Style BasedOn="{StaticResource Default}" TargetType="TextBox"/>
+        <Style BasedOn="{StaticResource Default}" TargetType="Button"/>
+
+        <DataTemplate x:Key="ErrorItemTemplate">
+            <Label Content="{Binding}"/>
+        </DataTemplate>
+    </Window.Resources>
 
     <Border BorderThickness="1"
             CornerRadius="80">
@@ -29,68 +49,49 @@
                 <ColumnDefinition Width="30*"/>
                 <ColumnDefinition Width="10*"/>
             </Grid.ColumnDefinitions>
+            
+            <Label Grid.Row="1" Grid.Column="1" Content="Connect to:" />
 
-            <Label Grid.Row="1"
-                   Grid.Column="1"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Foreground="Black">
-                Connect to:
-            </Label>
-
-            <ComboBox Grid.Row="1"
-                   Grid.Column="2"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Foreground="Black">
-                <ComboBoxItem IsSelected="True">serwer (192.168.1.1)</ComboBoxItem>
+            <ComboBox Grid.Row="1" Grid.Column="2" HorizontalAlignment="Stretch">
+                <ComboBoxItem IsSelected="True" Content="Serwer"/>
             </ComboBox>
 
-            <Label Grid.Row="2"
-                   Grid.Column="1"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Foreground="Black">
-                Username
-            </Label>
+            <Label Grid.Row="2" Grid.Column="1" Content="Username" />
 
-            <TextBox  Grid.Row="2"
+            <TextBox Grid.Row="2"
                    Grid.Column="2"
                    HorizontalAlignment="Stretch"
                    Margin="5, 0"
-                   VerticalAlignment="Center"
-                   Foreground="Black"
-                   Text="{Binding Username}">
-        
-            </TextBox>
+                   Text="{Binding Username}" />
 
-            <Label Grid.Row="3"
-                   Grid.Column="1"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Foreground="Black">
-                Password
-            </Label>
+            <Label Grid.Row="3" Grid.Column="1" Content="Password" />
 
             <TextBox Grid.Row="3"
                    Grid.Column="2"
                    HorizontalAlignment="Stretch"
                    Margin="5, 0"
-                   VerticalAlignment="Center"
-                   Foreground="Black"
                    Text="{Binding Password}">
 
             </TextBox>
 
             <Button Grid.Row="4"
-                   Grid.Column="4"
+                   Grid.Column="3"
                    HorizontalAlignment="Stretch"
                    Margin="5, 0"
-                   VerticalAlignment="Center"
-                   Foreground="Black"
-                   Command="{Binding LoginCommand}">
-                Login
-            </Button>
+                   Command="{Binding LoginCommand}"
+                   Content="Login" />
+
+            <Button Grid.Row="4"
+                   Grid.Column="2"
+                   HorizontalAlignment="Stretch"
+                   Margin="5, 0"
+                   Command="{Binding RegisterCommand}"
+                   Content="Register" />
+            
+            <Label Grid.Row="5"
+                   Grid.Column="1" >
+                <ListBox ItemsSource="{Binding Errors}" ItemTemplate="{StaticResource ResourceKey=ErrorItemTemplate}"/>
+            </Label>
         </Grid>
     </Border>
 </Window>
