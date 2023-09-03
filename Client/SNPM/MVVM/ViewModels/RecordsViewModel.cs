@@ -1,22 +1,23 @@
 ﻿using SNPM.Core;
 using SNPM.MVVM.Models;
+using SNPM.MVVM.ViewModels.Interfaces;
 using System;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
 namespace SNPM.MVVM.ViewModels
 {
-    public class RecordsViewModel : ObservableObject
+    public class RecordsViewModel : ObservableObject, IRecordsViewModel
     {
         public RelayCommand RowClick { get; set; }
 
-        private ObservableCollection<ObservableObject> _records;
+        private ObservableCollection<ObservableObject> records;
 
         public ObservableCollection<ObservableObject> Records
         {
-            get => this._records;
+            get => this.records;
             set { 
-                _records = value;
+                records = value;
             }
         }
 

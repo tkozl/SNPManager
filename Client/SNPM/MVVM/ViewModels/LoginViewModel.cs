@@ -64,15 +64,7 @@ namespace SNPM.MVVM.ViewModels
                 }
                 else
                 {
-                    string mainMessage = "Login failed";
-                    string supportiveMessage = String.Empty;
-                    foreach (var error in Account.Errors)
-                    {
-                        supportiveMessage += $"{error}{Environment.NewLine}";
-                    }
-                    string affirmativeMessage = "OK";
-
-                    await dialogService.CreateDialogWindow(mainMessage, supportiveMessage, affirmativeMessage);
+                    await dialogService.CreateErrorDialog("Registration failed", Account.Errors);
                 }
             }
         }
@@ -93,7 +85,7 @@ namespace SNPM.MVVM.ViewModels
                 }
                 else
                 {
-                    // Account creation failed
+                    await dialogService.CreateErrorDialog("Registration failed", Account.Errors);
                 }
             }
         }

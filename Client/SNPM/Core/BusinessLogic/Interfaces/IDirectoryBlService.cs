@@ -2,14 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SNPM.Core.Interfaces
+namespace SNPM.Core.BusinessLogic.Interfaces
 {
-    public interface IProxyService
+    public interface IDirectoryBlService
     {
-        Task CreateAccount(IUiAccount account);
-
-        Task Login(IUiAccount uiAccount);
-
         Task<IEnumerable<IDirectory>> GetDirectories(int directoryId);
     }
 }

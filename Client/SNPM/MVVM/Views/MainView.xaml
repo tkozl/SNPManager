@@ -4,8 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SNPM.MVVM.Views"
-        xmlns:viewModel="clr-namespace:SNPM.MVVM.ViewModels"
+        xmlns:viewModel="clr-namespace:SNPM.MVVM.ViewModels.Interfaces"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=viewModel:IMainViewModel}"
         Title="{Binding Title}" Height="750" Width="1200"
         Background="#fafafa">
     <!--<Window.DataContext>
@@ -75,10 +76,10 @@
                         Margin="10"
                         Content="{Binding RecordsView}"/>
 
-        <ContentControl x:Name="FolderView"
+        <ContentControl x:Name="DirectoryView"
                         Grid.Row="2"
                         Grid.Column="0"
                         Margin="10"
-                        Content="{Binding RecordsView}"/>
+                        Content="{Binding DirectoryViewModel.View}"/>
     </Grid>
 </Window>

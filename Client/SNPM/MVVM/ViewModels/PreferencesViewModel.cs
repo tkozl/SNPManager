@@ -1,6 +1,7 @@
 ﻿using SNPM.Core;
 using SNPM.Core.Interfaces;
 using SNPM.Core.Options;
+using SNPM.MVVM.ViewModels.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,7 +23,7 @@ namespace SNPM.MVVM.ViewModels
 
     public delegate void PreferenceHandler(string PropertyName, object NewValue);
 
-    public class PreferencesViewModel : ObservableObject
+    public class PreferencesViewModel : ObservableObject, IPreferencesViewModel
     {
         public Action CloseAction { get; set; }
 

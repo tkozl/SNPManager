@@ -28,22 +28,22 @@ namespace SNPM.Core.Interfaces
 
         [EnumMember(Value = "login_failed"), Description("Invalid username or password")]
         LoginFailed,
+
+        // NotAuthenthicated,
     }
 
     public interface IAccount
     {
-        public string Username { get; set; }
+        string Username { get; set; }
 
-        public string Password { get; set; }
+        string Password { get; set; }
 
-        public string SessionToken { get; set; }
+        IToken? AuthenthicationToken { get; set; }
 
-        public DateTime TokenExpirationDate { get; set; }
+        bool IsAuthenticated { get; }
 
-        public bool IsAuthenticated { get; }
+        EncryptionType Encryption { get; }
 
-        public EncryptionType Encryption { get; }
-
-        public IDictionary<AccountError, string> Errors { get; }
+        IDictionary<AccountError, string> Errors { get; }
     }
 }

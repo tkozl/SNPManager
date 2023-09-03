@@ -1,7 +1,8 @@
-﻿using SNPM.Core.BusinessLogic;
+﻿using SNPM.Core.BusinessLogic.Interfaces;
 using SNPM.Core.Extensions;
 using SNPM.Core.Interfaces;
 using SNPM.Core.Interfaces.Api;
+using SNPM.MVVM.Models.UiModels;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +13,12 @@ namespace SNPM.Core
     public class ProxyService : IProxyService
     {
         private readonly IAccountBlService accountBlService;
+        private readonly IDirectoryBlService directoryBlService;
 
-        public ProxyService(IAccountBlService accountBlService)
+        public ProxyService(IAccountBlService accountBlService, IDirectoryBlService directoryBlService)
         {
             this.accountBlService = accountBlService;
+            this.directoryBlService = directoryBlService;
         }
 
         public async Task Login(IUiAccount uiAccount)
@@ -52,6 +55,23 @@ namespace SNPM.Core
                 // TODO: Replace ugly "ERROR: " with an icon
                 uiAccount.Errors.Add($"ERROR: {error.Key.GetDescription()}");
             }
+        }
+
+        public async Task<IEnumerable<IDirectory>> GetDirectories(int directoryId)
+        {
+            return await directoryBlService.GetDirectories(directoryId);
+
+            //var uiDirectories = new List<IUiDirectory>();
+
+            //foreach (var directory in domainDirectories)
+            //{
+            //    var uiDirectory = new UiDirectory();
+            //    uiDirectory.ParentId = directory.ParentId;
+            //    uiDirectory.Id = directory.Id;
+            //    uiDirectory.Name = directory.Name;
+            //}
+
+            //return uiDirectories;
         }
     }
 }

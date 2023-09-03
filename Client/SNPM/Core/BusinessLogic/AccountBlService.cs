@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using SNPM.Core.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using SNPM.Core.BusinessLogic.Interfaces;
 
 namespace SNPM.Core.BusinessLogic
 {
@@ -26,15 +28,19 @@ namespace SNPM.Core.BusinessLogic
 
     internal class AccountBlService : IAccountBlService
     {
+        public IToken? ActiveToken { get; set; }
+
         private readonly IApiService apiService;
+        private readonly IServiceProvider serviceProvider;
         private static JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Include,
             MissingMemberHandling = MissingMemberHandling.Error,
         };
-        public AccountBlService(IApiService apiService)
+        public AccountBlService(IApiService apiService, IServiceProvider serviceProvider)
         {
             this.apiService = apiService;
+            this.serviceProvider = serviceProvider;
         }
 
         public async Task CreateAccount(IAccount account)
@@ -59,7 +65,6 @@ namespace SNPM.Core.BusinessLogic
 
         public async Task Login(IAccount account)
         {
-
             var (succes, serializedJson) = await apiService.Login(account.Username, account.Password);
 
             switch (succes)
@@ -77,8 +82,12 @@ namespace SNPM.Core.BusinessLogic
                 var result = DeserializeJson(serializedJson);
 
                 account.Errors.Clear();
-                account.TokenExpirationDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(result["expiration"].ToString()!)).DateTime;
-                account.SessionToken = result["token"].ToString()!;
+
+                ActiveToken = serviceProvider.GetService<IToken>() ?? throw new Exception("Model not registered");
+                ActiveToken.SessionToken = result["token"].ToString()!;
+                ActiveToken.ExpirationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(result["expiration"].ToString()!)).DateTime;
+                ActiveToken.RefreshTokenMethod = RefreshToken;
+
                 var twoFa = result["is2faRequired"].ToString() == "false";
 
                 if (twoFa)
@@ -86,6 +95,11 @@ namespace SNPM.Core.BusinessLogic
                     account.Errors.Add(AccountError.RequiresSecondFactor, "Second authethincation required to login");
                 }
             }
+        }
+
+        private DateTime RefreshToken(IToken token)
+        {
+            return DateTime.UtcNow + TimeSpan.FromMinutes(20);
         }
 
         // TODO: works but make it better

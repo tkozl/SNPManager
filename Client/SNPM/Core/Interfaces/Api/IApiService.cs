@@ -12,6 +12,13 @@ namespace SNPM.Core.Interfaces.Api
         Aes256 = 0
     }
 
+    public enum HttpMethod
+    {
+        Get = 0,
+        Post = 1,
+        Delete = 2,
+    }
+
     public interface IApiService
     {
         Func<string, Task<bool>> GetRemoteVerifier();
@@ -25,5 +32,7 @@ namespace SNPM.Core.Interfaces.Api
         Task<bool> VerifyEmail();
 
         Task<(string, string)> Login(string mail, string password);
+
+        Task<(string, string)> GetDirectories(int directoryId, string sessionToken);
     }
 }

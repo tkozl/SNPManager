@@ -20,6 +20,18 @@ namespace SNPM.Core
             this.serviceProvider = serviceProvider;
         }
 
+        public async Task<bool> CreateErrorDialog(string MainMessage, ICollection<string> ErrorMessages)
+        {
+            string supportiveMessage = String.Empty;
+            foreach (var error in ErrorMessages)
+            {
+                supportiveMessage += $"{error}{Environment.NewLine}";
+            }
+            string affirmativeMessage = "OK";
+
+            return await CreateDialogWindow(MainMessage, supportiveMessage, affirmativeMessage);
+        }
+
         public async Task<bool> CreateDialogWindow(string MainMessage, string SupportiveMessage, string AffirmativeMessage)
         {
             return await CreateDialogWindow(MainMessage, SupportiveMessage, AffirmativeMessage, string.Empty);

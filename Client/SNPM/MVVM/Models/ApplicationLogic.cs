@@ -1,18 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SNPM.Core;
-using SNPM.Core.Api;
 using SNPM.Core.Interfaces;
 using SNPM.Core.Interfaces.Api;
 using SNPM.MVVM.ViewModels;
 using SNPM.MVVM.ViewModels.Interfaces;
-using SNPM.MVVM.Views.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using static SNPM.Core.Interfaces.IApplicationLogic;
 
 namespace SNPM.MVVM.Models
@@ -35,14 +26,11 @@ namespace SNPM.MVVM.Models
             IDialogService dialogService,
             IServiceProvider serviceProvider)
         {
-            //mainView = new Views.MainView()
-            //{
-            //    DataContext = mainVm
             this.apiService = apiService;
             this.proxyService = proxyService;
             this.passwordVerifierService = passwordVerifierService;
 
-            mainViewModel = new MainViewModel();
+            mainViewModel = serviceProvider.GetService<IMainViewModel>() ?? throw new Exception("ViewModel not registered");
             mainViewModel.SubscribeToPreferenceUpdate(OnPreferenceUpdate);
 
             loginViewModel = serviceProvider.GetService<ILoginViewModel>() ?? throw new Exception("LoginViewModel not registered");

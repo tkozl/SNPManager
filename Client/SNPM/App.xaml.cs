@@ -2,6 +2,7 @@
 using SNPM.Core;
 using SNPM.Core.Api;
 using SNPM.Core.BusinessLogic;
+using SNPM.Core.BusinessLogic.Interfaces;
 using SNPM.Core.Interfaces;
 using SNPM.Core.Interfaces.Api;
 using SNPM.MVVM.Models;
@@ -58,6 +59,8 @@ namespace SNPM
             services.AddSingleton<IProxyService, ProxyService>();
             services.AddSingleton<IAccountBlService, AccountBlService>();
             services.AddSingleton<IDialogService, DialogService>();
+            services.AddSingleton<IDirectoryBlService, DirectoryBlService>();
+            services.AddSingleton<IToken, Token>();
         }
 
         private void ConfigureViewModels(IServiceCollection services)
@@ -65,12 +68,16 @@ namespace SNPM
             services.AddSingleton<IMainViewModel, MainViewModel>();
             services.AddSingleton<ILoginViewModel, LoginViewModel>();
             services.AddSingleton<IDialogViewModel, DialogViewModel>();
+            services.AddSingleton<IRecordsViewModel, RecordsViewModel>();
+            services.AddSingleton<IPreferencesViewModel, PreferencesViewModel>();
+            services.AddSingleton<IDirectoryViewModel, DirectoryViewModel>();
         }
 
         private void ConfigureViews(IServiceCollection services)
         {
             services.AddSingleton<ILoginView, LoginView>();
             services.AddSingleton<IDialogView, DialogView>();
+            services.AddSingleton<IDirectoryView, DirectoryView>();
         }
 
         protected override void OnExit(ExitEventArgs e)
