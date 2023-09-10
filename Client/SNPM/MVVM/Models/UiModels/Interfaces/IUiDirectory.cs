@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace SNPM.MVVM.Models.UiModels.Interfaces
 {
-    public interface IUiDirectory : IDirectory
+    public interface IUiDirectory : IDirectory, INotifyPropertyChanged
     {
+        ObservableCollection<IUiDirectory> Children { get; }
+
+        string OldName { get; }
     }
 }

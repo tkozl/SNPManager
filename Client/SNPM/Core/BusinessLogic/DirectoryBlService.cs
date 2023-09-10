@@ -43,6 +43,24 @@ namespace SNPM.Core.BusinessLogic
             return directories;
         }
 
+        public async Task MoveDirectory(int directoryId, string newName, int parentId)
+        {
+            if (accountBlService.ActiveToken == null)
+            {
+                throw new Exception("Not authenthicated");
+            }
+
+            var (success, serializedJson) = await apiService.MoveDirectory(directoryId, newName, parentId, accountBlService.ActiveToken.SessionToken);
+
+            switch (success)
+            {
+                case "NoContent":
+                    break;
+                default:
+                    throw new Exception(success);
+            }
+        }
+
         private IEnumerable<IDirectory> DeserializeJsonIntoDirectories(string serializedJson)
         {
             var result = JsonConvert.DeserializeObject<List<Directory>>(serializedJson) ?? throw new Exception("Directory deserialization failed");

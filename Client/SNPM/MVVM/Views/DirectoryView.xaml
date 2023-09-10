@@ -5,12 +5,72 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SNPM.MVVM.Views"
              xmlns:viewModels="clr-namespace:SNPM.MVVM.ViewModels.Interfaces"
+             xmlns:uiModels="clr-namespace:SNPM.MVVM.Models.UiModels"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:r="clr-namespace:SNPM.Properties" xmlns:behaviors="clr-namespace:SNPM.Core.Behaviors"
+             x:Name="DirectoryTree"
              mc:Ignorable="d" 
-             Background="Red"
              d:DataContext="{d:DesignInstance Type=viewModels:IDirectoryViewModel}">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type TextBox}">
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+    </UserControl.Resources>
     <Grid>
-        <TreeView Name="DirectoryTreeView">
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <StackPanel
+            Style="{StaticResource CustomToolbar}"
+            Orientation="Horizontal"
+            Margin="5" >
+            <Button
+                Name="NewDirectory"
+                Command="{Binding NewDirectoryCommand}"
+                Style="{StaticResource ImageButton}">
+                <Image Source="/Images/NewItem.png" />
+            </Button>
+            <Button
+                Name="RenameDirectory"
+                Command="{Binding NewDirectoryCommand}"
+                Style="{StaticResource ImageButton}">
+                <Image Source="/Images/Rename.png" />
+            </Button>
+            <Button
+                Name="DeleteDirectory"
+                Command="{Binding NewDirectoryCommand}"
+                Style="{StaticResource ImageButton}">
+                <Image Source="/Images/Delete.png" />
+            </Button>
+        </StackPanel>
+        <TreeView 
+            Name="DirectoryTreeView" 
+            ItemsSource="{Binding RootNodes}"
+            SelectedItemChanged="DirectoryTreeView_SelectedItemChanged"
+            Margin="10"
+            Grid.Row="1">
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type uiModels:UiDirectory}" ItemsSource="{Binding Path=Children}">
+                    <!--<TextBlock Text="{Binding Path=Name}" />-->
+                    <TextBox
+                        Text="{Binding Path=Name, Mode=TwoWay}"
+                        MouseDoubleClick="TextBox_MouseDoubleClick"
+                        LostFocus="TextBox_LostFocus"
+                        IsReadOnly="True">
+                        <i:Interaction.Behaviors>
+                            <behaviors:TextBoxEnterKeyUpdateBehavior />
+                        </i:Interaction.Behaviors>
+                        <!--<i:Interaction.Triggers>
+                            <i:EventTrigger EventName="LostFocus">
+                                <i:InvokeCommandAction
+                                    Command="{Binding ElementName=DirectoryTree, Path=DataContext.RenameDirectoryCommand}"
+                                    CommandParameter="{Binding}"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>-->
+                    </TextBox>
+                </HierarchicalDataTemplate>
+            </TreeView.Resources>
         </TreeView>
     </Grid>
 </UserControl>

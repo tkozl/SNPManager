@@ -61,6 +61,16 @@ namespace SNPM.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] NewItem {
+            get {
+                object obj = ResourceManager.GetObject("NewItem", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Night Mode.
         /// </summary>
         internal static string NightMode {

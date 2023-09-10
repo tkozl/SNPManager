@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:SNPM.MVVM.Views"
         xmlns:viewModel="clr-namespace:SNPM.MVVM.ViewModels.Interfaces"
         mc:Ignorable="d"
+        xmlns:uiModels="clr-namespace:SNPM.MVVM.Models.UiModels"
         d:DataContext="{d:DesignInstance Type=viewModel:IMainViewModel}"
         Title="{Binding Title}" Height="750" Width="1200"
         Background="#fafafa">
@@ -76,10 +77,10 @@
                         Margin="10"
                         Content="{Binding RecordsView}"/>
 
-        <ContentControl x:Name="DirectoryView"
+        <ContentControl x:Name="DirectoryTree"
                         Grid.Row="2"
                         Grid.Column="0"
                         Margin="10"
-                        Content="{Binding DirectoryViewModel.View}"/>
+                        Content="{Binding DirectoryTreeViewModel}" />
     </Grid>
 </Window>

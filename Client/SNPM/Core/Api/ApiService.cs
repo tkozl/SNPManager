@@ -98,6 +98,19 @@ namespace SNPM.Core.Api
             return await RequestAsync("/directory", body, Interfaces.Api.HttpMethod.Get, sessionToken);
         }
 
+        public async Task<(string, string)> MoveDirectory(int directoryId, string newName, int parentId, string sessionToken)
+        {
+            var body = new
+            {
+                name = newName,
+                parentID = parentId,
+            };
+
+            var route = $"/directory/{directoryId}";
+
+            return await RequestAsync(route, body, Interfaces.Api.HttpMethod.Put, sessionToken);
+        }
+
         private async Task<(string, string)> RequestAsync(string route, object body, Interfaces.Api.HttpMethod httpMethod, string sessionToken)
         {
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
@@ -119,6 +132,9 @@ namespace SNPM.Core.Api
                     break;
                 case Interfaces.Api.HttpMethod.Get:
                     response = await GetAsync(route, body);
+                    break;
+                case Interfaces.Api.HttpMethod.Put:
+                    response = await PutAsync(route, body);
                     break;
                 default:
                     response = null;
@@ -152,18 +168,19 @@ namespace SNPM.Core.Api
             return await httpClient.PostAsync($"{serverString}{route}", requestContent);
         }
 
+        private async Task<HttpResponseMessage> PutAsync(string route, object body)
+        {
+            var jsonBody = JsonConvert.SerializeObject(body);
+            var requestContent = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json");
+
+            return await httpClient.PutAsync($"{serverString}{route}", requestContent);
+        }
+
         private string ConvertIntoParametersString(object body)
         {
             var type = body.GetType();
             var pairs = type.GetProperties().Select(x => x.Name + "=" + x.GetValue(body, null)).ToArray();
             return string.Join('&', pairs);
         }
-
-        //private string GetAuthenthicationToken()
-        //{
-        //    var token = accountBlService.ActiveToken ?? throw new Exception("No account authenthicated")!;
-
-        //    return token.SessionToken;
-        //}
     }
 }

@@ -9,8 +9,10 @@ namespace SNPM.MVVM.ViewModels.Interfaces
 {
     internal interface IMainViewModel : IViewModel
     {
-        public Action CloseAction { get; set; }
-        IDirectoryViewModel DirectoryViewModel { get; }
-        public void SubscribeToPreferenceUpdate(PreferenceHandler handler);
+        Action CloseAction { get; set; }
+        
+        IDirectoryViewModel DirectoryTreeViewModel { get; }
+
+        void SubscribeToPreferenceUpdate(PreferenceHandler handler);
     }
 }

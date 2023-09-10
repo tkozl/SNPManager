@@ -60,18 +60,11 @@ namespace SNPM.Core
         public async Task<IEnumerable<IDirectory>> GetDirectories(int directoryId)
         {
             return await directoryBlService.GetDirectories(directoryId);
+        }
 
-            //var uiDirectories = new List<IUiDirectory>();
-
-            //foreach (var directory in domainDirectories)
-            //{
-            //    var uiDirectory = new UiDirectory();
-            //    uiDirectory.ParentId = directory.ParentId;
-            //    uiDirectory.Id = directory.Id;
-            //    uiDirectory.Name = directory.Name;
-            //}
-
-            //return uiDirectories;
+        public async Task MoveDirectory(int directoryId, string newName, int parentId)
+        {
+            await directoryBlService.MoveDirectory(directoryId, newName, parentId);
         }
     }
 }

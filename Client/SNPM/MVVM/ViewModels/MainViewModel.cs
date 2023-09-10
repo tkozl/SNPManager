@@ -5,17 +5,19 @@ using SNPM.MVVM.ViewModels.Interfaces;
 using SNPM.MVVM.Views;
 using SNPM.MVVM.Views.Interfaces;
 using System;
+using System.Linq;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace SNPM.MVVM.ViewModels
 {
     class MainViewModel : ObservableObject, IMainViewModel
     {
-        private object _recordsView;
+        private IRecordsViewModel _recordsView;
 
-        public object RecordsView
+        public IRecordsViewModel RecordsView
         {
             get { return _recordsView; }
             set {
@@ -26,7 +28,8 @@ namespace SNPM.MVVM.ViewModels
 
         private IPreferencesViewModel PreferencesViewModel;
 
-        public IDirectoryViewModel DirectoryViewModel { get; private set; }
+        public IDirectoryViewModel DirectoryTreeViewModel { get; private set; }
+
 
         private PreferencesView _preferencesView;
 
@@ -56,8 +59,8 @@ namespace SNPM.MVVM.ViewModels
 
             RecordsView = serviceProvider.GetService<IRecordsViewModel>() ?? throw new Exception("ViewModel not registered");
             PreferencesViewModel = serviceProvider.GetService<IPreferencesViewModel>() ?? throw new Exception("ViewModel not registered");
-            DirectoryViewModel = serviceProvider.GetService<IDirectoryViewModel>() ?? throw new Exception("ViewModel not registered");
-            DirectoryViewModel.View = serviceProvider.GetService<IDirectoryView>() ?? throw new Exception("View not registered");
+            DirectoryTreeViewModel = serviceProvider.GetService<IDirectoryViewModel>() ?? throw new Exception("ViewModel not registered");
+
             PreferencesView = new PreferencesView
             {
                 DataContext = PreferencesViewModel
@@ -101,11 +104,9 @@ namespace SNPM.MVVM.ViewModels
             mainView.Hide();
         }
 
-        private async Task RefreshRecords()
+        private void RefreshRecords()
         {
-            DirectoryViewModel.Directories.Clear();
-
-            var directories = await proxyService.GetDirectories(1);
+            DirectoryTreeViewModel.RebuildDirectoryTree();
         }
     }
 }

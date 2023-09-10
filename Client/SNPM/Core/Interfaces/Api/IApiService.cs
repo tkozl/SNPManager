@@ -17,6 +17,7 @@ namespace SNPM.Core.Interfaces.Api
         Get = 0,
         Post = 1,
         Delete = 2,
+        Put = 3,
     }
 
     public interface IApiService
@@ -34,5 +35,7 @@ namespace SNPM.Core.Interfaces.Api
         Task<(string, string)> Login(string mail, string password);
 
         Task<(string, string)> GetDirectories(int directoryId, string sessionToken);
+
+        Task<(string, string)> MoveDirectory(int directoryId, string newName, int parentId, string sessionToken);
     }
 }

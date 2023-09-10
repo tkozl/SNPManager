@@ -11,5 +11,7 @@ namespace SNPM.Core.Interfaces
         Task Login(IUiAccount uiAccount);
 
         Task<IEnumerable<IDirectory>> GetDirectories(int directoryId);
+
+        Task MoveDirectory(int directoryId, string newName, int parentId);
     }
 }
