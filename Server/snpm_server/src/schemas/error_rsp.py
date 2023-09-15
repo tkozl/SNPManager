@@ -10,6 +10,7 @@ class ErrorRsp:
     TOKEN_REQUIRED = 'token_required'
     INVALID_TOKEN = 'invalid_token'
     TWO_FACTOR_REQUIRED = '2fa_required'
+    EMAIL_VALIDATION_REQUIRED = 'email_validation_required'
 
     def __init__(self):
         self.__errors = {
