@@ -1,15 +1,20 @@
 from flask import Blueprint, jsonify, request, abort
 import re
 import pyotp
+import random
+import string
+from datetime import datetime, timedelta
+from Crypto.Hash import SHA512
 
 import src.models as models
 import src.models.errors as e
-from src.utils.auth import token_required
+from src.utils.auth import token_without_email_validation_required
 from src.utils.token import AccessToken, TokenExpiredError
 from src.utils.db import CryptoDB
 from src.utils.data_validation import is_mail_correct, is_password_strong_enough, user_encryption_type_to_id
 from src.schemas.error_rsp import ErrorRsp
 from config import Config
+import src.templates as templates
 
 
 
@@ -63,7 +68,7 @@ def create_account():
 
 
 @bp_account.route('/token', methods=['POST'])
-@token_required
+@token_without_email_validation_required
 def renew_token(user :models.User, token :AccessToken):
     """Renews user access token"""
 
@@ -79,7 +84,7 @@ def renew_token(user :models.User, token :AccessToken):
 
 
 @bp_account.route('/2fa', methods=['POST'])
-@token_required
+@token_without_email_validation_required
 def create_2fa(user :models.User, token :AccessToken):
     """Creates 2fa mechanism"""
 
@@ -96,11 +101,34 @@ def create_2fa(user :models.User, token :AccessToken):
 
 
 @bp_account.route('/2fa', methods=['DELETE'])
-@token_required
+@token_without_email_validation_required
 def disable_2fa(user :models.User, token :AccessToken):
     """Deletes 2fa mechanism"""
 
     user.secret_2fa = None
     models.db.session.commit()
 
+    return '', 204
+
+
+@bp_account.route('/verify-email', methods=['POST'])
+@token_without_email_validation_required
+def create_email_verification(user :models.User, token :AccessToken):
+    """Creates and sends verification url to user"""
+
+    if user.email_verified:
+        abort(403)
+    
+    while True:
+        token = ''.join(random.choice(string.ascii_letters+string.digits) for _ in range(128))
+        token_hash = SHA512.new(data=bytes(token, 'utf-8')).hexdigest()
+        print(token_hash)
+        users = models.User.query.filter_by(email_verify_token=token_hash, email_verified=False).all()
+        if len(users) == 0:
+            break
+    user.email_verify_token = token_hash
+    user.email_verify_token_exp = datetime.now() + timedelta(hours=1)
+    url = f'{Config.SERVER_ADDRESS}/token/email-verify/{token}'
+    user.send_mail(subject='Account veryfication', message_html=templates.email_verification_mail(url))
+    models.db.session.commit()
     return '', 204

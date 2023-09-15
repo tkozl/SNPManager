@@ -13,8 +13,8 @@ from config import Config
 
 def token_without_2fa_required(f):
     """
-    Decorator indicating that a given endpoint requires tokenization without 2fa.
-    Sends a 401 message with an error description to the remote host if something is wrong with the attached token or if token is missing.
+    Decorator indicating that a given endpoint requires tokenization without 2fa and email validation.
+    Responds with 401 message with an error description to the remote host if something is wrong with the attached token or if token is missing.
     Return:
         user (src.models.User), token (AccessToken)
     """
@@ -64,10 +64,10 @@ def token_without_2fa_required(f):
     return decorated
 
 
-def token_required(f):
+def token_without_email_validation_required(f):
     """
-    Decorator indicating that a given endpoint requires tokenization.
-    Sends a 401 message with an error description to the remote host if something is wrong with the attached token or if token is missing.
+    Decorator indicating that a given endpoint requires tokenization without email validation.
+    Responds with 401 message with an error description to the remote host if something is wrong with the attached token or if token is missing.
     Return:
         user (src.models.User), token (AccessToken)
     """
@@ -81,4 +81,25 @@ def token_required(f):
             errors = ErrorRsp()
             errors.add(ErrorRsp.TWO_FACTOR_REQUIRED)
             return errors.json, 401
+    return decorated
+
+
+def token_required(f):
+    """
+    Decorator indicating that a given endpoint requires tokenization.
+    Responds with 401 message with an error description to the remote host if something is wrong with the attached token or if token is missing.
+    Responds with 403 message if user email is not verified
+    Return:
+        user (src.models.User), token (AccessToken)
+    """
+
+    @wraps(f)
+    @token_without_email_validation_required
+    def decorated(user :User, token :AccessToken, *args, **kwargs):
+        if user.email_verified == False:
+            errors = ErrorRsp()
+            errors.add(ErrorRsp.EMAIL_VALIDATION_REQUIRED, 'First verify your email address before using this function. Use /account/verify-email endpoint to send verification email.')
+            return errors.json, 403
+        else:
+            return f(user, token, *args, **kwargs)
     return decorated

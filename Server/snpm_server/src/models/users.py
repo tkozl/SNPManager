@@ -2,7 +2,9 @@ from Crypto.Hash import SHA512
 from datetime import datetime
 from sqlalchemy.sql import null
 
+from config import Config
 from src.utils.db import SNPMDB, CryptoDB
+from src.utils.mail import Mail
 from src.schemas.entry import EntryJSON
 from src.models import db
 from src.models.view_locked_users import LockedUserView
@@ -199,3 +201,17 @@ class User(db.Model, SNPMDB):
                 res += self.get_entries(directory.directory_id, recursive, append_parameters, append_related_windows, trash)
         
         return res
+
+    def send_mail(self, subject :str, message_html :str, mail_address :str=None) -> None:
+        """
+        Sends mail to email address related with user.
+        Args:
+            subject (str): email subject
+            message_html (str): email html content
+            mail_address (str): email address, if None then use address related with user accoung (defaults: None)
+        """
+
+        mail = Mail(server=Config.MAIL_SMTP_SERVER, port=Config.MAIL_PORT, username=Config.MAIL_USERNAME, password=Config.MAIL_PASSWORD)
+        if mail_address == None:
+            mail_address = self.crypto.decrypt(self.encrypted_email)
+        mail.send(mail_address, 'SNPM', subject, message_html, is_html=True)
