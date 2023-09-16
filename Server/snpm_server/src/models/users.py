@@ -215,6 +215,6 @@ class User(db.Model, SNPMDB):
         if mail_address == None:
             mail_address = self.crypto.decrypt(self.encrypted_email)
         try:
-            mail.send(mail_address, 'SNPM', subject, message_html, is_html=True)
+            mail.send(mail_address, 'SNPManager', subject, message_html, is_html=True)
         except:
             pass

@@ -130,7 +130,7 @@ def create_email_verification(user :models.User, token :AccessToken):
     user.email_verify_token = token_hash
     user.email_verify_token_exp = datetime.now() + timedelta(hours=1)
     url = f'{Config.SERVER_ADDRESS}/token/email-verify/{token}'
-    user.send_mail(subject='Account veryfication', message_html=templates.email_verification_mail(url))
+    user.send_mail(subject='Account verification', message_html=templates.email_verification_mail(url))
     models.db.session.commit()
     return '', 204
 
