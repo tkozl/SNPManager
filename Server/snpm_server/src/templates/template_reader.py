@@ -12,7 +12,7 @@ def read_template(template_name :str, replace_dict :dict) -> str:
         HTML message
     """
 
-    with open(f'{os.path.dirname(__file__)}\\{template_name}', 'r', encoding='utf-8') as file:
+    with open(os.path.join(os.path.dirname(__file__), template_name), 'r', encoding='utf-8') as file:
         message = file.read()
     for key in replace_dict.keys():
         message = message.replace(key, replace_dict[key])
