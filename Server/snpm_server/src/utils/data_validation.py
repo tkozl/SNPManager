@@ -54,6 +54,32 @@ def user_encryption_type_to_id(encryption_type :str) -> int:
     return encryption_type_id.get(encryption_type)
 
 
+def user_encryption_id_to_type(encryption_id :int) -> str:
+    """
+    Converts encryption id to string encryption name
+    Args:
+        encryption_id (int): id of encryption type
+    Return:
+        encryption type name (str)
+    """
+
+    encryption_type_name = [
+        'aes-256',
+        'aes-192',
+        'aes-128',
+        'twofish-256',
+        'twofish-192',
+        'twofish-128',
+        'serpent-256',
+        'serpent-192',
+        'serpent-128'
+    ]
+    encryption_id = int(encryption_id)
+    if encryption_id < 1 or encryption_id > len(encryption_type_name):
+        raise ValueError(f'Incorrect encryption_id {encryption_id}')
+    return encryption_type_name[encryption_id-1]
+
+
 def is_dir_name_correct(directory_name :str) -> bool:
     """
     Checks if directory name is allowed

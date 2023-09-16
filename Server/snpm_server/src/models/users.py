@@ -214,4 +214,7 @@ class User(db.Model, SNPMDB):
         mail = Mail(server=Config.MAIL_SMTP_SERVER, port=Config.MAIL_PORT, username=Config.MAIL_USERNAME, password=Config.MAIL_PASSWORD)
         if mail_address == None:
             mail_address = self.crypto.decrypt(self.encrypted_email)
-        mail.send(mail_address, 'SNPM', subject, message_html, is_html=True)
+        try:
+            mail.send(mail_address, 'SNPM', subject, message_html, is_html=True)
+        except:
+            pass
