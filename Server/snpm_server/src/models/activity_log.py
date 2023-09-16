@@ -39,6 +39,8 @@ class ActivityLog(db.Model, SNPMDB):
 
     @property
     def ip(self) -> str:
+        if self.__ip == None:
+            return None
         return self.crypto.decrypt(self.__ip)
     
     @ip.setter
