@@ -272,52 +272,13 @@ paths:
           description: Nie można wygenerować nowego tokenu - osiągnięto maksymalny dopuszczony czas aktywnej sesji
       security:
           - BearerAuth: []
-          
-    get:
-      tags:
-        - Konta
-      summary: Aktywne tokeny dostępowe
-      description: Zapytanie zwraca adresy IP mające w danej chwili dostęp do konta a także liczbę aktywnych tokenów dostępowych dla każdego z nich
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    ip:
-                      type: string
-                      example: '83.140.2.33'
-                    activeTokens:
-                      type: integer
-                      example: 2
-        '401':
-          $ref: '#/components/responses/401Unauthorized'
-      security:
-          - BearerAuth: []
-    
-    delete:
-      tags:
-        - Konta
-      summary: Usuwanie aktywnych tokenów dostępowych
-      description: Zapytanie unieważnia wszystkie aktywne tokeny dostępowe oprócz tego załączonego do nagłówka zapytania.
-      responses:
-        '204':
-          description: Tokeny zostały unieważnione
-        '401':
-          $ref: '#/components/responses/401Unauthorized'
-      security:
-          - BearerAuth: []
   
   /login:
     post:
       tags:
         - Konta
       summary: Logowanie do konta użytkownika
-      description: Logowanie do konta użytkownika wymaga przesłania nazwy użytkownika oraz hasła. Po poprawnym zalogowaniu zostanie odesłany token dostępowy ważny maksymalnie 12 godzin. Zostanie również odesłana informacja czy jest wymagane logowanie dwuskładnikowe. Jeśli tak, należy dosłać kod 2fa osobnym zapytaniem.
+      description: Logowanie do konta użytkownika wymaga przesłania nazwy użytkownika oraz hasła. Po poprawnym zalogowaniu zostanie odesłany token dostępowy wraz z terminem ważności. Ważność tokenu można następnie przedłużać, lecz nie w nieskończoność. Proces wylogowania z konta przebiega po stronie klienta poprzez skasowanie tokenu dostępowego. W odpowiedzi serwera na zapytanie zostanie również odesłana informacja czy jest wymagane logowanie dwuskładnikowe. Jeśli tak, należy dosłać kod 2fa osobnym zapytaniem.
       requestBody:
         content:
           application/json:
@@ -347,18 +308,6 @@ paths:
           description: Dane logowania są błędne
         '403':
           description: Odrzucone z powodu bezpieczeństwa
-    delete:
-      tags:
-        - Konta
-      summary: Wylogowanie się z konta użytkownika
-      description: Wylogowanie się z konta użytkownika jest równoznaczne z unieważnieniem tokenu dostępowego załączonego do nagłówka zapytania.
-      responses:
-        '204':
-          description: Poprawnie wylogowano
-        '401':
-          $ref: '#/components/responses/401Unauthorized'
-      security:
-        - BearerAuth: []
   
   /login/2fa:
     post:
@@ -430,14 +379,14 @@ paths:
       tags:
         - Katalogi
       summary: Pobranie struktury katalogów użytkownika
-      description: Zapytanie zwraca listę katalogów w całej bazie użytkownika, lub w wybranym znajdującym się w niej katalogu.
+      description: Zapytanie zwraca listę katalogów z wybranego katalogu nadrzędnego. Jeśli chcesz pobrać zawartość katalogu specjalnego czyli kosza lub katalogu głównego, użyj ID zwróconego przez endpoint `GET /directory/special`
       parameters:
         - in: query
           name: parentID
-          description: Domyślnie zwracane są wszystkie katalogi w bazie, jednak można określić ID katalogu którego podkatalogi mają być zwrócone
+          description: ID katalogu którego podkatalogi mają być zwrócone
           schema:
             type: integer
-          required: false
+          required: true
         - in: query
           name: recursive
           description: Informacja czy listowanie ma być rekurencyjne. Domyślnie `true`.
@@ -491,7 +440,7 @@ paths:
       tags:
         - Katalogi
       summary: Zmiana nazwy lub lokalizacji katalogu
-      description: Zapytanie umożliwia przenoszenie katalogu i zapisywanie go w dowolnej lokalizacji pod starą bądź nową nazwą
+      description: Zapytanie umożliwia przenoszenie katalogu i zapisywanie go w dowolnej lokalizacji pod starą bądź nową nazwą. Umożliwia również przeniesienie go do kosza razem z zawartością.
       parameters:
         - $ref: '#/components/parameters/DirectoryID'
       requestBody:
@@ -513,25 +462,6 @@ paths:
                 $ref: '#/components/schemas/Errors'
         '401':
           $ref: '#/components/responses/401Unauthorized'
-        '404':
-          description: Nie znaleziono katalogu
-      security:
-        - BearerAuth: []
-        
-    delete:
-      tags:
-        - Katalogi
-      summary: Usuwanie katalogu
-      description: Zapytanie umożliwia usunięcie dowolnego katalogu w wybranej lokalizacji. Katalog taki zostanie przeniesiony do kosza.
-      parameters:
-      - $ref: '#/components/parameters/DirectoryID'
-      responses:
-        '204':
-          description: Katalog pomyślnie usunięty
-        '401':
-          $ref: '#/components/responses/401Unauthorized'
-        '403':
-          description: Usuwanie wskazanego katalogu jest zabronione (katalog specjalny lub katalog znajdujący się już w koszu)
         '404':
           description: Nie znaleziono katalogu
       security:
@@ -603,18 +533,18 @@ paths:
       description: Zapytanie umożliwia pobranie listy wpisów z bazy danych użytkownika. Umożliwia sprecyzowanie katalogu oraz kryteriów jakie muszą spełniać zwracane wpisy. Informacje o wpisach które mają być zwrócone oprócz ID możliwe są do określenia w parametrze `include`.
       parameters:
         - in: query
+          name: directoryID
+          description: ID katalogu z którego mają zostać zwrócone wpisy. Może to być ID katalogu utworzoneg przez użytkownika lub ID katologu specjalnego zwrócone przez endpoint `GET /directory/special`
+          required: true
+          schema:
+            type: integer
+        - in: query
           name: include
           description: Dane wpisów jakie mają być pobrane oprócz ID, oddzielone znakiem plus (`+`). Dostępne są ID katalogu (`directoryID`), nazwa wpisu (`entryName`), nazwa użytkownika (`username`), hasło (`password`), notatka (`note`), czas życia hasła wyrażony w dniach (`lifetime`), powiązane z wpisem okna (`relatedWindows`), oraz lista parametrów wpisu (`parameters`).
           required: false
           schema:
             type: string
             example: entryName+directoryID+relatedWindows
-        - in: query
-          name: directoryID
-          description: Domyślnie zwracane są wpisy z całej bazy danych użytkownika, aby zwrócić wpisy z konkretnego katalogu należy podać ID katalogu
-          required: false
-          schema:
-            type: boolean
         - in: query
           name: recursive
           description: Informacja czy należy szukać wpisów również w podkatalogach, domyślnie `true`
@@ -716,7 +646,7 @@ paths:
       tags:
         - Wpisy
       summary: Edycja wpisu
-      description: Nadpisanie wpisu nowymi danymi
+      description: Nadpisanie wpisu nowymi danymi. Umożliwia zmianę dowolnych danych wpisu w tym przeniesienie go do nowej lokalizacji, również kosza.
       parameters:
         - $ref: '#/components/parameters/EntryID'
       requestBody:
@@ -736,25 +666,6 @@ paths:
                 $ref: '#/components/schemas/Errors'
         '401':
           $ref: '#/components/responses/401Unauthorized'
-        '404':
-          description: Nie znaleziono wpisu
-      security:
-        - BearerAuth: []
-    
-    delete:
-      tags:
-        - Wpisy
-      summary: Usuwanie wpisu
-      description: Usunięcie wpisu oznacza przeniesienie go do kosza
-      parameters:
-        - $ref: '#/components/parameters/EntryID'
-      responses:
-        '204':
-          description: Wpis został usunięty
-        '401':
-          $ref: '#/components/responses/401Unauthorized'
-        '403':
-          description: Wpis nie może zostać usunięty ponieważ znajduje się już w koszu.
         '404':
           description: Nie znaleziono wpisu
       security:
