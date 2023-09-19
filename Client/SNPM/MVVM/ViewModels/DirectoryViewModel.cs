@@ -16,6 +16,8 @@ namespace SNPM.MVVM.ViewModels
     {
         private readonly IProxyService proxyService;
 
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         public IUiDirectory DirectoryTree { get; set; }
 
         public ObservableCollection<IUiDirectory> RootNodes { get; set; }
@@ -25,6 +27,9 @@ namespace SNPM.MVVM.ViewModels
         public ICommand RenameDirectoryCommand { get; }
 
         public ICommand DeleteDirectoryCommand { get; }
+
+        public ICommand SelectedTreeViewItemClickedCommand { get; }
+        
         public IUiDirectory? SelectedNode { get; set; }
 
         public DirectoryViewModel(IProxyService proxyService)
@@ -35,6 +40,7 @@ namespace SNPM.MVVM.ViewModels
             NewDirectoryCommand = new RelayCommand(CreateNewDirectory, CanCreateNewDirectory);
             RenameDirectoryCommand = new RelayCommand(RenameDirectory, CanRenameDirectory);
             DeleteDirectoryCommand = new RelayCommand(DeleteDirectory, CanDeleteDirectory);
+            SelectedTreeViewItemClickedCommand = new RelayCommand(SelectedTreeItem);
 
             SelectedNode = null;
             this.proxyService = proxyService;
@@ -71,6 +77,27 @@ namespace SNPM.MVVM.ViewModels
 
         private async void CreateNewDirectory(object sender)
         {
+            if (SelectedNode == null)
+            {
+                return;
+            }
+
+            //var directory = new UiDirectory(int.MaxValue, SelectedNode.Id, "New Directory", OnNodePropertyChanged);
+            //SelectedNode.Children.Add(directory);
+            //PropertyChanged?.Invoke(directory, new PropertyChangedEventArgs(nameof(RootNodes)));
+
+            var parentId = SelectedNode?.Id ?? 0;
+            var newId = await proxyService.CreateDirectory(parentId, "New Directory");
+
+            IUiDirectory treeNode = new UiDirectory(newId, parentId, "New Directory", OnNodePropertyChanged);
+            if (SelectedNode != null)
+            {
+                SelectedNode.Children.Add(treeNode);
+            }
+            else
+            {
+                RootNodes.Add(treeNode);
+            }
         }
 
         private bool CanCreateNewDirectory(object _) => true;
@@ -98,6 +125,11 @@ namespace SNPM.MVVM.ViewModels
             {
                 RenameDirectory(sender);
             }
+        }
+
+        private void SelectedTreeItem(object? sender)
+        {
+
         }
     }
 }

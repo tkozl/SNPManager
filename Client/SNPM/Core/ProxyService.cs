@@ -62,6 +62,11 @@ namespace SNPM.Core
             return await directoryBlService.GetDirectories(directoryId);
         }
 
+        public async Task<int> CreateDirectory(int directoryId, string name)
+        {
+            return await directoryBlService.CreateDirectory(directoryId, name);
+        }
+
         public async Task MoveDirectory(int directoryId, string newName, int parentId)
         {
             await directoryBlService.MoveDirectory(directoryId, newName, parentId);

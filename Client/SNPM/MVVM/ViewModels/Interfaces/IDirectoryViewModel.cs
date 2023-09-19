@@ -1,11 +1,12 @@
 ﻿using SNPM.MVVM.Models.UiModels.Interfaces;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace SNPM.MVVM.ViewModels.Interfaces
 {
-    interface IDirectoryViewModel : IViewModel
+    interface IDirectoryViewModel : IViewModel, INotifyPropertyChanged
     {
         IUiDirectory DirectoryTree { get; }
 
@@ -20,5 +21,7 @@ namespace SNPM.MVVM.ViewModels.Interfaces
         ICommand RenameDirectoryCommand { get; }
 
         ICommand DeleteDirectoryCommand { get; }
+
+        ICommand SelectedTreeViewItemClickedCommand { get; }
     }
 }

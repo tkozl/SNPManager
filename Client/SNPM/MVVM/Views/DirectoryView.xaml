@@ -7,6 +7,7 @@
              xmlns:viewModels="clr-namespace:SNPM.MVVM.ViewModels.Interfaces"
              xmlns:uiModels="clr-namespace:SNPM.MVVM.Models.UiModels"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
              xmlns:r="clr-namespace:SNPM.Properties" xmlns:behaviors="clr-namespace:SNPM.Core.Behaviors"
              x:Name="DirectoryTree"
              mc:Ignorable="d" 
@@ -47,12 +48,12 @@
         <TreeView 
             Name="DirectoryTreeView" 
             ItemsSource="{Binding RootNodes}"
+            
             SelectedItemChanged="DirectoryTreeView_SelectedItemChanged"
             Margin="10"
             Grid.Row="1">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type uiModels:UiDirectory}" ItemsSource="{Binding Path=Children}">
-                    <!--<TextBlock Text="{Binding Path=Name}" />-->
                     <TextBox
                         Text="{Binding Path=Name, Mode=TwoWay}"
                         MouseDoubleClick="TextBox_MouseDoubleClick"
@@ -61,13 +62,12 @@
                         <i:Interaction.Behaviors>
                             <behaviors:TextBoxEnterKeyUpdateBehavior />
                         </i:Interaction.Behaviors>
-                        <!--<i:Interaction.Triggers>
-                            <i:EventTrigger EventName="LostFocus">
-                                <i:InvokeCommandAction
-                                    Command="{Binding ElementName=DirectoryTree, Path=DataContext.RenameDirectoryCommand}"
-                                    CommandParameter="{Binding}"/>
-                            </i:EventTrigger>
-                        </i:Interaction.Triggers>-->
+                        <i:Interaction.Triggers>
+                            <ei:DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type TextBox}}, Path=IsKeyboardFocused}" Value="True">
+                                <ei:ChangePropertyAction TargetObject="{Binding RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"
+                                    PropertyName="IsSelected" Value="True"/>
+                            </ei:DataTrigger>
+                        </i:Interaction.Triggers>
                     </TextBox>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>

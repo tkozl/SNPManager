@@ -1,7 +1,10 @@
 ﻿using SNPM.MVVM.Models.UiModels.Interfaces;
 using SNPM.MVVM.ViewModels.Interfaces;
 using SNPM.MVVM.Views.Interfaces;
+using System.ComponentModel;
 using System.Windows.Controls;
+using System.Collections.Specialized;
+using System.Windows.Threading;
 
 namespace SNPM.MVVM.Views
 {
@@ -13,7 +16,21 @@ namespace SNPM.MVVM.Views
         public DirectoryView()
         {
             InitializeComponent();
+
+            //DataContextChanged += (sender, args) =>
+            //{
+            //    IDirectoryViewModel viewModel = (IDirectoryViewModel)DataContext;
+            //    viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            //};
         }
+
+        //private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        //{
+        //    if (e.PropertyName == "RootNodes" && sender is IUiDirectory uiDirectory)
+        //    {
+                
+        //    }
+        //}
 
         private void DirectoryTreeView_SelectedItemChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<object> e)
         {
@@ -37,11 +54,6 @@ namespace SNPM.MVVM.Views
             if (sender is TextBox textBox)
             {
                 textBox.IsReadOnly = true;
-
-                //if (DataContext is IDirectoryViewModel viewModel)
-                //{
-                //    viewModel.RenameDirectoryCommand.Execute(null);
-                //}
             }
         }
     }

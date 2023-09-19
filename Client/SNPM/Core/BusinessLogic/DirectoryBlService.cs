@@ -43,6 +43,27 @@ namespace SNPM.Core.BusinessLogic
             return directories;
         }
 
+        public async Task<int> CreateDirectory(int parentId, string name)
+        {
+            if (accountBlService.ActiveToken == null)
+            {
+                throw new Exception("Not authenthicated");
+            }
+
+            var (success, serializedJson) = await apiService.CreateDirectory(parentId, name, accountBlService.ActiveToken.SessionToken);
+
+            switch (success)
+            {
+                case "NoContent":
+                case "Created":
+                    break;
+                default:
+                    throw new Exception(success);
+            }
+
+            return DeserializeJsonIntoId(serializedJson);
+        }
+
         public async Task MoveDirectory(int directoryId, string newName, int parentId)
         {
             if (accountBlService.ActiveToken == null)
@@ -66,6 +87,14 @@ namespace SNPM.Core.BusinessLogic
             var result = JsonConvert.DeserializeObject<List<Directory>>(serializedJson) ?? throw new Exception("Directory deserialization failed");
 
             return result;
+        }
+
+        private int DeserializeJsonIntoId(string serializedJson)
+        {
+            var result = JsonConvert.DeserializeObject<Dictionary<string, int>>(serializedJson) ?? throw new Exception("Directory deserialization failed");
+            result.TryGetValue("id", out var id);
+            
+            return id;
         }
     }
 }

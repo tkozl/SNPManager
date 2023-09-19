@@ -98,6 +98,17 @@ namespace SNPM.Core.Api
             return await RequestAsync("/directory", body, Interfaces.Api.HttpMethod.Get, sessionToken);
         }
 
+        public async Task<(string, string)> CreateDirectory(int parentId, string name, string sessionToken)
+        {
+            var body = new
+            {
+                name = name,
+                parentID = parentId,
+            };
+
+            return await RequestAsync("/directory", body, Interfaces.Api.HttpMethod.Post, sessionToken);
+        }
+
         public async Task<(string, string)> MoveDirectory(int directoryId, string newName, int parentId, string sessionToken)
         {
             var body = new

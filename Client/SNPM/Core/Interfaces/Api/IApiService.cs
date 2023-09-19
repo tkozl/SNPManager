@@ -1,8 +1,4 @@
-﻿using SNPM.MVVM.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace SNPM.Core.Interfaces.Api
@@ -33,6 +29,8 @@ namespace SNPM.Core.Interfaces.Api
         Task<bool> VerifyEmail();
 
         Task<(string, string)> Login(string mail, string password);
+
+        Task<(string, string)> CreateDirectory(int parentId, string name, string sessionToken);
 
         Task<(string, string)> GetDirectories(int directoryId, string sessionToken);
 

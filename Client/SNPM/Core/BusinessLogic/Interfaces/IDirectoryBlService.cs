@@ -8,6 +8,8 @@ namespace SNPM.Core.BusinessLogic.Interfaces
     {
         Task<IEnumerable<IDirectory>> GetDirectories(int directoryId);
 
+        Task<int> CreateDirectory(int parentId, string name);
+
         Task MoveDirectory(int directoryId, string newName, int parentId);
     }
 }
