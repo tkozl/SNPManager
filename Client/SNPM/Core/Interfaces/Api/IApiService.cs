@@ -35,5 +35,9 @@ namespace SNPM.Core.Interfaces.Api
         Task<(string, string)> GetDirectories(int directoryId, string sessionToken);
 
         Task<(string, string)> MoveDirectory(int directoryId, string newName, int parentId, string sessionToken);
+
+        Task<(string, string)> GetDirectoryData(int directoryId, string sessionToken);
+
+        Task<(string, string)> GetSpecialDirectories(string sessionToken);
     }
 }

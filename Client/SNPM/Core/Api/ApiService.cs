@@ -1,16 +1,12 @@
 ﻿using SNPM.Core.Interfaces;
 using SNPM.Core.Interfaces.Api;
-using SNPM.MVVM.Models;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http.Headers;
 using System.Linq;
-using SNPM.Core.BusinessLogic.Interfaces;
 
 namespace SNPM.Core.Api
 {
@@ -122,6 +118,20 @@ namespace SNPM.Core.Api
             return await RequestAsync(route, body, Interfaces.Api.HttpMethod.Put, sessionToken);
         }
 
+        public async Task<(string, string)> GetDirectoryData(int directoryId, string sessionToken)
+        {
+            var route = $"/directory/{directoryId}";
+
+            return await RequestAsync(route, null, Interfaces.Api.HttpMethod.Get, sessionToken);
+        }
+
+        public async Task<(string, string)> GetSpecialDirectories(string sessionToken)
+        {
+            var route = $"/directory/special";
+
+            return await RequestAsync(route, null, Interfaces.Api.HttpMethod.Get, sessionToken);
+        }
+
         private async Task<(string, string)> RequestAsync(string route, object body, Interfaces.Api.HttpMethod httpMethod, string sessionToken)
         {
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
@@ -187,8 +197,13 @@ namespace SNPM.Core.Api
             return await httpClient.PutAsync($"{serverString}{route}", requestContent);
         }
 
-        private string ConvertIntoParametersString(object body)
+        private string ConvertIntoParametersString(object? body)
         {
+            if (body == null)
+            {
+                return string.Empty;
+            }
+
             var type = body.GetType();
             var pairs = type.GetProperties().Select(x => x.Name + "=" + x.GetValue(body, null)).ToArray();
             return string.Join('&', pairs);

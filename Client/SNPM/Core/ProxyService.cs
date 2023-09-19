@@ -71,5 +71,10 @@ namespace SNPM.Core
         {
             await directoryBlService.MoveDirectory(directoryId, newName, parentId);
         }
+
+        public async Task DeleteDirectory(int directoryId)
+        {
+            await directoryBlService.DeleteDirectory(directoryId);
+        }
     }
 }

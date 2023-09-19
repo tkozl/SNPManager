@@ -32,15 +32,15 @@
                 Style="{StaticResource ImageButton}">
                 <Image Source="/Images/NewItem.png" />
             </Button>
-            <Button
+            <!--<Button
                 Name="RenameDirectory"
-                Command="{Binding NewDirectoryCommand}"
+                Command="{Binding RenameDirectoryCommand}"
                 Style="{StaticResource ImageButton}">
                 <Image Source="/Images/Rename.png" />
-            </Button>
+            </Button>-->
             <Button
                 Name="DeleteDirectory"
-                Command="{Binding NewDirectoryCommand}"
+                Command="{Binding DeleteDirectoryCommand}"
                 Style="{StaticResource ImageButton}">
                 <Image Source="/Images/Delete.png" />
             </Button>

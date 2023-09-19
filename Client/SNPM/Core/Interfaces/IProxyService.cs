@@ -15,5 +15,7 @@ namespace SNPM.Core.Interfaces
         Task<int> CreateDirectory(int directoryId, string name);
 
         Task MoveDirectory(int directoryId, string newName, int parentId);
+
+        Task DeleteDirectory(int id);
     }
 }

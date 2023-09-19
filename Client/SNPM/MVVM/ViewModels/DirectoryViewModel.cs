@@ -40,7 +40,6 @@ namespace SNPM.MVVM.ViewModels
             NewDirectoryCommand = new RelayCommand(CreateNewDirectory, CanCreateNewDirectory);
             RenameDirectoryCommand = new RelayCommand(RenameDirectory, CanRenameDirectory);
             DeleteDirectoryCommand = new RelayCommand(DeleteDirectory, CanDeleteDirectory);
-            SelectedTreeViewItemClickedCommand = new RelayCommand(SelectedTreeItem);
 
             SelectedNode = null;
             this.proxyService = proxyService;
@@ -82,10 +81,6 @@ namespace SNPM.MVVM.ViewModels
                 return;
             }
 
-            //var directory = new UiDirectory(int.MaxValue, SelectedNode.Id, "New Directory", OnNodePropertyChanged);
-            //SelectedNode.Children.Add(directory);
-            //PropertyChanged?.Invoke(directory, new PropertyChangedEventArgs(nameof(RootNodes)));
-
             var parentId = SelectedNode?.Id ?? 0;
             var newId = await proxyService.CreateDirectory(parentId, "New Directory");
 
@@ -104,7 +99,7 @@ namespace SNPM.MVVM.ViewModels
 
         private async void RenameDirectory(object sender)
         {
-            if (sender != null && sender is IUiDirectory directory && directory.OldName != directory.Name)
+            if (sender != null && sender is IUiDirectory directory && directory.OldName != directory.Name && directory.Name != string.Empty)
             {
                 await proxyService.MoveDirectory(directory.Id, directory.Name, directory.ParentId);
             }
@@ -112,9 +107,14 @@ namespace SNPM.MVVM.ViewModels
 
         private bool CanRenameDirectory(object _) => true;
 
-        private void DeleteDirectory(object sender)
+        private async void DeleteDirectory(object sender)
         {
+            if (SelectedNode != null) // TODO: Check if directory can be deleted
+            {
+                await proxyService.DeleteDirectory(SelectedNode.Id);
 
+                RebuildDirectoryTree();
+            }
         }
 
         private bool CanDeleteDirectory(object _) => true;
@@ -125,11 +125,6 @@ namespace SNPM.MVVM.ViewModels
             {
                 RenameDirectory(sender);
             }
-        }
-
-        private void SelectedTreeItem(object? sender)
-        {
-
         }
     }
 }

@@ -11,5 +11,7 @@ namespace SNPM.Core.BusinessLogic.Interfaces
         Task<int> CreateDirectory(int parentId, string name);
 
         Task MoveDirectory(int directoryId, string newName, int parentId);
+
+        Task DeleteDirectory(int id);
     }
 }
