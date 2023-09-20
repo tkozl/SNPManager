@@ -6,6 +6,13 @@ namespace SNPM.MVVM.Models.UiModels
 {
     class Directory : IDirectory
     {
+        public Directory(string name, int id, int parentId)
+        {
+            Name = name;
+            Id = id;
+            ParentId = parentId;
+        }
+
         [JsonProperty("name")]
         public string Name { get; set; }
 

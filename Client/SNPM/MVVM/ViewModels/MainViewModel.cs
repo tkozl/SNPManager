@@ -17,7 +17,7 @@ namespace SNPM.MVVM.ViewModels
     {
         private IRecordsViewModel _recordsView;
 
-        public IRecordsViewModel RecordsView
+        public IRecordsViewModel RecordsViewModel
         {
             get { return _recordsView; }
             set {
@@ -57,7 +57,7 @@ namespace SNPM.MVVM.ViewModels
             CloseAction = new Action(OnClose);
             PreferencesCommand = new RelayCommand(OnPreferenceOpen);
 
-            RecordsView = serviceProvider.GetService<IRecordsViewModel>() ?? throw new Exception("ViewModel not registered");
+            RecordsViewModel = serviceProvider.GetService<IRecordsViewModel>() ?? throw new Exception("ViewModel not registered");
             PreferencesViewModel = serviceProvider.GetService<IPreferencesViewModel>() ?? throw new Exception("ViewModel not registered");
             DirectoryTreeViewModel = serviceProvider.GetService<IDirectoryViewModel>() ?? throw new Exception("ViewModel not registered");
 
@@ -79,6 +79,15 @@ namespace SNPM.MVVM.ViewModels
         public void SubscribeToPreferenceUpdate(PreferenceHandler handler)
         {
             PreferencesViewModel.PreferenceChanged += handler;
+            DirectoryTreeViewModel.PropertyChanged += OnDirectoryTreePropertyChanged;
+        }
+
+        private void OnDirectoryTreePropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "SelectedNode" && DirectoryTreeViewModel.SelectedNode != null)
+            {
+                RecordsViewModel.RefreshRecords(DirectoryTreeViewModel.SelectedNode.Id);
+            }
         }
 
         void OnClose()

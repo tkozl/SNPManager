@@ -21,7 +21,5 @@ namespace SNPM.MVVM.ViewModels.Interfaces
         ICommand RenameDirectoryCommand { get; }
 
         ICommand DeleteDirectoryCommand { get; }
-
-        ICommand SelectedTreeViewItemClickedCommand { get; }
     }
 }

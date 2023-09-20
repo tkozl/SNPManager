@@ -1,67 +1,45 @@
-﻿using SNPM.Core;
+﻿using Newtonsoft.Json;
+using SNPM.Core;
 using SNPM.Core.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SNPM.MVVM.Models
 {
     public class Record : ObservableObject, IRecord
     {
-        private string _name;
+        [JsonProperty("entryID")]
+        public int EntryId { get; set; }
 
-        public string Name
+        [JsonProperty("directoryID")]
+        public int DirectoryId { get; set; }
+
+        public string DirectoryName { get; set; }
+
+        [JsonProperty("entryName")]
+        public string Name { get; set; }
+
+        [JsonProperty("username")]
+        public string Username { get; set; }
+
+        [JsonProperty("password")]
+        public string Password { get; set; }
+
+        [JsonProperty("relatedWindows")]
+        public string RelatedWindows { get; set; }
+
+        [JsonProperty("note")]
+        public string Note { get; set; }
+
+        public DateTime Lifetime { get; set; }
+
+        [JsonProperty("lifetime")]
+        public int DayLifetime
         {
-            get { return _name; }
-            set { _name = value; }
-        }
-
-        private string _location;
-
-        public string Location
-        {
-            get { return _location; }
-            set { _location = value; }
-        }
-
-        private string _comment;
-
-        public string Comment
-        {
-            get { return _comment; }
-            set { _comment = value; }
-        }
-
-        private string _username;
-
-        public string Username
-        {
-            get { return _username; }
-            set { _username = value; }
-        }
-
-        private DateTime _lastAccess;
-
-        public DateTime LastAccess
-        {
-            get { return _lastAccess; }
-            set { _lastAccess = value; }
-        }
-
-        public Record(
-            string name,
-            string location,
-            string username,
-            string comment
-        )
-        {
-            Name = name;
-            Location = location;
-            Username = username;
-            Comment = comment;
-            LastAccess = DateTime.Now;
+            get => Lifetime.Subtract(DateTime.UtcNow).Days;
+            set
+            {
+                Lifetime = DateTime.UtcNow.AddDays(value);
+            }
         }
     }
 }

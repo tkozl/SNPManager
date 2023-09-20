@@ -1,45 +1,39 @@
 ﻿using SNPM.Core;
-using SNPM.MVVM.Models;
+using SNPM.Core.Interfaces;
 using SNPM.MVVM.ViewModels.Interfaces;
-using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace SNPM.MVVM.ViewModels
 {
     public class RecordsViewModel : ObservableObject, IRecordsViewModel
     {
-        public RelayCommand RowClick { get; set; }
+        private readonly IProxyService proxyService;
 
-        private ObservableCollection<ObservableObject> records;
+        public ObservableCollection<IRecord> Records { get; }
 
-        public ObservableCollection<ObservableObject> Records
+        public IRecord? SelectedRecord { get; set; }
+
+        public ICommand NewRecordCommand => throw new System.NotImplementedException();
+
+        public ICommand RenameRecordCommand => throw new System.NotImplementedException();
+
+        public ICommand DeleteRecordCommand => throw new System.NotImplementedException();
+
+        public RecordsViewModel(IProxyService proxyService)
         {
-            get => this.records;
-            set { 
-                records = value;
-            }
+            this.proxyService = proxyService;
+
+            Records = new ObservableCollection<IRecord>();
         }
 
-        public RecordsViewModel()
+        public async Task RefreshRecords(int directoryId)
         {
-            Records = new();
-            Populate();
+            var records = await proxyService.GetDirectoryRecords(directoryId);
 
-            RowClick = new RelayCommand(Row_MouseClick);
-        }
-
-        private void Populate()
-        {
-            Records.Add(new Record("asd", "gdzies", "user", "lol"));
-            Records.Add(new Record("aaad", "gdzies", "user", "lol"));
-            Records.Add(new Record("cxz", "gdzies", "user", "lol"));
-            Records.Add(new Record("asd", "gdzies", "user", "lol"));
-        }
-
-        private void Row_MouseClick(object sender)
-        {
-
+            Records.Clear();
+            Records.AddRange(records);
         }
     }
 }

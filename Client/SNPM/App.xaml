@@ -43,6 +43,12 @@
                 <Setter Property="Width" Value="25" />
             </Style>
 
+            <Style TargetType="{x:Type TreeView}" BasedOn="{StaticResource BaseTextStyle}">
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Background" Value="#e4e5f1" />
+            </Style>
+
             <Style TargetType="{x:Type Button}" BasedOn="{StaticResource BaseTextStyle}" />
             <Style TargetType="{x:Type Label}" BasedOn="{StaticResource BaseTextStyle}" />
             <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseTextStyle}" />

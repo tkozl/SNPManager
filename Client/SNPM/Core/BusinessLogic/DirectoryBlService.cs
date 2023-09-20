@@ -6,6 +6,7 @@ using SNPM.MVVM.Models.UiModels.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SNPM.Core.BusinessLogic
@@ -16,11 +17,14 @@ namespace SNPM.Core.BusinessLogic
         private readonly IAccountBlService accountBlService;
 
         private Dictionary<string, int> specialDirectories;
+        private IEnumerable<IDirectory> cachedDirectories;
 
         public DirectoryBlService(IApiService apiService, IAccountBlService accountBlService)
         {
             this.apiService = apiService;
             this.accountBlService = accountBlService;
+
+            cachedDirectories = Enumerable.Empty<IDirectory>();
         }
 
         public async Task<IEnumerable<IDirectory>> GetDirectories(int directoryId)
@@ -42,6 +46,13 @@ namespace SNPM.Core.BusinessLogic
 
             var directories = DeserializeJsonIntoDirectories(serializedJson);
             specialDirectories = await GetSpecialDirectories();
+
+            var sdirs = new List<IDirectory>();
+            foreach (var sdir in specialDirectories)
+            {
+                sdirs.Add(new Directory(sdir.Key, sdir.Value, int.MinValue));
+            }
+            cachedDirectories = directories.Concat(sdirs);
             return directories;
         }
 
@@ -97,8 +108,18 @@ namespace SNPM.Core.BusinessLogic
             await MoveDirectory(id, directory.Name, trashId);
         }
 
-        private async Task<IDirectory> GetDirectory(int id)
+        public async Task<IDirectory> GetDirectory(int id, bool forceRefresh = true)
         {
+            if (!forceRefresh)
+            {
+                var cachedDirectory = cachedDirectories.FirstOrDefault(x => x.Id == id);
+
+                if (cachedDirectory != null)
+                {
+                    return cachedDirectory;
+                }
+            }
+
             var (success, serializedJson) = await apiService.GetDirectoryData(id, accountBlService.ActiveToken.SessionToken);
 
             switch (success)
@@ -112,6 +133,13 @@ namespace SNPM.Core.BusinessLogic
             var directory = DeserializeJsonIntoObject<Directory>(serializedJson);
             directory.Id = id;
             return directory;
+        }
+
+        public string GetCachedDirectoryName(int id)
+        {
+            var cachedDirectory = cachedDirectories.First(x => x.Id == id);
+
+            return cachedDirectory.Name;
         }
 
         private async Task<Dictionary<string, int>> GetSpecialDirectories()

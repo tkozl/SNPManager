@@ -132,6 +132,19 @@ namespace SNPM.Core.Api
             return await RequestAsync(route, null, Interfaces.Api.HttpMethod.Get, sessionToken);
         }
 
+        public async Task<(string, string)> GetRecordsFromDirectory(int directoryId, string sessionToken)
+        {
+            var body = new
+            {
+                directoryID = directoryId,
+                include = "entryName+username+note+lifetime+directoryID",
+            };
+
+            var route = "/entry";
+
+            return await RequestAsync(route, body, Interfaces.Api.HttpMethod.Get, sessionToken);
+        }
+
         private async Task<(string, string)> RequestAsync(string route, object body, Interfaces.Api.HttpMethod httpMethod, string sessionToken)
         {
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);

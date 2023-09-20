@@ -23,7 +23,7 @@
     <Grid TextElement.Foreground="Black">
         <Grid.RowDefinitions>
             <RowDefinition Height="4*"/>
-            <RowDefinition Height="6*"/>
+            <RowDefinition Height="0"/>
             <RowDefinition Height="56*"/>
             <RowDefinition Height="30*"/>
             <RowDefinition Height="4*"/>
@@ -58,8 +58,9 @@
         <ContentControl x:Name="RecordsViewModel"
                         Grid.Row="2"
                         Grid.Column="1"
+                        Grid.ColumnSpan="2"
                         Margin="10"
-                        Content="{Binding RecordsView}"/>
+                        Content="{Binding RecordsViewModel}"/>
 
         <TextBlock Background="#9394a5"
                    Grid.Column="0"
@@ -75,7 +76,7 @@
                         Grid.Column="0"
                         Grid.ColumnSpan="3"
                         Margin="10"
-                        Content="{Binding RecordsView}"/>
+                        Content="{Binding RecordsViewModel}"/>
 
         <ContentControl x:Name="DirectoryTree"
                         Grid.Row="2"

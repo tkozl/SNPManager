@@ -14,11 +14,16 @@ namespace SNPM.Core
     {
         private readonly IAccountBlService accountBlService;
         private readonly IDirectoryBlService directoryBlService;
+        private readonly IRecordBlService recordBlService;
 
-        public ProxyService(IAccountBlService accountBlService, IDirectoryBlService directoryBlService)
+        public ProxyService(
+            IAccountBlService accountBlService,
+            IDirectoryBlService directoryBlService,
+            IRecordBlService recordBlService)
         {
             this.accountBlService = accountBlService;
             this.directoryBlService = directoryBlService;
+            this.recordBlService = recordBlService;
         }
 
         public async Task Login(IUiAccount uiAccount)
@@ -75,6 +80,11 @@ namespace SNPM.Core
         public async Task DeleteDirectory(int directoryId)
         {
             await directoryBlService.DeleteDirectory(directoryId);
+        }
+
+        public async Task<IEnumerable<IRecord>> GetDirectoryRecords(int directoryId)
+        {
+            return await recordBlService.GetRecordsFromDirectory(directoryId);
         }
     }
 }

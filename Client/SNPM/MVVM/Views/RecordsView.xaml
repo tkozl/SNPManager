@@ -4,23 +4,64 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SNPM.MVVM.Views"
-             xmlns:viewModel="clr-namespace:SNPM.MVVM.ViewModels"
+             xmlns:converters="clr-namespace:SNPM.MVVM.ViewModels.Converters"
+             xmlns:viewModels="clr-namespace:SNPM.MVVM.ViewModels.Interfaces"
              mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=viewModels:IRecordsViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type DataGridTextColumn}">
+            <Setter Property="IsReadOnly" Value="True" />
+        </Style>
+    </UserControl.Resources>
+
     <Border BorderThickness="1"
             CornerRadius="80">
-        <DataGrid Background="#e4e5f1" 
-                  Name="rec" 
-                  ItemsSource="{Binding Records}" 
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <StackPanel
+            Style="{StaticResource CustomToolbar}"
+            Orientation="Horizontal"
+            Margin="5" >
+                <Button
+                Name="NewRecord"
+                Command="{Binding NewRecordCommand}"
+                Style="{StaticResource ImageButton}">
+                    <Image Source="/Images/NewItem.png" />
+                </Button>
+                <!--<Button
+                Name="RenameDirectory"
+                Command="{Binding RenameDirectoryCommand}"
+                Style="{StaticResource ImageButton}">
+                <Image Source="/Images/Rename.png" />
+            </Button>-->
+                <Button
+                Name="DeleteRecord"
+                Command="{Binding DeleteRecordCommand}"
+                Style="{StaticResource ImageButton}">
+                    <Image Source="/Images/Delete.png" />
+                </Button>
+            </StackPanel>
+            <DataGrid Background="#e4e5f1" 
+                  Name="RecordsList" 
+                  ItemsSource="{Binding Records}"
+                  AutoGenerateColumns="False"
                   CanUserAddRows="False" 
-                  CanUserDeleteRows="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Width="7*" Binding="{Binding Name}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Location" Width="15*" Binding="{Binding Location}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Username" Width="10*" Binding="{Binding Username}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Last Accessed" Width="Auto" Binding="{Binding LastAccess}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Comment" Width="10*" Binding="{Binding Comment}" IsReadOnly="True"/>
-            </DataGrid.Columns>
-        </DataGrid>
-    </Border>    
+                  CanUserDeleteRows="False"
+                  Grid.Row="2"
+                  IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Width="Auto" Binding="{Binding Name}"/>
+                    <DataGridTextColumn Header="DirectoryName" Width="Auto" Binding="{Binding DirectoryName}"/>
+                    <DataGridTextColumn Header="Username" Width="Auto" Binding="{Binding Username}"/>
+                    <DataGridTextColumn Header="Expires" Width="Auto" Binding="{Binding Lifetime}"/>
+                    <DataGridTextColumn Header="Note" Width="10*" Binding="{Binding Note}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+    </Border>
 </UserControl>

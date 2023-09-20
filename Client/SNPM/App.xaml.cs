@@ -60,6 +60,7 @@ namespace SNPM
             services.AddSingleton<IAccountBlService, AccountBlService>();
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IDirectoryBlService, DirectoryBlService>();
+            services.AddSingleton<IRecordBlService, RecordBlService>();
             services.AddSingleton<IToken, Token>();
         }
 

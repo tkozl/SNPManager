@@ -12,11 +12,10 @@ using System.Windows.Input;
 
 namespace SNPM.MVVM.ViewModels
 {
-    class DirectoryViewModel : IDirectoryViewModel
+    class DirectoryViewModel : ObservableObject, IDirectoryViewModel
     {
         private readonly IProxyService proxyService;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
+        private IUiDirectory? selectedNode;
 
         public IUiDirectory DirectoryTree { get; set; }
 
@@ -28,13 +27,19 @@ namespace SNPM.MVVM.ViewModels
 
         public ICommand DeleteDirectoryCommand { get; }
 
-        public ICommand SelectedTreeViewItemClickedCommand { get; }
-        
-        public IUiDirectory? SelectedNode { get; set; }
+        public IUiDirectory? SelectedNode
+        {
+            get => selectedNode;
+            set
+            {
+                selectedNode = value;
+                OnPropertyChanged(nameof(SelectedNode));
+            }
+        }
 
         public DirectoryViewModel(IProxyService proxyService)
         {
-            DirectoryTree = new UiDirectory(1, 0, "Root", OnNodePropertyChanged);
+            DirectoryTree = new UiDirectory(0, int.MinValue, "Root", OnNodePropertyChanged);
             RootNodes = new ObservableCollection<IUiDirectory>();
 
             NewDirectoryCommand = new RelayCommand(CreateNewDirectory, CanCreateNewDirectory);
@@ -55,9 +60,9 @@ namespace SNPM.MVVM.ViewModels
 
         public async Task RebuildDirectoryTree()
         {
-            var directories = await proxyService.GetDirectories(1);
+            var directories = await proxyService.GetDirectories(0);
 
-            DirectoryTree = BuildTree(directories, new UiDirectory(1, 0, "Root", OnNodePropertyChanged));
+            DirectoryTree = BuildTree(directories, new UiDirectory(0, int.MinValue, "Root", OnNodePropertyChanged));
 
             RootNodes.Clear();
             RootNodes.Add(DirectoryTree);

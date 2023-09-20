@@ -1,5 +1,6 @@
 ﻿using SNPM.MVVM.Models.UiModels.Interfaces;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace SNPM.Core.Interfaces
@@ -17,5 +18,7 @@ namespace SNPM.Core.Interfaces
         Task MoveDirectory(int directoryId, string newName, int parentId);
 
         Task DeleteDirectory(int id);
+
+        Task<IEnumerable<IRecord>> GetDirectoryRecords(int directoryId);
     }
 }
