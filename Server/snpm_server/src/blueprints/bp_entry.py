@@ -1,4 +1,6 @@
 from flask import Blueprint, request, abort
+from sqlalchemy import desc
+from time import mktime
 
 import src.models as models
 import src.models.errors as e
@@ -302,3 +304,43 @@ def edit_entry(user :models.User, token :AccessToken, entry_id :str):
     models.db.session.commit()
 
     return '', 204
+
+
+@bp_entry.route('/<entry_id>/stats', methods=['GET'])
+@token_required
+def get_entry_stats(user :models.User, token :AccessToken, entry_id :str):
+    """Gets entry statistics"""
+
+    # Validating data
+    try:
+        old_passwords_limit = int(request.args.get('oldPasswordsLimit', '5'))
+    except ValueError:
+        abort(400)
+    
+    try:
+        entry_id = int(entry_id)
+    except ValueError:
+        return '', 404
+    
+    # Loading data from db models
+    entry = models.EntryUserPasswordView.query.filter_by(user_id=user.id, entry_id=entry_id).first()
+    if entry == None:
+        return '', 404
+    entry.crypto = user.crypto
+
+    # Loading old passwords
+    old_passwords_list = []   
+    old_passwords = models.EntryOldPasswordView.query.filter_by(id=entry_id).order_by(desc(models.EntryOldPasswordView.created_at)).limit(old_passwords_limit).all()
+    for old_password in old_passwords:
+        old_password.crypto = user.crypto
+        old_passwords_list.append({
+            'chDate': int(mktime(old_password.created_at.timetuple())),
+            'password': old_password.value
+        })
+    
+    # Preparing json rsp
+    return {
+        'creationDate': int(mktime(entry.created_at.timetuple())),
+        'lastPassChange': int(mktime(entry.password_created_at.timetuple())),
+        'oldPasswords': old_passwords_list
+    }, 200
