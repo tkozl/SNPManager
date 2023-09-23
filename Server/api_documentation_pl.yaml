@@ -11,7 +11,7 @@ info:
     Do dostępu do większości zasobów konieczne jest załączenie do zapytania tokenu dostępowego. Token ten jest przesyłany przez serwer w odpowiedzi na dostarczenie poprawnych danych autoryzacyjnych użytkownika.
 
     ### Błędy zapytań
-    Niektóre zapytania mogą zwrócić błąd `400` oznaczający wprowadzenie w zapytaniu nieprawidłowych danych. W takiej sytuacji w odpowiedzi serwer umieszcza id oraz opisy przyczyn odrzucenia zapytania. Informacje o możliwych błędach są umieszczone w specyfikacji poszczególnych zapytań. Lista możliwych błędów:
+    Niektóre zapytania mogą zwrócić błąd. W takiej sytuacji w odpowiedzi serwer może umieścić id oraz opisy przyczyn odrzucenia zapytania. Informacje o możliwych błędach są umieszczone w specyfikacji poszczególnych zapytań. Błędy posiadają swoje id oraz opcjonalny opis będący informacją dla programisty. Lista najważniejszych id błędów wykorzystywanych w aplikacji:
     - `invalid_email` - nieprawidłowy format adresu mailowego
     - `wrong_password` - błędne hasło - używane po zalogowaniu się na konto w operacjach wymagających potwierdzenia hasłem
     - `too_low_password_complexity` - zbyt niska złożoność hasła - hasło jest zbyt krótkie lub zdiagnozowano podatność na ataki słownikowe
@@ -19,11 +19,15 @@ info:
     - `too_long_string` - został przekroczony maksymalny dopuszczalny rozmiar danych wejściowych
     - `already_exists` wskazany zasób już istnieje
     - `unknown_encryption_type` - nierozpoznany typ szyfru
+    - `token_required` - dostęp do zasobu wymaga załączenia tokenu dostępowego
+    - `invalid_token` - do zapytania załączono nieprawidłowy token, na przykład skończył się jego termin ważności
+    - `2fa_required` - dostęp do zasoby wymaga przejścia przez drugi stopień logowania (2fa)
+    - `email_validation_required` - dostęp do zasobu wymaga zweryfikowania adresu mailowego
   
-  version: 1.0.0
+  version: 0.9.0
 
 servers:
-  - url: https://20.243.253.150/
+  - url: https://83.18.180.22:2137/api/v1
 
 tags:
   - name: Konta
@@ -540,7 +544,7 @@ paths:
             type: integer
         - in: query
           name: include
-          description: Dane wpisów jakie mają być pobrane oprócz ID, oddzielone znakiem plus (`+`). Dostępne są ID katalogu (`directoryID`), nazwa wpisu (`entryName`), nazwa użytkownika (`username`), hasło (`password`), notatka (`note`), czas życia hasła wyrażony w dniach (`lifetime`), powiązane z wpisem okna (`relatedWindows`), oraz lista parametrów wpisu (`parameters`).
+          description: Dane wpisów jakie mają być pobrane oprócz ID, oddzielone znakiem plus (`+`). Dostępne są ID katalogu (`directoryID`), nazwa wpisu (`entryName`), nazwa użytkownika (`username`), hasło (`password`), notatka (`note`), czas życia hasła wyrażony w dniach (`lifetime`), czas unix ostatniej aktualizacji hasła (`passwordUpdateTime`), powiązane z wpisem okna (`relatedWindows`), oraz lista parametrów wpisu (`parameters`).
           required: false
           schema:
             type: string
