@@ -1,5 +1,6 @@
 from Crypto.Hash import SHA512
 from datetime import datetime
+from time import mktime
 from sqlalchemy.sql import null
 
 from config import Config
@@ -168,6 +169,7 @@ class User(db.Model, SNPMDB):
             entry_json.note = entry.note
             entry_json.username = entry.username
             entry_json.password = entry.password
+            entry_json.password_update_time = int(mktime(entry.password_created_at.timetuple()))
 
             if append_parameters:
                 parameters = EntryParameter.query.filter_by(entry_id=entry.entry_id).all()

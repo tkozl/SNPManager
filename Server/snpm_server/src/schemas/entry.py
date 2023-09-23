@@ -8,6 +8,7 @@ class EntryJSON:
 
     def __init__(self) -> None:
         self.entry_id = None
+        self.password_update_time = None
 
     def import_json(self, entry_json :dict) -> None:
         """
@@ -68,6 +69,8 @@ class EntryJSON:
                 res.update({'relatedWindows': self.related_windows})
             if 'parameters' in required_parts:
                 res.update({'parameters': self.parameters})
+            if 'passwordUpdateTime' in required_parts:
+                res.update({'passwordUpdateTime': self.password_update_time})
             if self.entry_id != None:
                 res.update({'entryID': self.entry_id})
             return res
@@ -102,7 +105,7 @@ class EntryJSON:
         return errors
     
     def is_complete(self) -> bool:
-        """Checks if object contains required all entry data"""
+        """Checks if object contains all required entry data"""
         try:
             if self.entry_name == None or self.username == None or self.password == None or self.note == None or self.lifetime == None:
                 return False
@@ -163,6 +166,17 @@ class EntryJSON:
     @note.setter
     def note(self, value) -> None:
         self.__note = value
+    
+    @property
+    def password_update_time(self) -> int:
+        return self.__password_update_time
+    
+    @password_update_time.setter
+    def password_update_time(self, value) -> None:
+        if value == None:
+            self.__password_update_time = None
+        else:
+            self.__password_update_time = int(value)
     
     @property
     def lifetime(self) -> int:
