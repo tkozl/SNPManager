@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from src.utils.db import SNPMDB, CryptoDB
 from src.models import db
 
@@ -34,8 +36,8 @@ class EntryUserPasswordView(db.Model, SNPMDB):
         return self.crypto.decrypt(self.__note)
 
     @property
-    def created_at(self) -> str:
-        return self.crypto.decrypt(self.__created_at)
+    def created_at(self) -> datetime:
+        return datetime.strptime(self.crypto.decrypt(self.__created_at), '%Y-%m-%d %H:%M:%S')
 
     @property
     def pass_lifetime(self) -> int:
