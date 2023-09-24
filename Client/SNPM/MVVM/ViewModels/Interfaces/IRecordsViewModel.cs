@@ -1,5 +1,4 @@
-﻿using SNPM.Core;
-using SNPM.Core.Interfaces;
+﻿using SNPM.MVVM.Models.UiModels.Interfaces;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -8,13 +7,13 @@ namespace SNPM.MVVM.ViewModels.Interfaces
 {
     interface IRecordsViewModel
     {
-        ObservableCollection<IRecord> Records { get; }
+        ObservableCollection<IUiRecord> Records { get; }
 
-        IRecord? SelectedRecord { get; set; }
+        IUiRecord? SelectedRecord { get; set; }
 
         ICommand NewRecordCommand { get; }
 
-        ICommand RenameRecordCommand { get; }
+        ICommand ModifyRecordCommand { get; }
 
         ICommand DeleteRecordCommand { get; }
 

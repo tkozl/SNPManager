@@ -4,13 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SNPM.MVVM.Views"
-             xmlns:converters="clr-namespace:SNPM.MVVM.ViewModels.Converters"
              xmlns:viewModels="clr-namespace:SNPM.MVVM.ViewModels.Interfaces"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewModels:IRecordsViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <Style TargetType="{x:Type DataGridTextColumn}">
+        <Style TargetType="{x:Type DataGridTextColumn}" >
             <Setter Property="IsReadOnly" Value="True" />
         </Style>
     </UserControl.Resources>
@@ -48,9 +47,11 @@
             <DataGrid Background="#e4e5f1" 
                   Name="RecordsList" 
                   ItemsSource="{Binding Records}"
+                  SelectedItem="{Binding SelectedRecord}"
                   AutoGenerateColumns="False"
                   CanUserAddRows="False" 
                   CanUserDeleteRows="False"
+                  MouseDoubleClick="RecordsList_MouseDoubleClick"
                   Grid.Row="2"
                   IsReadOnly="True">
                 <DataGrid.Columns>

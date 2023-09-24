@@ -40,28 +40,6 @@ namespace SNPM.MVVM.ViewModels
             };
         }
 
-        //public DialogViewModel(string MainMessage, string SupportiveMessage, string AffirmativeMessage, string NegativeMessage)
-        //{
-        //    AffirmativeCommand = new RelayCommand((_) =>
-        //    {
-        //        result = true;
-        //        HideView();
-        //    });
-
-        //    NegativeCommand = new RelayCommand((_) =>
-        //    {
-        //        result = false;
-        //        HideView();
-        //    });
-
-        //    DialogView = new DialogView();
-
-        //    this.MainMessage = MainMessage;
-        //    this.SupportiveMessage = SupportiveMessage;
-        //    this.AffirmativeMessage = AffirmativeMessage;
-        //    this.NegativeMessage = NegativeMessage;
-        //}
-
         public void HideView()
         {
             DialogView.Hide();

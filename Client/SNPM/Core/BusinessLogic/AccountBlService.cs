@@ -37,6 +37,9 @@ namespace SNPM.Core.BusinessLogic
             NullValueHandling = NullValueHandling.Include,
             MissingMemberHandling = MissingMemberHandling.Error,
         };
+
+        public event EventHandler AccountLoggedIn;
+
         public AccountBlService(IApiService apiService, IServiceProvider serviceProvider)
         {
             this.apiService = apiService;
@@ -94,6 +97,8 @@ namespace SNPM.Core.BusinessLogic
                 {
                     account.Errors.Add(AccountError.RequiresSecondFactor, "Second authethincation required to login");
                 }
+
+                AccountLoggedIn.Invoke(this, new EventArgs());
             }
         }
 

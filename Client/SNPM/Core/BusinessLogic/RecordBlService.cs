@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SNPM.Core.Events;
 
 namespace SNPM.Core.BusinessLogic
 {
@@ -16,6 +17,8 @@ namespace SNPM.Core.BusinessLogic
         private readonly IAccountBlService accountBlService;
         private readonly IDirectoryBlService directoryBlService;
 
+        private ICollection<IRecord> cachedRecords;
+
         public RecordBlService(
             IApiService apiService,
             IAccountBlService accountBlService,
@@ -24,6 +27,9 @@ namespace SNPM.Core.BusinessLogic
             this.apiService = apiService;
             this.accountBlService = accountBlService;
             this.directoryBlService = directoryBlService;
+
+            cachedRecords = new List<IRecord>();
+            this.directoryBlService.DirectoriesLoaded += OnDirectoriesLoaded;
         }
 
         public async Task<IEnumerable<IRecord>> GetRecordsFromDirectory(int directoryId)
@@ -50,6 +56,60 @@ namespace SNPM.Core.BusinessLogic
             }
 
             return records;
+        }
+
+        public async Task<IRecord> CreateRecord(IRecord createdRecord, int? id)
+        {
+            if (accountBlService.ActiveToken == null)
+            {
+                throw new Exception("Not authenthicated");
+            }
+
+            var verifiedRecord = ClientVerifyRecord(createdRecord, id);
+
+            string path = id?.ToString() ?? string.Empty;
+
+            if (!verifiedRecord.Errors.Any())
+            {
+                var (success, serializedJson) = await apiService.CreateRecord(createdRecord, accountBlService.ActiveToken.SessionToken, path);
+
+                switch (success)
+                {
+                    case "Created":
+                        break;
+                    default:
+                        throw new Exception(success);
+                }
+
+                DeserializeJsonIntoObject<Dictionary<string, int>>(serializedJson).TryGetValue("id", out var recordId);
+
+                verifiedRecord.EntryId = recordId;
+            }
+
+            return verifiedRecord;
+        }
+
+        public Task<IRecord> UpdateRecord(IRecord createdRecord)
+        {
+            throw new NotImplementedException();
+        }
+
+        private IRecord ClientVerifyRecord(IRecord recordToVerify, int? id)
+        {
+            // Name verification
+            var nameConfilct = cachedRecords.Any(x => x.Name == recordToVerify.Name && x.EntryId != id);
+            if (nameConfilct)
+            {
+                recordToVerify.AddError(nameof(recordToVerify.Name), "Duplicate name");
+            }
+
+            return recordToVerify;
+        }
+
+        private async void OnDirectoriesLoaded(object? sender, EventArgs e)
+        {
+            var allRecords = await GetRecordsFromDirectory(0);
+            cachedRecords = new List<IRecord>(allRecords);
         }
 
         private T DeserializeJsonIntoObject<T>(string serializedJson)

@@ -137,12 +137,33 @@ namespace SNPM.Core.Api
             var body = new
             {
                 directoryID = directoryId,
-                include = "entryName+username+note+lifetime+directoryID",
+                include = "entryName+username+note+passwordUpdateTime+directoryID+relatedWindows",
             };
 
             var route = "/entry";
 
             return await RequestAsync(route, body, Interfaces.Api.HttpMethod.Get, sessionToken);
+        }
+
+        public async Task<(string, string)> CreateRecord(IRecord createdRecord, string sessionToken, string id)
+        {
+            var windowArray = createdRecord.RelatedWindows.ToArray();
+
+            var body = new
+            {
+                directoryID = createdRecord.DirectoryId,
+                entryName = createdRecord.Name,
+                username = createdRecord.Username,
+                password = createdRecord.Password,
+                note = createdRecord.Note,
+                lifetime = 14,
+                relatedWindows = windowArray,
+                paramteres = Array.Empty<string>(),
+            };
+
+            var route = $"/entry/{id}";
+
+            return await RequestAsync(route, body, Interfaces.Api.HttpMethod.Post, sessionToken);
         }
 
         private async Task<(string, string)> RequestAsync(string route, object body, Interfaces.Api.HttpMethod httpMethod, string sessionToken)

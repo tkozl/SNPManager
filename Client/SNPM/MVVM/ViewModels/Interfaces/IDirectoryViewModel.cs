@@ -6,7 +6,7 @@ using System.Windows.Input;
 
 namespace SNPM.MVVM.ViewModels.Interfaces
 {
-    interface IDirectoryViewModel : IViewModel, INotifyPropertyChanged
+    public interface IDirectoryViewModel : IViewModel, INotifyPropertyChanged
     {
         IUiDirectory DirectoryTree { get; }
 

@@ -1,8 +1,6 @@
 ﻿using SNPM.Core.Interfaces;
-using System;
+using SNPM.MVVM.Models;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SNPM.Core.BusinessLogic.Interfaces
@@ -10,5 +8,7 @@ namespace SNPM.Core.BusinessLogic.Interfaces
     public interface IRecordBlService
     {
         Task<IEnumerable<IRecord>> GetRecordsFromDirectory(int directoryId);
+
+        Task<IRecord> CreateRecord(IRecord createdRecord, int? id);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using SNPM.MVVM.Models.UiModels.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,6 +7,8 @@ namespace SNPM.Core.BusinessLogic.Interfaces
 {
     public interface IDirectoryBlService
     {
+        event EventHandler DirectoriesLoaded;
+
         Task<IEnumerable<IDirectory>> GetDirectories(int directoryId);
 
         Task<IDirectory> GetDirectory(int id, bool forceRefresh = true);

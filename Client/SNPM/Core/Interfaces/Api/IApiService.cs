@@ -41,5 +41,7 @@ namespace SNPM.Core.Interfaces.Api
         Task<(string, string)> GetSpecialDirectories(string sessionToken);
 
         Task<(string, string)> GetRecordsFromDirectory(int directoryId, string sessionToken);
+
+        Task<(string, string)> CreateRecord(IRecord createdRecord, string sessionToken, string id);
     }
 }

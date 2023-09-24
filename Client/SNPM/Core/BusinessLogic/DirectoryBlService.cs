@@ -13,6 +13,8 @@ namespace SNPM.Core.BusinessLogic
 {
     public class DirectoryBlService : IDirectoryBlService
     {
+        public event EventHandler DirectoriesLoaded;
+
         private readonly IApiService apiService;
         private readonly IAccountBlService accountBlService;
 
@@ -25,6 +27,7 @@ namespace SNPM.Core.BusinessLogic
             this.accountBlService = accountBlService;
 
             cachedDirectories = Enumerable.Empty<IDirectory>();
+            this.accountBlService.AccountLoggedIn += OnLogin;
         }
 
         public async Task<IEnumerable<IDirectory>> GetDirectories(int directoryId)
@@ -140,6 +143,12 @@ namespace SNPM.Core.BusinessLogic
             var cachedDirectory = cachedDirectories.First(x => x.Id == id);
 
             return cachedDirectory.Name;
+        }
+
+        private async void OnLogin(object? sender, EventArgs e)
+        {
+            await GetDirectories(0);
+            DirectoriesLoaded.Invoke(this, new EventArgs());
         }
 
         private async Task<Dictionary<string, int>> GetSpecialDirectories()

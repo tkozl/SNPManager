@@ -70,6 +70,7 @@ namespace SNPM
             services.AddSingleton<ILoginViewModel, LoginViewModel>();
             services.AddSingleton<IDialogViewModel, DialogViewModel>();
             services.AddSingleton<IRecordsViewModel, RecordsViewModel>();
+            services.AddSingleton<IRecordFormViewModel, RecordFormViewModel>();
             services.AddSingleton<IPreferencesViewModel, PreferencesViewModel>();
             services.AddSingleton<IDirectoryViewModel, DirectoryViewModel>();
         }

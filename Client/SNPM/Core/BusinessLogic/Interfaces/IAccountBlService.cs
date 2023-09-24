@@ -9,6 +9,8 @@ namespace SNPM.Core.BusinessLogic.Interfaces
 {
     public interface IAccountBlService
     {
+        event EventHandler AccountLoggedIn;
+
         IToken? ActiveToken { get; }
 
         Task CreateAccount(IAccount account);

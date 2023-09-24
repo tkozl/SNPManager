@@ -2,6 +2,7 @@
 using SNPM.Core.Extensions;
 using SNPM.Core.Interfaces;
 using SNPM.Core.Interfaces.Api;
+using SNPM.MVVM.Models;
 using SNPM.MVVM.Models.UiModels;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using System.Collections.Generic;
@@ -82,9 +83,28 @@ namespace SNPM.Core
             await directoryBlService.DeleteDirectory(directoryId);
         }
 
-        public async Task<IEnumerable<IRecord>> GetDirectoryRecords(int directoryId)
+        public async Task<IEnumerable<IUiRecord>> GetDirectoryRecords(int directoryId)
         {
-            return await recordBlService.GetRecordsFromDirectory(directoryId);
+            var domainRecords = await recordBlService.GetRecordsFromDirectory(directoryId);
+            return domainRecords.Select(x => new UiRecord(x));
+        }
+
+        //public async Task<IUiRecord> CreateRecord(IUiRecord createdRecord)
+        //{
+        //    var domainRecord = new Record(createdRecord);
+        //    var res = await recordBlService.CreateRecord(domainRecord, null);
+        //    var uiRecord = new UiRecord(res);
+
+        //    return uiRecord;
+        //}
+
+        public async Task<IUiRecord> CreateRecord(IUiRecord createdRecord, int? currentId)
+        {
+            var domainRecord = new Record(createdRecord);
+            var res = await recordBlService.CreateRecord(domainRecord, currentId);
+            var uiRecord = new UiRecord(res);
+
+            return uiRecord;
         }
     }
 }

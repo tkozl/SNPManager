@@ -1,27 +1,30 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace SNPM.Core.Interfaces
 {
-    public interface IRecord
+    public interface IRecord : IErrorContainer
     {
-        int EntryId { get; }
+        int EntryId { get; set; }
 
         int DirectoryId { get; }
 
         string DirectoryName { get; set; }
 
-        string Name { get; }
+        string Name { get; set; }
 
-        string Username { get; }
+        string Username { get; set; }
 
-        string Password { get; }
+        string Password { get; set; }
 
-        string RelatedWindows { get; }
+        ICollection<string> RelatedWindows { get; set; }
 
-        string Note { get; }
+        string Note { get; set; }
 
         DateTime Lifetime { get; }
+
+        DateTime LastUpdated { get; }
 
         int DayLifetime { get; set; }
     }
