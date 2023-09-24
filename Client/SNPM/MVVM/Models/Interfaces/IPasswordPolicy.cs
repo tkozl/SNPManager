@@ -1,7 +1,7 @@
-﻿using SNPM.MVVM.Models;
+﻿using SNPM.Core.BusinessLogic;
 using System;
 
-namespace SNPM.Core.Interfaces
+namespace SNPM.MVVM.Models.Interfaces
 {
     [Flags]
     public enum PasswordQuality

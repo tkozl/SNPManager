@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SNPM.Core.Interfaces
+namespace SNPM.Core.BusinessLogic.Interfaces
 {
     public interface IApplicationLogic
     {

@@ -1,7 +1,7 @@
-﻿using SNPM.Core.Interfaces;
+﻿using SNPM.Core.Api.Interfaces;
 using System;
 using System.Threading;
-using static SNPM.Core.Interfaces.IToken;
+using static SNPM.Core.Api.Interfaces.IToken;
 
 namespace SNPM.Core.Api
 {

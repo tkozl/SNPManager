@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
-namespace SNPM.Core.Interfaces
+namespace SNPM.MVVM.Models.Interfaces
 {
     public interface IProxyService
     {

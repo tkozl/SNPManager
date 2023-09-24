@@ -1,8 +1,8 @@
-﻿using SNPM.Core.Interfaces;
-using SNPM.MVVM.Models;
+﻿using SNPM.Core.BusinessLogic;
+using SNPM.MVVM.Models.Interfaces;
 using System;
 
-namespace SNPM.Core
+namespace SNPM.MVVM.Models
 {
     public class PasswordPolicy : IPasswordPolicy
     {

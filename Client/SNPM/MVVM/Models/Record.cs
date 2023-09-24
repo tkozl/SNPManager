@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using SNPM.Core;
 using SNPM.Core.Converters;
-using SNPM.Core.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using System;
 using System.Collections.Generic;

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SNPM.Core.Interfaces
+namespace SNPM.MVVM.Models.Interfaces
 {
     public interface IErrorContainer
     {

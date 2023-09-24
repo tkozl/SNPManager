@@ -1,13 +1,15 @@
 ﻿using SNPM.Core;
-using SNPM.Core.Interfaces;
-using SNPM.Core.Interfaces.Api;
+using SNPM.Core.Api.Interfaces;
+using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.MVVM.Models;
+using SNPM.MVVM.Models.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 
-namespace SNPM.MVVM.Models
+namespace SNPM.Core.BusinessLogic
 {
     [Flags]
     public enum CharacterGroup
@@ -51,7 +53,7 @@ namespace SNPM.MVVM.Models
         public PasswordVerifier(IApiService ApiService)
         {
             RemoteVerifier = ApiService.GetRemoteVerifier();
-            RemoteHashType = PasswordVerifier.HashType; // TODO: (Przemek) We should load it from user preferences
+            RemoteHashType = HashType; // TODO: (Przemek) We should load it from user preferences
 
             PasswordPolicy = new PasswordPolicy(10, true);
         }

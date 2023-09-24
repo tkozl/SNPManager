@@ -1,7 +1,7 @@
-﻿using SNPM.Core.Interfaces;
+﻿using SNPM.MVVM.Models.Interfaces;
 using System.Collections.Generic;
 
-namespace SNPM.Core
+namespace SNPM.MVVM.Models
 {
     internal class ErrorContainer : IErrorContainer
     {

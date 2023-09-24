@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
+using SNPM.Core.Api.Interfaces;
 using SNPM.Core.BusinessLogic.Interfaces;
-using SNPM.Core.Interfaces.Api;
 using SNPM.MVVM.Models.UiModels;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using System;

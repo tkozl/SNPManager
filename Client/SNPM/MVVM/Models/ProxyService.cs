@@ -1,15 +1,14 @@
-﻿using SNPM.Core.BusinessLogic.Interfaces;
+﻿using SNPM.Core;
+using SNPM.Core.BusinessLogic.Interfaces;
 using SNPM.Core.Extensions;
-using SNPM.Core.Interfaces;
-using SNPM.Core.Interfaces.Api;
-using SNPM.MVVM.Models;
+using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.Models.UiModels;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SNPM.Core
+namespace SNPM.MVVM.Models
 {
     public class ProxyService : IProxyService
     {

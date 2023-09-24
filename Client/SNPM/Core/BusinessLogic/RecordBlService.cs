@@ -1,13 +1,13 @@
 ﻿using Newtonsoft.Json;
 using SNPM.Core.BusinessLogic.Interfaces;
-using SNPM.Core.Interfaces;
-using SNPM.Core.Interfaces.Api;
 using SNPM.MVVM.Models;
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SNPM.Core.Events;
+using SNPM.Core.Api.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
 
 namespace SNPM.Core.BusinessLogic
 {

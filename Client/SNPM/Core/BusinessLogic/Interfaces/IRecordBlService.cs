@@ -1,5 +1,5 @@
-﻿using SNPM.Core.Interfaces;
-using SNPM.MVVM.Models;
+﻿using SNPM.MVVM.Models;
+using SNPM.MVVM.Models.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

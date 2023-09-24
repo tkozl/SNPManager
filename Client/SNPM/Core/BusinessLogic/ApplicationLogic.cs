@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SNPM.Core.Interfaces;
-using SNPM.Core.Interfaces.Api;
+using SNPM.Core.Api.Interfaces;
+using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.ViewModels;
 using SNPM.MVVM.ViewModels.Interfaces;
 using System;
-using static SNPM.Core.Interfaces.IApplicationLogic;
+using static SNPM.Core.BusinessLogic.Interfaces.IApplicationLogic;
 
-namespace SNPM.MVVM.Models
+namespace SNPM.Core.BusinessLogic
 {
     public class ApplicationLogic : IApplicationLogic
     {
@@ -16,7 +17,7 @@ namespace SNPM.MVVM.Models
 
         private IMainViewModel mainViewModel;
         private ILoginViewModel loginViewModel;
-        
+
         public event OptionChanged OnOptionChange;
 
         public ApplicationLogic(

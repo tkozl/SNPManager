@@ -1,28 +1,26 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SNPM.Core.Interfaces;
+using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.ViewModels.Interfaces;
 using SNPM.MVVM.Views.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SNPM.Core
+namespace SNPM.Core.BusinessLogic
 {
     public class DialogService : IDialogService
     {
         private readonly IServiceProvider serviceProvider;
 
-        private IList<IDialog> activeDialogs;
-        
         public DialogService(IServiceProvider serviceProvider)
         {
-            activeDialogs = new List<IDialog>();
             this.serviceProvider = serviceProvider;
         }
 
         public async Task<bool> CreateErrorDialog(string MainMessage, ICollection<string> ErrorMessages)
         {
-            string supportiveMessage = String.Empty;
+            string supportiveMessage = string.Empty;
             foreach (var error in ErrorMessages)
             {
                 supportiveMessage += $"{error}{Environment.NewLine}";

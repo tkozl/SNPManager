@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SNPM.Core;
-using SNPM.Core.Interfaces;
 using SNPM.MVVM.ViewModels.Interfaces;
 using SNPM.MVVM.Views;
 using SNPM.MVVM.Views.Interfaces;
@@ -10,6 +9,7 @@ using System.ComponentModel;
 using System.Windows.Input;
 using System.Threading.Tasks;
 using System.Windows;
+using SNPM.MVVM.Models.Interfaces;
 
 namespace SNPM.MVVM.ViewModels
 {

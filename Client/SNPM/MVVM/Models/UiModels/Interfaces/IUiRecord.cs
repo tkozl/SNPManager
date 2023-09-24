@@ -1,4 +1,4 @@
-﻿using SNPM.Core.Interfaces;
+﻿using SNPM.MVVM.Models.Interfaces;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;

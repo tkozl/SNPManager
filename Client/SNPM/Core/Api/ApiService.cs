@@ -1,12 +1,12 @@
-﻿using SNPM.Core.Interfaces;
-using SNPM.Core.Interfaces.Api;
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Linq;
+using SNPM.Core.Api.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
 
 namespace SNPM.Core.Api
 {
@@ -47,7 +47,7 @@ namespace SNPM.Core.Api
                 encryptionType = EncryptionTranslators[encryptionType]
             };
 
-            var result = await RequestAsync("/account", body, Interfaces.Api.HttpMethod.Post);
+            var result = await RequestAsync("/account", body, Interfaces.HttpMethod.Post);
 
             return result.Item2;
         }
@@ -70,7 +70,7 @@ namespace SNPM.Core.Api
                 password = password
             };
 
-            return await RequestAsync("/login", body, Interfaces.Api.HttpMethod.Post);
+            return await RequestAsync("/login", body, Interfaces.HttpMethod.Post);
         }
 
         public Task<bool> ModifyAccount(string currentPassword, string? newMail, string? newPassword)
@@ -91,7 +91,7 @@ namespace SNPM.Core.Api
                 recursive = "true",
             };
 
-            return await RequestAsync("/directory", body, Interfaces.Api.HttpMethod.Get, sessionToken);
+            return await RequestAsync("/directory", body, Interfaces.HttpMethod.Get, sessionToken);
         }
 
         public async Task<(string, string)> CreateDirectory(int parentId, string name, string sessionToken)
@@ -102,7 +102,7 @@ namespace SNPM.Core.Api
                 parentID = parentId,
             };
 
-            return await RequestAsync("/directory", body, Interfaces.Api.HttpMethod.Post, sessionToken);
+            return await RequestAsync("/directory", body, Interfaces.HttpMethod.Post, sessionToken);
         }
 
         public async Task<(string, string)> MoveDirectory(int directoryId, string newName, int parentId, string sessionToken)
@@ -115,21 +115,21 @@ namespace SNPM.Core.Api
 
             var route = $"/directory/{directoryId}";
 
-            return await RequestAsync(route, body, Interfaces.Api.HttpMethod.Put, sessionToken);
+            return await RequestAsync(route, body, Interfaces.HttpMethod.Put, sessionToken);
         }
 
         public async Task<(string, string)> GetDirectoryData(int directoryId, string sessionToken)
         {
             var route = $"/directory/{directoryId}";
 
-            return await RequestAsync(route, null, Interfaces.Api.HttpMethod.Get, sessionToken);
+            return await RequestAsync(route, null, Interfaces.HttpMethod.Get, sessionToken);
         }
 
         public async Task<(string, string)> GetSpecialDirectories(string sessionToken)
         {
             var route = $"/directory/special";
 
-            return await RequestAsync(route, null, Interfaces.Api.HttpMethod.Get, sessionToken);
+            return await RequestAsync(route, null, Interfaces.HttpMethod.Get, sessionToken);
         }
 
         public async Task<(string, string)> GetRecordsFromDirectory(int directoryId, string sessionToken)
@@ -142,7 +142,7 @@ namespace SNPM.Core.Api
 
             var route = "/entry";
 
-            return await RequestAsync(route, body, Interfaces.Api.HttpMethod.Get, sessionToken);
+            return await RequestAsync(route, body, Interfaces.HttpMethod.Get, sessionToken);
         }
 
         public async Task<(string, string)> CreateRecord(IRecord createdRecord, string sessionToken, string id)
@@ -163,11 +163,11 @@ namespace SNPM.Core.Api
 
             var route = id != string.Empty ? $"/entry/{id}" : "/entry";
 
-            return await RequestAsync(route, body, id == string.Empty ? Interfaces.Api.HttpMethod.Post : Interfaces.Api.HttpMethod.Put, sessionToken);
+            return await RequestAsync(route, body, id == string.Empty ? Interfaces.HttpMethod.Post : Interfaces.HttpMethod.Put, sessionToken);
 
         }
 
-        private async Task<(string, string)> RequestAsync(string route, object body, Interfaces.Api.HttpMethod httpMethod, string sessionToken)
+        private async Task<(string, string)> RequestAsync(string route, object body, Interfaces.HttpMethod httpMethod, string sessionToken)
         {
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
 
@@ -177,19 +177,19 @@ namespace SNPM.Core.Api
             return ret;
         }
 
-        private async Task<(string, string)> RequestAsync(string route, object body, Interfaces.Api.HttpMethod httpMethod)
+        private async Task<(string, string)> RequestAsync(string route, object body, Interfaces.HttpMethod httpMethod)
         {
             HttpResponseMessage? response;
 
             switch (httpMethod)
             {
-                case Interfaces.Api.HttpMethod.Post:
+                case Interfaces.HttpMethod.Post:
                     response = await PostAsync(route, body);
                     break;
-                case Interfaces.Api.HttpMethod.Get:
+                case Interfaces.HttpMethod.Get:
                     response = await GetAsync(route, body);
                     break;
-                case Interfaces.Api.HttpMethod.Put:
+                case Interfaces.HttpMethod.Put:
                     response = await PutAsync(route, body);
                     break;
                 default:

@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SNPM.Core;
 using SNPM.Core.Api;
+using SNPM.Core.Api.Interfaces;
 using SNPM.Core.BusinessLogic;
 using SNPM.Core.BusinessLogic.Interfaces;
-using SNPM.Core.Interfaces;
-using SNPM.Core.Interfaces.Api;
 using SNPM.MVVM.Models;
+using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.ViewModels;
 using SNPM.MVVM.ViewModels.Interfaces;
 using SNPM.MVVM.Views;
@@ -61,6 +60,7 @@ namespace SNPM
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IDirectoryBlService, DirectoryBlService>();
             services.AddSingleton<IRecordBlService, RecordBlService>();
+            services.AddSingleton<IWindowsIntegrationBlService, WindowsIntegrationBlService>();
             services.AddSingleton<IToken, Token>();
         }
 

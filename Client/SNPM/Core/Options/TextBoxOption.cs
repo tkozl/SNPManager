@@ -1,5 +1,4 @@
-﻿using SNPM.Core.Interfaces;
-using SNPM.MVVM.ViewModels;
+﻿using SNPM.MVVM.ViewModels;
 using System;
 using System.ComponentModel;
 

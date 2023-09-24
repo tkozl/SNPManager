@@ -1,7 +1,8 @@
-﻿using System;
+﻿using SNPM.MVVM.Models.Interfaces;
+using System;
 using System.Threading.Tasks;
 
-namespace SNPM.Core.Interfaces
+namespace SNPM.Core.BusinessLogic.Interfaces
 {
     public interface IPasswordVerifier
     {

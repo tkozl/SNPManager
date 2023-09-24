@@ -1,10 +1,10 @@
-﻿using SNPM.Core.Interfaces.Api;
+﻿using SNPM.Core.Api.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
 
-namespace SNPM.Core.Interfaces
+namespace SNPM.MVVM.Models.Interfaces
 {
     public enum AccountError
     {

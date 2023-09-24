@@ -1,9 +1,10 @@
 ﻿using System;
 using SNPM.Core;
-using SNPM.Core.Interfaces;
-using SNPM.MVVM.Models;
 using Moq;
-using SNPM.Core.Interfaces.Api;
+using SNPM.Core.Api.Interfaces;
+using SNPM.Core.BusinessLogic;
+using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
 
 namespace SNPM.Test.MVVM.Models
 {

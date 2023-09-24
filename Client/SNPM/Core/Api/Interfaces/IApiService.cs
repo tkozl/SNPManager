@@ -1,7 +1,8 @@
-﻿using System;
+﻿using SNPM.MVVM.Models.Interfaces;
+using System;
 using System.Threading.Tasks;
 
-namespace SNPM.Core.Interfaces.Api
+namespace SNPM.Core.Api.Interfaces
 {
     public enum EncryptionType
     {

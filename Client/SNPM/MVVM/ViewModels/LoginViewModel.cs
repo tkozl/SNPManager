@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SNPM.Core;
-using SNPM.Core.Interfaces;
+using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.Models.UiModels;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using SNPM.MVVM.ViewModels.Interfaces;

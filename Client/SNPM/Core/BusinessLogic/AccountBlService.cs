@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using SNPM.Core.Interfaces;
-using SNPM.Core.Interfaces.Api;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
@@ -8,6 +6,8 @@ using System.Threading.Tasks;
 using SNPM.Core.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.Core.Api.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
 
 namespace SNPM.Core.BusinessLogic
 {

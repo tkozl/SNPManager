@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SNPM.Core.Interfaces
+namespace SNPM.Core.Api.Interfaces
 {
     public interface IToken : IDisposable
     {

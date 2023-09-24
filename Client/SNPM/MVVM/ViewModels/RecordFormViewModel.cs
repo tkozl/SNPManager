@@ -1,6 +1,6 @@
 ﻿using SNPM.Core;
 using SNPM.Core.Events;
-using SNPM.Core.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.Models.UiModels;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using SNPM.MVVM.ViewModels.Interfaces;

@@ -1,4 +1,4 @@
-﻿using SNPM.Core.Interfaces;
+﻿using SNPM.Core.Options;
 using System;
 using System.Collections.ObjectModel;
 

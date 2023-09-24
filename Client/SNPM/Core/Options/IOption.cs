@@ -2,7 +2,7 @@
 using System;
 using System.ComponentModel;
 
-namespace SNPM.Core.Interfaces
+namespace SNPM.Core.Options
 {
     public interface IOption : INotifyPropertyChanged
     {

@@ -1,5 +1,4 @@
-﻿using SNPM.Core.Interfaces;
-using SNPM.MVVM.Models.UiModels.Interfaces;
+﻿using SNPM.MVVM.Models.UiModels.Interfaces;
 using SNPM.MVVM.Views;
 using System;
 using System.Windows.Input;
