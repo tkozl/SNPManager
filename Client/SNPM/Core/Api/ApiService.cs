@@ -161,9 +161,10 @@ namespace SNPM.Core.Api
                 paramteres = Array.Empty<string>(),
             };
 
-            var route = $"/entry/{id}";
+            var route = id != string.Empty ? $"/entry/{id}" : "/entry";
 
-            return await RequestAsync(route, body, Interfaces.Api.HttpMethod.Post, sessionToken);
+            return await RequestAsync(route, body, id == string.Empty ? Interfaces.Api.HttpMethod.Post : Interfaces.Api.HttpMethod.Put, sessionToken);
+
         }
 
         private async Task<(string, string)> RequestAsync(string route, object body, Interfaces.Api.HttpMethod httpMethod, string sessionToken)

@@ -74,7 +74,9 @@ namespace SNPM.MVVM.ViewModels
 
         private bool CanCreate(object sender)
         {
-            return true;
+            return CreatedRecord.Username != string.Empty
+                   && CreatedRecord.Name != string.Empty
+                   && CreatedRecord.Lifetime > DateTime.UtcNow;
         }
 
         private async void Create(object sender)
@@ -88,7 +90,7 @@ namespace SNPM.MVVM.ViewModels
         {
             if (CreatedRecord?.RelatedWindows != null)
             {
-                CreatedRecord.RelatedWindows.Add(string.Empty);
+                CreatedRecord.RelatedWindows.Add(new RelatedWindow());
             }
         }
     }

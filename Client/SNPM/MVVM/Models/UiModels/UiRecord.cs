@@ -14,7 +14,7 @@ namespace SNPM.MVVM.Models.UiModels
         private string username;
         private string password;
         private DateTime lifetime;
-        private ObservableCollection<string> relatedWindows;
+        private ObservableCollection<RelatedWindow> relatedWindows;
         private string note;
 
         public int DirectoryId { get; set; }
@@ -70,7 +70,7 @@ namespace SNPM.MVVM.Models.UiModels
             }
         }
 
-        public ObservableCollection<string> RelatedWindows
+        public ObservableCollection<RelatedWindow> RelatedWindows
         {
             get => relatedWindows;
             set
@@ -94,7 +94,7 @@ namespace SNPM.MVVM.Models.UiModels
 
         public UiRecord() : base()
         {
-            RelatedWindows = new ObservableCollection<string>();
+            RelatedWindows = new ObservableCollection<RelatedWindow>();
         }
 
         public UiRecord(IRecord domainRecord)
@@ -106,7 +106,13 @@ namespace SNPM.MVVM.Models.UiModels
             this.Username = domainRecord.Username;
             this.Password = domainRecord.Password;
             this.Lifetime = domainRecord.Lifetime;
-            this.RelatedWindows = new ObservableCollection<string>(domainRecord.RelatedWindows);
+
+            this.RelatedWindows = new ObservableCollection<RelatedWindow>();
+            foreach (var windowName in domainRecord.RelatedWindows)
+            {
+                this.RelatedWindows.Add(new RelatedWindow(windowName));
+            }
+
             this.Note = domainRecord.Note;
         }
 
@@ -124,7 +130,7 @@ namespace SNPM.MVVM.Models.UiModels
             this.Username = uiRecord.Username;
             this.Password = uiRecord.Password;
             this.Lifetime = uiRecord.Lifetime;
-            this.RelatedWindows = new ObservableCollection<string>(uiRecord.RelatedWindows);
+            this.RelatedWindows = new ObservableCollection<RelatedWindow>(uiRecord.RelatedWindows);
             this.Note = uiRecord.Note;
         }
 

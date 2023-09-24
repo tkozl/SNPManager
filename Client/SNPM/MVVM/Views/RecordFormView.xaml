@@ -85,13 +85,14 @@
                     Grid.Column="1"
                     ItemsSource="{Binding RelatedWindows}"
                     AutoGenerateColumns="False"
+                    CanUserAddRows="False"
                     Height="120"
                     HeadersVisibility="None">
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Width="*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBox Text="{Binding Path=., Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="Auto"/>
+                                    <TextBox Text="{Binding Path=WindowName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="Auto"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

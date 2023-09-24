@@ -15,7 +15,7 @@ namespace SNPM.MVVM.Models.UiModels.Interfaces
 
         string Password { get; set; }
 
-        ObservableCollection<string> RelatedWindows { get; set; }
+        ObservableCollection<RelatedWindow> RelatedWindows { get; set; }
 
         string Note { get; set; }
 

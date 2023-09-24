@@ -66,6 +66,7 @@ namespace SNPM.Core.BusinessLogic
             }
 
             var verifiedRecord = ClientVerifyRecord(createdRecord, id);
+            verifiedRecord.EntryId = id ?? 0;
 
             string path = id?.ToString() ?? string.Empty;
 
@@ -77,6 +78,8 @@ namespace SNPM.Core.BusinessLogic
                 {
                     case "Created":
                         break;
+                    case "NoContent":
+                        return verifiedRecord;
                     default:
                         throw new Exception(success);
                 }
@@ -84,14 +87,10 @@ namespace SNPM.Core.BusinessLogic
                 DeserializeJsonIntoObject<Dictionary<string, int>>(serializedJson).TryGetValue("id", out var recordId);
 
                 verifiedRecord.EntryId = recordId;
+                verifiedRecord.DirectoryName = directoryBlService.GetCachedDirectoryName(verifiedRecord.DirectoryId);
             }
 
             return verifiedRecord;
-        }
-
-        public Task<IRecord> UpdateRecord(IRecord createdRecord)
-        {
-            throw new NotImplementedException();
         }
 
         private IRecord ClientVerifyRecord(IRecord recordToVerify, int? id)

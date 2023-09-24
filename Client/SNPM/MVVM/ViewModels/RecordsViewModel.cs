@@ -4,6 +4,7 @@ using SNPM.Core.Interfaces;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using SNPM.MVVM.ViewModels.Interfaces;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -68,7 +69,10 @@ namespace SNPM.MVVM.ViewModels
         
         private async void DeleteRecord(object sender)
         {
-
+            if (sender is IUiRecord uiRecord)
+            {
+                proxyService.DeleteRecord(uiRecord);
+            }
         }
 
         private bool CanDeleteRecord(object sender) => SelectedRecord != null;
@@ -79,7 +83,18 @@ namespace SNPM.MVVM.ViewModels
             {
                 var createdRecord = recordCreatedEventArgs.Record;
 
-                if (createdRecord.DirectoryId == directoryViewModel.SelectedNode.Id)
+                //if (createdRecord.DirectoryId != directoryViewModel.SelectedNode.Id)
+                //{
+                //    return;
+                //}
+
+                var existingRecord = Records.FirstOrDefault(x => x.EntryId == createdRecord.EntryId);
+
+                if (existingRecord != null)
+                {
+                    existingRecord.CloneProperties(createdRecord);
+                }
+                else
                 {
                     Records.Add(createdRecord);
                 }

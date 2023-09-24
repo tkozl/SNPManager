@@ -22,5 +22,7 @@ namespace SNPM.Core.Interfaces
         Task<IEnumerable<IUiRecord>> GetDirectoryRecords(int directoryId);
 
         Task<IUiRecord> CreateRecord(IUiRecord createdRecord, int? currentId);
+
+        Task<bool> DeleteRecord(IUiRecord uiRecord);
     }
 }

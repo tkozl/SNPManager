@@ -5,6 +5,7 @@ using SNPM.Core.Interfaces;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SNPM.MVVM.Models
 {
@@ -33,7 +34,7 @@ namespace SNPM.MVVM.Models
         [JsonProperty("note")]
         public string Note { get; set; }
 
-        public DateTime Lifetime => LastUpdated.AddDays(DayLifetime);
+        public DateTime Lifetime { get; set; }
 
         [JsonProperty("passwordUpdateTime")]
         [JsonConverter(typeof(UtcDateTimeConverter))]
@@ -60,8 +61,9 @@ namespace SNPM.MVVM.Models
             this.Name = uiRecord.Name;
             this.Username = uiRecord.Username;
             this.Password = uiRecord.Password;
+            this.Lifetime = uiRecord.Lifetime;
             this.Note = uiRecord.Note;
-            this.RelatedWindows = uiRecord.RelatedWindows;
+            this.RelatedWindows = uiRecord.RelatedWindows.Where(x => x.WindowName != string.Empty).Select(x => x.WindowName).ToList();
 
             Errors = new List<KeyValuePair<string, string>>();
         }
