@@ -36,3 +36,19 @@ def url_error_page(message :str) -> str:
         message (str): error message
     """
     return tr.read_template('url_result_error.html', {'((message))': message})
+
+
+def user_block_message() -> str:
+    """
+    HTML user block message
+    """
+    return tr.read_template('user_block_message.html', {})
+
+
+def incorrect_login_message(ip :str) -> str:
+    """
+    HTML incorrect login message
+    Args:
+        ip (str): incorrect login ip address
+    """
+    return tr.read_template('email_incorrect_login.html', {'((ip))': ip})

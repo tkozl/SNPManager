@@ -1,7 +1,9 @@
 from flask import Blueprint, jsonify, request, abort
+from sqlalchemy import desc
 from Crypto.Hash import SHA512
 from random import uniform
 from time import sleep
+from datetime import datetime
 import pyotp
 
 import src.models as models
@@ -11,6 +13,7 @@ from src.utils.db import CryptoDB
 from src.utils.data_validation import is_mail_correct
 from src.utils.token import AccessToken
 from src.schemas.error_rsp import ErrorRsp
+import src.templates as templates
 from config import Config
 
 
@@ -37,19 +40,45 @@ def login():
     if user == None:
         return '', 401
     
+    # Checking if user is not blocked
+    last_block = models.ActivityLog.query.filter_by(user_id=user.id, activity_type_id=3).order_by(desc(models.ActivityLog.ocurred_at)).first()
+    if last_block != None and (datetime.now() - last_block.ocurred_at).total_seconds() < 60 * 60:
+        # User is currently blocked
+        return '', 401
+    
     # Veryfing user password
     user.crypto = CryptoDB(user.encryption_type_id)
+    incorrect_login = False
     try:
         user.crypto.create_key(password, mail)
     except ValueError:
+        incorrect_login = True
+    if incorrect_login == True or user.encrypted_email != user.crypto.encrypt(mail):
+        # Incorrect login - saving stats
         incorrect_login_log = models.ActivityLog(user, 2, request.remote_addr, public_ip=True)
         models.db.session.add(incorrect_login_log)
+
+        # Checking if user should be blocked
+        last_incorrect_logins = models.UserIncorrectLogins24hView.query.filter_by(user_id=user.id).first()
+        if last_incorrect_logins != None and last_incorrect_logins.incorrect_logins_quantity >= 10:
+            # Blocking user account
+            user_block_log = models.ActivityLog(user, 3, request.remote_addr, public_ip=True)
+            models.db.session.add(user_block_log)
+            user.send_mail(
+                subject='Security alert: temporary account lock',
+                message_html=templates.user_block_message(),
+                mail_address=mail
+            )
+        else:
+            # Sending email to user about incorrect login attempt
+            user.send_mail(
+                subject='Security alert: incorrect login attempt',
+                message_html=templates.incorrect_login_message(request.remote_addr),
+                mail_address=mail
+            )
+
         models.db.session.commit()
-        return '', 401
-    if user.encrypted_email != user.crypto.encrypt(mail):
-        incorrect_login_log = models.ActivityLog(user, 2, request.remote_addr, public_ip=True)
-        models.db.session.add(incorrect_login_log)
-        models.db.session.commit()
+
         return '', 401
     
     # Checking if 2fa is required
