@@ -23,7 +23,7 @@ info:
     - `invalid_token` - do zapytania załączono nieprawidłowy token, na przykład skończył się jego termin ważności
     - `2fa_required` - dostęp do zasoby wymaga przejścia przez drugi stopień logowania (2fa)
     - `email_validation_required` - dostęp do zasobu wymaga zweryfikowania adresu mailowego
-  
+
   version: 0.9.0
 
 servers:
@@ -71,12 +71,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Errors'
-                
+
     put:
       tags:
         - Konta
       summary: Modyfikacja konta użytkownika
-      description: Umożliwia zmianę adresu email lub hasła użytkownika. Po zmianie adresu email konieczna jest weryfikacja nowego przed dalszym korzystaniem z konta. Wszelkie zmiany wymagają podania obecnego hasła.
+      description: Umożliwia zmianę adresu email, hasła użytkownika lub algorytmu kryptograficznego. Po zmianie adresu email konieczna jest weryfikacja nowego przed dalszym korzystaniem z konta. Wszelkie zmiany wymagają podania obecnego hasła. Modyfikacja konta skutkuje unieważnieniem obecnego tokenu dostępowego i wygenerowaniem nowego.
       requestBody:
         content:
           application/json:
@@ -87,15 +87,21 @@ paths:
                   type: string
                 newMail:
                   type: string
+                newEncryptionType:
+                  type: string
                 newPassword:
                   type: string
         required: true
       responses:
         '201':
           description: Zmiany zapisane
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
         '400':
           description:
-            Nieprawidłowo wprowadzone dane. Możliwe ID błędów to `invalid_email`, `wrong_password`, `too_low_password_complexity`
+            Nieprawidłowo wprowadzone dane. Możliwe ID błędów to `invalid_email`, `wrong_password`, `too_low_password_complexity`, `unknown_encryption_type`
           content:
             application/json:
               schema:

@@ -22,7 +22,7 @@ def verify_email_token(token :str):
         return templates.url_error_page('It seems that url is broken. Please request new url in your app.'), 400
     if user.email_verify_token_exp <= datetime.now():
         return templates.url_error_page('It seems that url has expired. Please request new url in your app.'), 400
-    
+
     # Token is correct - changing sql data
     user.email_verified = True
     user.email_verify_token_exp = datetime.now()

@@ -32,7 +32,7 @@ def create_account():
     encryption_type = request.json.get('encryptionType')
     if mail == None or password == None or encryption_type == None:
         abort(400)
-    
+
     # Validating user data
     errors = ErrorRsp()
     if not is_mail_correct(mail):
@@ -49,7 +49,7 @@ def create_account():
         errors.add(ErrorRsp.TOO_LONG_STRING, f'Max email length is currently set to {Config.MAX_EMAIL_LEN}')
     if errors.quantity > 0:
         return errors.json, 400
-    
+
     # Creating new account
     try:
         user = models.User(mail, password, encryption_type_id)
@@ -58,7 +58,7 @@ def create_account():
         return errors.json, 400
     models.db.session.add(user)
     models.db.session.commit()
-    
+
     # Creating special directories
     root_dir = models.SpecialDir(user.id, models.SpecialDir.ROOT_ID)
     trash_dir = models.SpecialDir(user.id, models.SpecialDir.TRASH_ID)
@@ -78,7 +78,7 @@ def renew_token(user :models.User, token :AccessToken):
         token.renew_token(Config.ACCESS_TOKEN_LIFETIME)
     except TokenExpiredError:
         return '', 403
-    
+
     return {
         'token': token.export_token(),
         'expiration': token.expiration
@@ -92,7 +92,7 @@ def create_2fa(user :models.User, token :AccessToken):
 
     if user.secret_2fa != None:
         return '', 403
-    
+
     secret_2fa = pyotp.random_base32()
     user.secret_2fa = secret_2fa
     models.db.session.commit()
@@ -120,7 +120,7 @@ def create_email_verification(user :models.User, token :AccessToken):
 
     if user.email_verified:
         abort(403)
-    
+
     while True:
         token = ''.join(random.choice(string.ascii_letters+string.digits) for _ in range(128))
         token_hash = SHA512.new(data=bytes(token, 'utf-8')).hexdigest()
@@ -146,7 +146,7 @@ def get_account_info(user :models.User, token :AccessToken):
         max_incorrect_logins = int(request.args.get('max_incorrect_logins', '10'))
     except ValueError:
         abort(400)
-    
+
     # Loading last access data
     last_access_list = []
     access_history = models.ActivityLog.query.filter_by(user_id=user.id, activity_type_id=1).order_by(desc(models.ActivityLog.ocurred_at)).limit(max_correct_logins).all()
@@ -163,7 +163,7 @@ def get_account_info(user :models.User, token :AccessToken):
             'time': int(mktime(event.ocurred_at.timetuple())),
             'ip': ip
         })
-    
+
     # Loading last incorrect logins data
     last_il_list = []
     il_history = models.ActivityLog.query.filter_by(user_id=user.id, activity_type_id=2).order_by(desc(models.ActivityLog.ocurred_at)).limit(max_incorrect_logins).all()
@@ -180,13 +180,13 @@ def get_account_info(user :models.User, token :AccessToken):
             'time': int(mktime(event.ocurred_at.timetuple())),
             'ip': ip
         })
-    
+
     # Loading last password change date
     password_changed = models.ActivityLog.query.filter_by(user_id=user.id, activity_type_id=5).order_by(desc(models.ActivityLog.ocurred_at)).first()
     if password_changed == None:
         password_changed = user.created_at
     password_changed = int(mktime(password_changed.timetuple()))
-    
+
     # Loading and and sending to client rest of data
     if user.secret_2fa == None:
         is_2fa_active = False
@@ -204,3 +204,117 @@ def get_account_info(user :models.User, token :AccessToken):
         'lastAccess': last_access_list,
         'lastLoginErrors': last_il_list
     }, 200
+
+
+@bp_account.route('', methods=['PUT'])
+@token_without_email_validation_required
+def modify_account(user :models.User, token :AccessToken):
+        """Modifies user email or/and password"""
+
+        # Loading request data
+        new_password = request.json.get('newPassword')
+        new_mail = request.json.get('newMail')
+        new_encryption_type = request.json.get('newEncryptionType')
+        current_password = request.json.get('currentPassword')
+
+        # Verifing current password
+        errors = ErrorRsp()
+        if current_password != token.user_password:
+            errors.add(ErrorRsp.WRONG_PASSWORD)
+
+        # Validating args
+        if new_password != None and not is_password_strong_enough(new_password):
+            errors.add(ErrorRsp.TOO_LOW_PASSWORD_COMPLEXITY)
+        if new_mail != None and not is_mail_correct(new_mail):
+            errors.add(ErrorRsp.INVALID_EMAIL)
+        if new_encryption_type != None:
+            try:
+                new_encryption_type_id = user_encryption_type_to_id(new_encryption_type)
+            except ValueError:
+                errors.add(ErrorRsp.UNKNOWN_ENCRYPTION_TYPE)
+        else:
+            new_encryption_type_id = user.encryption_type_id
+
+        if errors.quantity > 0:
+            return errors.json, 400
+
+        user_email = user.crypto.decrypt(user.encrypted_email)
+
+        # Changing user password and encrypting all users elements with new cryptographic key
+        if new_password != None and new_password != current_password or new_encryption_type_id != user.encryption_type_id:
+
+            new_crypto = CryptoDB(new_encryption_type_id)
+            new_crypto.create_key(new_password, user_email)
+
+            # Table "directories"
+            directories = models.UserDirectoryView(user_id=user.id).all()
+            for directory in directories:
+                directory = models.Directory.query.filter_by(id=directory.directory_id).first()
+                directory.crypto = user.crypto
+                directory.change_crypto(new_crypto)
+
+            # Table "entries"
+            entries = models.UserEntryView(user_id=user.id).all()
+            for entry in entries:
+                entry = models.Entry(id=entry.id).first()
+                entry.crypto = user.crypto
+                entry.change_crypto(new_crypto)
+
+                # Table "related_windows"
+                related_windows = models.RelatedWindow.query.filter_by(entry_id=entry.id).all()
+                for related_window in related_windows:
+                    related_window.crypto = user.crypto
+                    related_window.change_crypto(new_crypto)
+
+                # Table "passwords"
+                passwords = models.Password.query.filter_by(entry_id=entry.id).all()
+                for password in passwords:
+                    password.crypto = user.crypto
+                    password.change_crypto(new_crypto)
+
+                # Table "parameters"
+                parameters = models.EntryParameter.query.filter_by(entry_id=entry.id).all()
+                for parameter in parameters:
+                    parameter.crypto = user.crypto
+                    parameter.change_crypto(new_crypto)
+
+            # Table "activity_log"
+            activity_logs = models.ActivityLog.query.filter_by(user_id=user.id).all()
+            for activity_log in activity_logs:
+                activity_log.crypto = user.crypto
+                activity_log.change_crypto(new_crypto)
+
+            # Table "users"
+            user.change_crypto(new_crypto)
+
+            # Saving info in logs
+            activity_log = models.ActivityLog(user=user.id, activity_type_id=5, ip_address=request.remote_addr, public_ip=False)
+            models.db.session.add(activity_log)
+
+        # Changing user email
+        if new_mail != None and new_mail != user_email:
+            user.encrypted_email = user.crypto.encrypt(new_mail)
+            user.email_hash = user.hash_email(new_mail)
+            user.email_verified = False
+
+        # Saving changes into db
+        models.db.session.commit()
+
+        # Creating new access token based on modified data (the old one is now inactive)
+        if new_password != None:
+            current_password = new_password
+        new_token = AccessToken()
+        new_token.generate_token(
+            user_id=user.id,
+            user_ip=request.remote_addr,
+            user_email=user.crypto.decrypt(user.encrypted_email),
+            user_password=current_password,
+            algorithm_id=user.encryption_type_id,
+            lifetime=Config.ACCESS_TOKEN_LIFETIME,
+            total_lifetime=Config.ACCESS_TOKEN_TOTAL_LIFETIME,
+            twofa_passed=True
+        )
+        return {
+            'token': new_token.export_token(),
+            'expiration': new_token.expiration
+        }, 201

@@ -48,8 +48,8 @@ class User(db.Model, SNPMDB):
             EmailCurrentlyInUse: raises when another account has the same email address as provided
         """
 
-        email_hash = SHA512.new(data=bytes(email, 'utf-8'))
-        conflict = User.query.filter_by(email_hash=email_hash.digest()).first()
+        email_hash = self.hash_email(email)
+        conflict = User.query.filter_by(email_hash=email_hash).first()
         if conflict != None:
             raise e.EmailCurrentlyInUseError(f'Email address {email} is currently in use')
 
@@ -57,7 +57,7 @@ class User(db.Model, SNPMDB):
         self.crypto.create_key(password, email)
 
         self.encrypted_email = self.crypto.encrypt(email)
-        self.email_hash = email_hash.digest()
+        self.email_hash = email_hash
 
         self.encryption_type_id = algorithm_type_id
         self.email_verified = False
@@ -93,6 +93,16 @@ class User(db.Model, SNPMDB):
         if trash_directory == None:
             raise e.ModelError(f'Not found trash for user {self.id}')
         return trash_directory.id
+
+    def hash_email(self, plain_email :str) -> bytes:
+        """
+        Args:
+            plain_email (str): user email address
+        Return:
+            Email hash (bytes)
+        """
+        email_hash = SHA512.new(data=bytes(plain_email, 'utf-8'))
+        return email_hash.digest()
 
     def change_crypto(self, new_crypto :CryptoDB) -> None:
         """Encrypts table with new crypto"""
