@@ -52,13 +52,13 @@ class User(db.Model, SNPMDB):
         conflict = User.query.filter_by(email_hash=email_hash.digest()).first()
         if conflict != None:
             raise e.EmailCurrentlyInUseError(f'Email address {email} is currently in use')
-        
+
         self.crypto = CryptoDB(algorithm_type_id)
         self.crypto.create_key(password, email)
 
         self.encrypted_email = self.crypto.encrypt(email)
         self.email_hash = email_hash.digest()
-        
+
         self.encryption_type_id = algorithm_type_id
         self.email_verified = False
         self.created_at = datetime.now()
@@ -85,7 +85,7 @@ class User(db.Model, SNPMDB):
         if root_directory == None:
             raise e.ModelError(f'Not found root directory for user {self.id}')
         return root_directory.id
-    
+
     @property
     def trash_id(self) -> int:
         """Id of trash directory"""
@@ -93,6 +93,12 @@ class User(db.Model, SNPMDB):
         if trash_directory == None:
             raise e.ModelError(f'Not found trash for user {self.id}')
         return trash_directory.id
+
+    def change_crypto(self, new_crypto :CryptoDB) -> None:
+        """Encrypts table with new crypto"""
+        user_email = self.crypto.decrypt(self.encrypted_email)
+        self.crypto = new_crypto
+        self.encrypted_email = self.crypto.encrypt(user_email)
 
     def get_directories(self, parent_id :int=None, recursive :bool=True, trash :bool=False) -> list[dict]:
         """
@@ -183,7 +189,7 @@ class User(db.Model, SNPMDB):
                         'value': parameter.value
                     })
                 entry_json.parameters = parameters_list
-            
+
             if append_related_windows:
                 related_windows = RelatedWindow.query.filter_by(entry_id=entry.entry_id).all()
                 related_windows_list = []
@@ -193,15 +199,15 @@ class User(db.Model, SNPMDB):
                         continue
                     related_windows_list.append(related_window.name)
                 entry_json.related_windows = related_windows_list
-            
+
             res.append(entry_json)
-        
+
         if recursive:
             directories = UserDirectoryView.query.filter_by(user_id=self.id, parent_id=parent_dir_id, special_directory_id=special_dir).all()
             for directory in directories:
                 directory.crypto = self.crypto
                 res += self.get_entries(directory.directory_id, recursive, append_parameters, append_related_windows, trash)
-        
+
         return res
 
     def send_mail(self, subject :str, message_html :str, mail_address :str=None) -> None:

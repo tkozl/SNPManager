@@ -30,7 +30,7 @@ class Entry(db.Model, SNPMDB):
             directory_entry.crypto = crypto
             if directory_entry.name == name:
                 raise EntryAlreadyExists(f'Entry with name "{name}" already exists in directory {directory_id}')
-        
+
         if directory_id == None:
             self.directory_id = null()
         else:
@@ -43,27 +43,27 @@ class Entry(db.Model, SNPMDB):
         self.pass_lifetime = pass_lifetime
         self.__deleted_at = null()
         self.__deleted_by = null()
-    
+
     @property
     def name(self) -> str:
         return self.crypto.decrypt(self.__name)
-    
+
     @name.setter
     def name(self, name :str) -> None:
         self.__name = self.crypto.encrypt(name)
-    
+
     @property
     def username(self) -> str:
         return self.crypto.decrypt(self.__username)
-    
+
     @username.setter
     def username(self, username :str) -> None:
         self.__username = self.crypto.encrypt(username)
-    
+
     @property
     def note(self) -> str:
         return self.crypto.decrypt(self.__note)
-    
+
     @note.setter
     def note(self, note :str) -> None:
         self.__note = self.crypto.encrypt(note)
@@ -71,7 +71,7 @@ class Entry(db.Model, SNPMDB):
     @property
     def created_at(self) -> datetime:
         return datetime.strptime(self.crypto.decrypt(self.__created_at), '%Y-%m-%d %H:%M:%S')
-    
+
     @created_at.setter
     def created_at(self, created_at :datetime) -> None:
         self.__created_at = self.crypto.encrypt(created_at.strftime('%Y-%m-%d %H:%M:%S'))
@@ -79,19 +79,37 @@ class Entry(db.Model, SNPMDB):
     @property
     def pass_lifetime(self) -> int:
         return int(self.crypto.decrypt(self.__pass_lifetime))
-    
+
     @pass_lifetime.setter
     def pass_lifetime(self, pass_lifetime :int) -> None:
         self.__pass_lifetime = self.crypto.encrypt(str(int(pass_lifetime)))
-    
+
     @property
     def deleted_by(self) -> str:
         return self.crypto.decrypt(self.__deleted_by)
-    
+
     @deleted_by.setter
     def deleted_by(self, deleted_by :str) -> None:
         self.__deleted_by = self.crypto.encrypt(deleted_by)
-    
+
+    def change_crypto(self, new_crypto :CryptoDB) -> None:
+        """Encrypts table with new crypto"""
+        entry_name = self.name
+        username = self.username
+        note = self.note
+        created_at = self.created_at
+        pass_lifetime = self.pass_lifetime
+        deleted_by = self.deleted_by
+        deleted_by = self.deleted_by
+
+        self.crypto = new_crypto
+        self.name = entry_name
+        self.username = username
+        self.note = note
+        self.created_at = created_at
+        self.pass_lifetime = pass_lifetime
+        self.deleted_by = deleted_by
+
     def move(self, directory_id :int, special_directory_id :int, entry_name :str) -> None:
         """
         Moves entry
@@ -109,7 +127,7 @@ class Entry(db.Model, SNPMDB):
                 directory_entry.crypto = self.crypto
                 if directory_entry.name == entry_name:
                     raise EntryAlreadyExists(f'Entry with name "{entry_name}" already exists in directory {directory_id}')
-            
+
             if directory_id == None:
                 self.directory_id = null()
             else:

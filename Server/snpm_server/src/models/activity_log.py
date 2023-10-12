@@ -42,7 +42,14 @@ class ActivityLog(db.Model, SNPMDB):
         if self.__ip == None:
             return None
         return self.crypto.decrypt(self.__ip)
-    
+
     @ip.setter
     def ip(self, ip :str) -> None:
         self.__ip = self.crypto.encrypt(ip)
+
+    def change_crypto(self, new_crypto :CryptoDB) -> None:
+        """Encrypts table with new crypto"""
+        ip = self.ip
+
+        self.crypto = new_crypto
+        self.ip = ip

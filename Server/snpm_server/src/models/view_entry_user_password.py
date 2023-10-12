@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from src.utils.db import SNPMDB, CryptoDB
+from src.utils.db import SNPMDBView, CryptoDB
 from src.models import db
 
 
 
-class EntryUserPasswordView(db.Model, SNPMDB):
+class EntryUserPasswordView(db.Model, SNPMDBView):
 
     __tablename__ = 'entry_user_password'
 

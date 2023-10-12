@@ -2,6 +2,7 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Hash import SHA512
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
+from abc import abstractmethod
 
 
 
@@ -47,12 +48,12 @@ class CryptoDB:
         if key != None:
             if len(key) != self.__expected_len.get(str(algorithm_id))[0] or len(iv) != self.__expected_len.get(str(algorithm_id))[1]:
                 raise ValueError(f'{self.__expected_len.get(str(algorithm_id))[0]}-bit key and {self.__expected_len.get(str(algorithm_id))[1]}-bit iv are expected for the chosen algorithm')
-        
+
         # Assigning values
         self.__algorithm_id = algorithm_id
         self.__key = key
         self.__iv = iv
-        
+
     def encrypt(self, data :str) -> bytes:
         """
         Encrypt data using the loaded cryptographic parameters.
@@ -64,11 +65,11 @@ class CryptoDB:
 
         if self.__key == None:
             raise NoKeyError(f'First generate the cryptographic key')
-        
+
         if self.__algorithm_id in (CryptoDB.AES256, CryptoDB.AES192, CryptoDB.AES128):
             cipher = AES.new(self.__key, AES.MODE_CBC, iv=self.__iv)
             ciphertext = cipher.encrypt(pad(bytes(data, 'utf-8'), AES.block_size))
-        
+
         return ciphertext
 
     def decrypt(self, ciphertext :bytes) -> str:
@@ -82,11 +83,11 @@ class CryptoDB:
 
         if self.__key == None:
             raise NoKeyError(f'First generate the cryptographic key')
-        
+
         if self.__algorithm_id in (CryptoDB.AES256, CryptoDB.AES192, CryptoDB.AES128):
             cipher = AES.new(self.__key, AES.MODE_CBC, iv=self.__iv)
             plaintext = unpad(cipher.decrypt(ciphertext), AES.block_size)
-        
+
         return plaintext.decode('utf-8')
 
     def create_key(self, password :str, email :str) -> tuple[bytes, bytes]:
@@ -98,7 +99,7 @@ class CryptoDB:
         Return:
             crypto key (bytes), iv (bytes)
         """
-        
+
         key_len = int(self.__expected_len.get(str(self.__algorithm_id))[0] / 8) # key length in bytes
         iv_len = int(self.__expected_len.get(str(self.__algorithm_id))[1] / 8) # iv length in bytes
 
@@ -109,7 +110,7 @@ class CryptoDB:
             raise ValueError('Email address is too short')
         if len(password) <= 4:
             raise ValueError('Password is too short')
-        
+
         salt = bytes(username, 'utf-8') # users with identical passwords will have different keys
         kdf_res = PBKDF2(password, salt, key_len+iv_len, count=1000, hmac_hash_module=SHA512)
         self.__iv = kdf_res[:iv_len]
@@ -118,13 +119,22 @@ class CryptoDB:
         return (self.__key, self.__iv)
 
 
-class SNPMDB:
-    """Plugs cryptography into subclasses"""
+class SNPMDBView:
+    """Plugs cryptography into db views subclasses"""
 
     @property
     def crypto(self) -> CryptoDB:
         return self.__crypto
-    
+
     @crypto.setter
     def crypto(self, crypto :CryptoDB) -> None:
         self.__crypto = crypto
+
+
+class SNPMDB(SNPMDBView):
+    """Plugs cryptography into db views subclasses"""
+
+    @abstractmethod
+    def change_crypto(self, new_crypto :CryptoDB) -> None:
+        """Encrypts table with new crypto"""
+        pass

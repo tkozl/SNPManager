@@ -17,3 +17,7 @@ class SpecialDir(db.Model, SNPMDB):
     def __init__(self, user_id :int, special_directory_type_id :int) -> None:
         self.special_directory_type_id = special_directory_type_id
         self.user_id = user_id
+
+    def change_crypto(self, new_crypto :CryptoDB) -> None:
+        """Encrypts table with new crypto"""
+        self.crypto = new_crypto

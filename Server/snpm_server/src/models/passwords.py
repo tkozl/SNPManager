@@ -23,7 +23,14 @@ class Password(db.Model, SNPMDB):
     @property
     def value(self) -> str:
         return self.crypto.decrypt(self.__value)
-    
+
     @value.setter
     def value(self, value :str) -> None:
         self.__value = self.crypto.encrypt(value)
+
+    def change_crypto(self, new_crypto :CryptoDB) -> None:
+        """Encrypts table with new crypto"""
+        password = self.value
+
+        self.crypto = new_crypto
+        self.value = password

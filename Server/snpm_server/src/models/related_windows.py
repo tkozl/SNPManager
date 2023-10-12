@@ -26,13 +26,22 @@ class RelatedWindow(db.Model, SNPMDB):
                 raise EntryRelatedWindowAlreadyExists(f'Related window with name "{related_window_name}" already exists in entry {entry_id}')
         self.entry_id = entry_id
         self.name = related_window_name
-        self.__deleted_at = null()
+        self.deleted_at = null()
         self.__deleted_by = null()
+
+    def change_crypto(self, new_crypto :CryptoDB) -> None:
+        """Encrypts table with new crypto"""
+        name = self.name
+        deleted_by = self.deleted_by
+
+        self.crypto = new_crypto
+        self.name = name
+        self.deleted_by = deleted_by
 
     @property
     def name(self) -> str:
         return self.crypto.decrypt(self.__name)
-    
+
     @name.setter
     def name(self, name :str) -> None:
         self.__name = self.crypto.encrypt(name)
@@ -40,7 +49,7 @@ class RelatedWindow(db.Model, SNPMDB):
     @property
     def deleted_by(self) -> str:
         return self.crypto.decrypt(self.__deleted_by)
-    
+
     @deleted_by.setter
     def deleted_by(self, deleted_by :str) -> None:
         self.__deleted_by = self.crypto.encrypt(deleted_by)
