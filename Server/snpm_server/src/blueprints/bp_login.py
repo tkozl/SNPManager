@@ -36,7 +36,7 @@ def login():
 
     # Veryfing user email
     email_hash = SHA512.new(data=bytes(mail, 'utf-8'))
-    user = models.User.query.filter_by(email_hash=email_hash.digest()).first()
+    user = models.User.query.filter_by(email_hash=email_hash.digest(), deleted_at=None).first()
     if user == None:
         return '', 401
 

@@ -318,3 +318,32 @@ def modify_account(user :models.User, token :AccessToken):
             'token': new_token.export_token(),
             'expiration': new_token.expiration
         }, 201
+
+
+@bp_account.route('/delete', methods=['POST'])
+@token_without_email_validation_required
+def create_delete_account_request(user :models.User, token :AccessToken):
+    """Creates delete account request"""
+
+    # Verifing current password
+    current_password = request.json.get('currentPassword')
+    errors = ErrorRsp()
+    if current_password != token.user_password:
+        errors.add(ErrorRsp.WRONG_PASSWORD)
+        return errors.json
+
+    # Creating account delete token
+    while True:
+        token = ''.join(random.choice(string.ascii_letters+string.digits) for _ in range(128))
+        token_hash = SHA512.new(data=bytes(token, 'utf-8')).hexdigest()
+        users = models.User.query.filter_by(user_del_token=token_hash, deleted_at=None).all()
+        if len(users) == 0:
+            break
+    user.user_del_token = token_hash
+    user.user_del_token_exp = datetime.now() + timedelta(hours=1)
+    url = f'{Config.SERVER_ADDRESS}/token/delete-account/{token}'
+
+    # Sending confirmation email
+    user.send_mail('Delete account confirmation', templates.account_del_mail(url))
+
+    return '', 204

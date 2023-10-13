@@ -104,6 +104,15 @@ class User(db.Model, SNPMDB):
         email_hash = SHA512.new(data=bytes(plain_email, 'utf-8'))
         return email_hash.digest()
 
+    def delete(self) -> None:
+        """Deletes item"""
+        self.email_hash = ''
+        self.encrypted_email = ''
+        self.secret_2fa = None
+        self.email_verify_token = None
+        self.email_verify_token_exp = None
+        self.deleted_at = datetime.now()
+
     def change_crypto(self, new_crypto :CryptoDB) -> None:
         """Encrypts table with new crypto"""
         user_email = self.crypto.decrypt(self.encrypted_email)

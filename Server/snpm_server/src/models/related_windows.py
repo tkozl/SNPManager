@@ -54,7 +54,9 @@ class RelatedWindow(db.Model, SNPMDB):
     def deleted_by(self, deleted_by :str) -> None:
         self.__deleted_by = self.crypto.encrypt(deleted_by)
 
-    def delete(self, ip :str) -> None:
+    def delete(self, ip :str=None) -> None:
         """Deletes entry related window"""
+        self.__name = ''
         self.deleted_at = datetime.now()
-        self.deleted_by = ip
+        if ip != None:
+            self.deleted_by = ip

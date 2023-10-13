@@ -92,6 +92,14 @@ class Entry(db.Model, SNPMDB):
     def deleted_by(self, deleted_by :str) -> None:
         self.__deleted_by = self.crypto.encrypt(deleted_by)
 
+    def delete(self) -> None:
+        """Deletes item"""
+        self.__name = ''
+        self.__username = ''
+        self.__note = ''
+        self.__pass_lifetime = ''
+        self.deleted_at = datetime.now()
+
     def change_crypto(self, new_crypto :CryptoDB) -> None:
         """Encrypts table with new crypto"""
         entry_name = self.name

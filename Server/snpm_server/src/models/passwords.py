@@ -28,6 +28,11 @@ class Password(db.Model, SNPMDB):
     def value(self, value :str) -> None:
         self.__value = self.crypto.encrypt(value)
 
+    def delete(self) -> None:
+        """Deletes item"""
+        self.__value = ''
+        self.deleted_at = datetime.now()
+
     def change_crypto(self, new_crypto :CryptoDB) -> None:
         """Encrypts table with new crypto"""
         password = self.value

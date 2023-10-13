@@ -35,6 +35,11 @@ class Directory(db.Model, SNPMDB):
         self.__deleted_at = null()
         self.__deleted_by = null()
 
+    def delete(self) -> None:
+        """Deletes item"""
+        self.__name = ''
+        self.deleted_at = datetime.now()
+
     def change_crypto(self, new_crypto :CryptoDB) -> None:
         """Encrypts table with new crypto"""
         directory_name = self.name

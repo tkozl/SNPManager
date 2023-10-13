@@ -54,10 +54,13 @@ class EntryParameter(db.Model, SNPMDB):
     def deleted_by(self, deleted_by :str) -> None:
         self.__deleted_by = self.crypto.encrypt(deleted_by)
 
-    def delete(self, ip :str) -> None:
+    def delete(self, ip :str=None) -> None:
         """Deletes entry parameter"""
+        self.__name = ''
+        self.__value = ''
         self.deleted_at = datetime.now()
-        self.deleted_by = ip
+        if ip != None:
+            self.deleted_by = ip
 
     def change_crypto(self, new_crypto :CryptoDB) -> None:
         """Encrypts table with new crypto"""

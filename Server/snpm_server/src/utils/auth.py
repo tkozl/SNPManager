@@ -46,7 +46,7 @@ def token_without_2fa_required(f):
                 return errors.json, 401
 
             # Getting user model from database
-            user = User.query.filter_by(id=token.user_id).first()
+            user = User.query.filter_by(id=token.user_id, deleted_at=None).first()
             user.crypto = CryptoDB(token.algorithm_id)
             user.crypto.create_key(token.user_password, token.user_email)
 
