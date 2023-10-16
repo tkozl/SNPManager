@@ -25,6 +25,9 @@ namespace SNPM.MVVM.Models.UiModels.Interfaces
 
         int EntryId { get; }
 
+        bool IsExpired { get; }
+        bool IsPasswordNotEmpty { get; }
+
         void Clear();
 
         void CloneProperties(IUiRecord uiRecord);

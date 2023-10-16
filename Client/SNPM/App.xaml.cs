@@ -61,7 +61,10 @@ namespace SNPM
             services.AddSingleton<IDirectoryBlService, DirectoryBlService>();
             services.AddSingleton<IRecordBlService, RecordBlService>();
             services.AddSingleton<IWindowsIntegrationBlService, WindowsIntegrationBlService>();
+            services.AddSingleton<IHotkeyService, HotkeyService>();
             services.AddSingleton<IToken, Token>();
+            services.AddSingleton<IGlobalVariables, GlobalVariables>();
+            services.AddSingleton<IKeySenderService, KeySenderService>();
         }
 
         private void ConfigureViewModels(IServiceCollection services)

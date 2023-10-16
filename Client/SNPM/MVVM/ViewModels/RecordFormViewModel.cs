@@ -6,6 +6,9 @@ using SNPM.MVVM.Models.UiModels.Interfaces;
 using SNPM.MVVM.ViewModels.Interfaces;
 using SNPM.MVVM.Views;
 using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace SNPM.MVVM.ViewModels
@@ -14,10 +17,30 @@ namespace SNPM.MVVM.ViewModels
     {
         private readonly IProxyService proxyService;
         private int? currentId;
+        private IUiDirectory selectedDirectory;
 
         public event EventHandler RecordCreatedEvent;
 
         public IUiRecord CreatedRecord { get; private set; }
+
+        public ObservableCollection<IUiDirectory> Directories
+        {
+            get;
+            set;
+        }
+
+        public IUiDirectory SelectedDirectory
+        {
+            get => selectedDirectory;
+            set
+            {
+                selectedDirectory = value;
+                if (value != null)
+                {
+                    CreatedRecord.DirectoryId = value.Id;
+                }
+            }
+        }
 
         public RecordFormViewModel(IProxyService proxyService)
         {
@@ -32,6 +55,8 @@ namespace SNPM.MVVM.ViewModels
             ConfirmCommand = new RelayCommand(Create, CanCreate);
             AddRelatedWindowCommand = new RelayCommand(AddEmptyWindow);
             this.proxyService = proxyService;
+
+            Directories = new ObservableCollection<IUiDirectory>();
         }
 
         public RecordFormView View { get; }
@@ -54,6 +79,10 @@ namespace SNPM.MVVM.ViewModels
 
         public void OpenCreateDialog(int directoryId)
         {
+            ReloadDirectories().Await();
+
+            SelectedDirectory = Directories.First(x => x.Id == directoryId);
+
             CreatedRecord.DirectoryId = directoryId;
             CreatedRecord.Lifetime = DateTime.UtcNow;
             currentId = null;
@@ -62,9 +91,25 @@ namespace SNPM.MVVM.ViewModels
 
         public void OpenCreateDialog(IUiRecord uiRecord)
         {
+            ReloadDirectories().Await();
+
             CreatedRecord.CloneProperties(uiRecord);
             currentId = uiRecord.EntryId;
+
+            SelectedDirectory = Directories.First(x => x.Id == uiRecord.DirectoryId);
+
             this.ShowView();
+        }
+
+        private async Task ReloadDirectories()
+        {
+            var dirs = await proxyService.GetDirectories(0, false);
+
+            Directories.Clear();
+            foreach (var dir in dirs)
+            {
+                Directories.Add(dir);
+            }
         }
 
         private void Cancel(object sender)
@@ -76,7 +121,7 @@ namespace SNPM.MVVM.ViewModels
         {
             return CreatedRecord.Username != string.Empty
                    && CreatedRecord.Name != string.Empty
-                   && CreatedRecord.Lifetime > DateTime.UtcNow;
+                   && (CreatedRecord.Lifetime > DateTime.UtcNow || !CreatedRecord.IsPasswordNotEmpty);
         }
 
         private async void Create(object sender)

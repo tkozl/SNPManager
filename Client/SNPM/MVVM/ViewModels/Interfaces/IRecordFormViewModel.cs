@@ -1,6 +1,7 @@
 ﻿using SNPM.MVVM.Models.UiModels.Interfaces;
 using SNPM.MVVM.Views;
 using System;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 
 namespace SNPM.MVVM.ViewModels.Interfaces
@@ -18,6 +19,10 @@ namespace SNPM.MVVM.ViewModels.Interfaces
         IUiRecord CreatedRecord { get; }
 
         RecordFormView View { get; }
+
+        ObservableCollection<IUiDirectory> Directories { get; }
+
+        IUiDirectory SelectedDirectory { get; }
 
         void OpenCreateDialog(int id);
 

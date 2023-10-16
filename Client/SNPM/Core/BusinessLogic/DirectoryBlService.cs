@@ -30,11 +30,16 @@ namespace SNPM.Core.BusinessLogic
             this.accountBlService.AccountLoggedIn += OnLogin;
         }
 
-        public async Task<IEnumerable<IDirectory>> GetDirectories(int directoryId)
+        public async Task<IEnumerable<IDirectory>> GetDirectories(int directoryId, bool forceRefresh)
         {
             if (accountBlService.ActiveToken == null)
             {
                 throw new Exception("Not authenthicated");
+            }
+
+            if (!forceRefresh && cachedDirectories.Any())
+            {
+                return cachedDirectories;
             }
 
             var (success, serializedJson) = await apiService.GetDirectories(directoryId, accountBlService.ActiveToken.SessionToken);
@@ -106,7 +111,7 @@ namespace SNPM.Core.BusinessLogic
             }
 
             var directory = await GetDirectory(id);
-            specialDirectories.TryGetValue("trash", out var trashId);
+            var trashId = GetTrashDirectoryId();
 
             await MoveDirectory(id, directory.Name, trashId);
         }
@@ -145,9 +150,16 @@ namespace SNPM.Core.BusinessLogic
             return cachedDirectory.Name;
         }
 
+        public int GetTrashDirectoryId()
+        {
+            specialDirectories.TryGetValue("trash", out var trashId);
+
+            return trashId;
+        }
+
         private async void OnLogin(object? sender, EventArgs e)
         {
-            await GetDirectories(0);
+            await GetDirectories(0, true);
             DirectoriesLoaded.Invoke(this, new EventArgs());
         }
 

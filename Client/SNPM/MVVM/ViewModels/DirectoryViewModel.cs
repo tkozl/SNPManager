@@ -39,7 +39,8 @@ namespace SNPM.MVVM.ViewModels
 
         public DirectoryViewModel(IProxyService proxyService)
         {
-            DirectoryTree = new UiDirectory(0, int.MinValue, "Root", OnNodePropertyChanged);
+            DirectoryTree = new UiDirectory(0, int.MinValue, "Root");
+            DirectoryTree.PropertyChanged += OnNodePropertyChanged;
             RootNodes = new ObservableCollection<IUiDirectory>();
 
             NewDirectoryCommand = new RelayCommand(CreateNewDirectory, CanCreateNewDirectory);
@@ -60,9 +61,10 @@ namespace SNPM.MVVM.ViewModels
 
         public async Task RebuildDirectoryTree()
         {
-            var directories = await proxyService.GetDirectories(0);
+            var directories = await proxyService.GetDirectories(0, true);
 
-            DirectoryTree = BuildTree(directories, new UiDirectory(0, int.MinValue, "Root", OnNodePropertyChanged));
+            DirectoryTree = BuildTree(directories, new UiDirectory(0, int.MinValue, "Root"));
+            DirectoryTree.PropertyChanged += OnNodePropertyChanged;
 
             RootNodes.Clear();
             RootNodes.Add(DirectoryTree);
@@ -70,7 +72,8 @@ namespace SNPM.MVVM.ViewModels
 
         private IUiDirectory BuildTree(IEnumerable<IDirectory> directories, IDirectory current)
         {
-            IUiDirectory treeNode = new UiDirectory(current.Id, current.ParentId, current.Name, OnNodePropertyChanged);
+            IUiDirectory treeNode = new UiDirectory(current.Id, current.ParentId, current.Name);
+            treeNode.PropertyChanged += OnNodePropertyChanged;
             foreach (var childNode in directories.Where(x => x.ParentId == current.Id))
             {
                 treeNode.Children.Add(BuildTree(directories, childNode));
@@ -89,7 +92,8 @@ namespace SNPM.MVVM.ViewModels
             var parentId = SelectedNode?.Id ?? 0;
             var newId = await proxyService.CreateDirectory(parentId, "New Directory");
 
-            IUiDirectory treeNode = new UiDirectory(newId, parentId, "New Directory", OnNodePropertyChanged);
+            IUiDirectory treeNode = new UiDirectory(newId, parentId, "New Directory");
+            treeNode.PropertyChanged += OnNodePropertyChanged;
             if (SelectedNode != null)
             {
                 SelectedNode.Children.Add(treeNode);
@@ -122,7 +126,7 @@ namespace SNPM.MVVM.ViewModels
             }
         }
 
-        private bool CanDeleteDirectory(object _) => true;
+        private bool CanDeleteDirectory(object _) => SelectedNode?.Id != 0;
 
         private void OnNodePropertyChanged(object? sender, PropertyChangedEventArgs e)
         {

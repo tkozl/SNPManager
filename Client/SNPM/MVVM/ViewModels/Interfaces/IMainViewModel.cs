@@ -13,6 +13,8 @@ namespace SNPM.MVVM.ViewModels.Interfaces
         
         IDirectoryViewModel DirectoryTreeViewModel { get; }
 
+        IntPtr MainWindowHandle { get; }
+
         void SubscribeToPreferenceUpdate(PreferenceHandler handler);
     }
 }

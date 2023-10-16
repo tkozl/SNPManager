@@ -5,6 +5,7 @@ using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace SNPM.MVVM.Models
@@ -41,7 +42,7 @@ namespace SNPM.MVVM.Models
         public DateTime LastUpdated { get; set; }
 
         [JsonProperty("lifetime")]
-        public int DayLifetime { get; set; }
+        public int DayLifetime{ get; set; }
 
         public ICollection<KeyValuePair<string, string>> Errors { get; }
 
@@ -76,6 +77,19 @@ namespace SNPM.MVVM.Models
         public void ClearErrors()
         {
             Errors.Clear();
+        }
+
+        public void CloneProperties(IRecord record)
+        {
+            this.EntryId = record.EntryId;
+            this.DirectoryId = record.DirectoryId;
+            this.DirectoryName = record.DirectoryName;
+            this.Name = record.Name;
+            this.Username = record.Username;
+            this.Password = record.Password;
+            this.Lifetime = record.Lifetime;
+            this.RelatedWindows = new ObservableCollection<string>(record.RelatedWindows);
+            this.Note = record.Note;
         }
     }
 }

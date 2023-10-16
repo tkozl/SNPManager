@@ -21,12 +21,22 @@
             <Setter Property="Margin" Value="5" />
             <Setter Property="Padding" Value="20,5" />
         </Style>
+
+        <Style TargetType="DatePicker">
+            <Setter Property="IsEnabled" Value="False" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPasswordNotEmpty}" Value="True">
+                    <Setter Property="IsEnabled" Value="True" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
     <Grid Margin="20,5">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+
 
         <StackPanel Orientation="Vertical" DataContext="{Binding CreatedRecord}">
             <Grid>
@@ -36,6 +46,15 @@
                 </Grid.ColumnDefinitions>
                 <Label Content="Record Name:" HorizontalAlignment="Right" Grid.Column="0"/>
                 <TextBox Name="RecordName" Grid.Column="1" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            </Grid>
+
+            <Grid DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type Window}}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*" />
+                    <ColumnDefinition Width="14*" />
+                </Grid.ColumnDefinitions>
+                <Label Content="Record Name:" HorizontalAlignment="Right" Grid.Column="0"/>
+                <ComboBox ItemsSource="{Binding Directories}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedDirectory, Mode=TwoWay}" Grid.Column="1"/>
             </Grid>
 
             <Grid>

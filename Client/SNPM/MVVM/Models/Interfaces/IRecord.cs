@@ -27,5 +27,7 @@ namespace SNPM.MVVM.Models.Interfaces
         DateTime LastUpdated { get; }
 
         int DayLifetime { get; set; }
+
+        void CloneProperties(IRecord record);
     }
 }

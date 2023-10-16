@@ -20,6 +20,11 @@ namespace SNPM.Core.Api
             {EncryptionType.Aes256, "aes-256" }
         };
 
+        private static readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+        };
+
         public ApiService()
         {
             // TODO: THIS IS A BYPASS, NEED MORE PERMAMENT SOLUTION
@@ -137,7 +142,7 @@ namespace SNPM.Core.Api
             var body = new
             {
                 directoryID = directoryId,
-                include = "entryName+username+note+passwordUpdateTime+directoryID+relatedWindows",
+                include = "entryName+username+note+passwordUpdateTime+directoryID+relatedWindows+lifetime",
             };
 
             var route = "/entry";
@@ -145,7 +150,14 @@ namespace SNPM.Core.Api
             return await RequestAsync(route, body, Interfaces.HttpMethod.Get, sessionToken);
         }
 
-        public async Task<(string, string)> CreateRecord(IRecord createdRecord, string sessionToken, string id)
+        public async Task<(string, string)> GetRecord(int recordId, string sessionToken)
+        {
+            var route = $"/entry/{recordId}";
+
+            return await RequestAsync(route, null, Interfaces.HttpMethod.Get, sessionToken);
+        }
+
+        public async Task<(string, string)> CreateRecord(IRecord createdRecord, string sessionToken, string id, int lifetime)
         {
             var windowArray = createdRecord.RelatedWindows.ToArray();
 
@@ -156,15 +168,19 @@ namespace SNPM.Core.Api
                 username = createdRecord.Username,
                 password = createdRecord.Password,
                 note = createdRecord.Note,
-                lifetime = 14,
+                lifetime = lifetime,
                 relatedWindows = windowArray,
                 paramteres = Array.Empty<string>(),
             };
 
+            return await CreateRecord(body, sessionToken, id);
+        }
+
+        public async Task<(string, string)> CreateRecord(dynamic body, string sessionToken, string id)
+        {
             var route = id != string.Empty ? $"/entry/{id}" : "/entry";
 
             return await RequestAsync(route, body, id == string.Empty ? Interfaces.HttpMethod.Post : Interfaces.HttpMethod.Put, sessionToken);
-
         }
 
         private async Task<(string, string)> RequestAsync(string route, object body, Interfaces.HttpMethod httpMethod, string sessionToken)
@@ -218,7 +234,7 @@ namespace SNPM.Core.Api
 
         private async Task<HttpResponseMessage> PostAsync(string route, object body)
         {
-            var jsonBody = JsonConvert.SerializeObject(body);
+            var jsonBody = JsonConvert.SerializeObject(body, jsonSerializerSettings);
             var requestContent = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json");
 
             return await httpClient.PostAsync($"{serverString}{route}", requestContent);
@@ -226,7 +242,7 @@ namespace SNPM.Core.Api
 
         private async Task<HttpResponseMessage> PutAsync(string route, object body)
         {
-            var jsonBody = JsonConvert.SerializeObject(body);
+            var jsonBody = JsonConvert.SerializeObject(body, jsonSerializerSettings);
             var requestContent = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json");
 
             return await httpClient.PutAsync($"{serverString}{route}", requestContent);

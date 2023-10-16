@@ -13,8 +13,6 @@ namespace SNPM.Core.BusinessLogic.Interfaces
 
         Action OnExit { get; }
 
-        void Initialize();
-
         public event OptionChanged OnOptionChange;
     }
 }

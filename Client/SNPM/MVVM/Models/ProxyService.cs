@@ -62,9 +62,17 @@ namespace SNPM.MVVM.Models
             }
         }
 
-        public async Task<IEnumerable<IDirectory>> GetDirectories(int directoryId)
+        public async Task<IEnumerable<IUiDirectory>> GetDirectories(int directoryId, bool forceRefresh = false)
         {
-            return await directoryBlService.GetDirectories(directoryId);
+            var domainDirectories = await directoryBlService.GetDirectories(directoryId, forceRefresh);
+
+            var uiDirectories = new List<IUiDirectory>();
+            foreach (var directory in domainDirectories)
+            {
+                uiDirectories.Add(new UiDirectory(directory.Id, directory.ParentId, directory.Name));
+            }
+
+            return uiDirectories;
         }
 
         public async Task<int> CreateDirectory(int directoryId, string name)
@@ -90,17 +98,19 @@ namespace SNPM.MVVM.Models
 
         public async Task<IUiRecord> CreateRecord(IUiRecord createdRecord, int? currentId)
         {
-            var domainRecord = new Record(createdRecord);
-            domainRecord.EntryId = currentId ?? 0;
+            var domainRecord = new Record(createdRecord)
+            {
+                EntryId = currentId ?? 0
+            };
             var res = await recordBlService.CreateRecord(domainRecord, currentId);
             var uiRecord = new UiRecord(res);
 
             return uiRecord;
         }
 
-        public Task<bool> DeleteRecord(IUiRecord uiRecord)
+        public async Task DeleteRecord(IUiRecord uiRecord)
         {
-            throw new System.NotImplementedException();
+            await recordBlService.DeleteRecord(uiRecord.EntryId);
         }
     }
 }

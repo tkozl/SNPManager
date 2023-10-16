@@ -9,7 +9,7 @@ namespace SNPM.Core.BusinessLogic.Interfaces
     {
         event EventHandler DirectoriesLoaded;
 
-        Task<IEnumerable<IDirectory>> GetDirectories(int directoryId);
+        Task<IEnumerable<IDirectory>> GetDirectories(int directoryId, bool forceRefresh);
 
         Task<IDirectory> GetDirectory(int id, bool forceRefresh = true);
 
@@ -20,5 +20,6 @@ namespace SNPM.Core.BusinessLogic.Interfaces
         Task DeleteDirectory(int id);
 
         string GetCachedDirectoryName(int id);
+        int GetTrashDirectoryId();
     }
 }

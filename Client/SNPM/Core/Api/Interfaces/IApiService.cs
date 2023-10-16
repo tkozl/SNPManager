@@ -43,6 +43,10 @@ namespace SNPM.Core.Api.Interfaces
 
         Task<(string, string)> GetRecordsFromDirectory(int directoryId, string sessionToken);
 
-        Task<(string, string)> CreateRecord(IRecord createdRecord, string sessionToken, string id);
+        Task<(string, string)> CreateRecord(IRecord createdRecord, string sessionToken, string id, int newLifetime);
+
+        Task<(string, string)> CreateRecord(dynamic body, string sessionToken, string id);
+
+        Task<(string, string)> GetRecord(int recordId, string sessionToken);
     }
 }

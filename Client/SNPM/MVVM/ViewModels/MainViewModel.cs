@@ -2,14 +2,11 @@
 using SNPM.Core;
 using SNPM.MVVM.ViewModels.Interfaces;
 using SNPM.MVVM.Views;
-using SNPM.MVVM.Views.Interfaces;
 using System;
-using System.Linq;
 using System.ComponentModel;
 using System.Windows.Input;
-using System.Threading.Tasks;
-using System.Windows;
 using SNPM.MVVM.Models.Interfaces;
+using System.Windows.Interop;
 
 namespace SNPM.MVVM.ViewModels
 {
@@ -38,6 +35,8 @@ namespace SNPM.MVVM.ViewModels
             get { return _preferencesView; }
             set { _preferencesView = value; }
         }
+
+        public IntPtr MainWindowHandle { get; }
 
         public string Title { get; }
         public Action CloseAction { get; set; }
@@ -74,6 +73,8 @@ namespace SNPM.MVVM.ViewModels
             {
                 DataContext = this
             };
+
+            MainWindowHandle = new WindowInteropHelper(mainView).Handle;
         }
 
         public void SubscribeToPreferenceUpdate(PreferenceHandler handler)

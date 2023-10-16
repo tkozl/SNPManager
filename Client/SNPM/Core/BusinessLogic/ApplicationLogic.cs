@@ -11,49 +11,30 @@ namespace SNPM.Core.BusinessLogic
 {
     public class ApplicationLogic : IApplicationLogic
     {
-        private readonly IApiService apiService;
-        private readonly IProxyService proxyService;
-        private readonly IPasswordVerifier? passwordVerifierService;
-
         private IMainViewModel mainViewModel;
         private ILoginViewModel loginViewModel;
 
         public event OptionChanged OnOptionChange;
 
         public ApplicationLogic(
-            IPasswordVerifier passwordVerifierService,
-            IApiService apiService,
-            IProxyService proxyService,
-            IDialogService dialogService,
-            IServiceProvider serviceProvider)
+            IGlobalVariables globalVariables,
+            IServiceProvider serviceProvider,
+            IKeySenderService keySenderService)
         {
-            this.apiService = apiService;
-            this.proxyService = proxyService;
-            this.passwordVerifierService = passwordVerifierService;
-
             mainViewModel = serviceProvider.GetService<IMainViewModel>() ?? throw new Exception("ViewModel not registered");
             mainViewModel.SubscribeToPreferenceUpdate(OnPreferenceUpdate);
 
             loginViewModel = serviceProvider.GetService<ILoginViewModel>() ?? throw new Exception("LoginViewModel not registered");
             loginViewModel.LoginSuccessfulEvent += mainViewModel.ShowView;
+            loginViewModel.LoginSuccessfulEvent += keySenderService.Initialize;
             loginViewModel.ShowView();
 
             OnExit = new Action(Shutdown);
+
+            globalVariables.WindowHandle = mainViewModel.MainWindowHandle;
         }
 
         public Action OnExit { get; }
-
-        public void Initialize()
-        {
-            //var loginVm = new LoginViewModel(proxyService);
-
-            //Window loginView = new Views.LoginView(() => { MainView.Show(); })
-            //{
-            //    DataContext = loginVm
-            //};
-            //loginView.Show();
-            //loginViewModel = new 
-        }
 
         private void Shutdown()
         {

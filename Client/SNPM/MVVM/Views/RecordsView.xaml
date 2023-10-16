@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SNPM.MVVM.Views"
+             xmlns:models="clr-namespace:SNPM.MVVM.Models.UiModels"
              xmlns:viewModels="clr-namespace:SNPM.MVVM.ViewModels.Interfaces"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewModels:IRecordsViewModel}"
@@ -31,12 +32,6 @@
                 Style="{StaticResource ImageButton}">
                     <Image Source="/Images/NewItem.png" />
                 </Button>
-                <!--<Button
-                Name="RenameDirectory"
-                Command="{Binding RenameDirectoryCommand}"
-                Style="{StaticResource ImageButton}">
-                <Image Source="/Images/Rename.png" />
-            </Button>-->
                 <Button
                 Name="DeleteRecord"
                 Command="{Binding DeleteRecordCommand}"
@@ -61,6 +56,16 @@
                     <DataGridTextColumn Header="Expires" Width="Auto" Binding="{Binding Lifetime}"/>
                     <DataGridTextColumn Header="Note" Width="10*" Binding="{Binding Note}"/>
                 </DataGrid.Columns>
+                <DataGrid.RowStyle>
+                    <Style TargetType="{x:Type DataGridRow}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsExpired}" Value="True">
+                                <Setter Property="BorderBrush" Value="Red" />
+                                <Setter Property="BorderThickness" Value="1" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
             </DataGrid>
         </Grid>
 

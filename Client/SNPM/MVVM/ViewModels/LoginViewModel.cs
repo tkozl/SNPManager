@@ -65,7 +65,7 @@ namespace SNPM.MVVM.ViewModels
                 }
                 else
                 {
-                    await dialogService.CreateErrorDialog("Registration failed", Account.Errors);
+                    await dialogService.CreateErrorDialog("Login failed", Account.Errors);
                 }
             }
         }

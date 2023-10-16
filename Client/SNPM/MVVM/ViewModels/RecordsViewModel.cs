@@ -69,9 +69,9 @@ namespace SNPM.MVVM.ViewModels
         
         private async void DeleteRecord(object sender)
         {
-            if (sender is IUiRecord uiRecord)
+            if (SelectedRecord != null)
             {
-                proxyService.DeleteRecord(uiRecord);
+                await proxyService.DeleteRecord(SelectedRecord);
             }
         }
 
@@ -82,17 +82,12 @@ namespace SNPM.MVVM.ViewModels
             if (e is RecordCreatedEventArgs recordCreatedEventArgs)
             {
                 var createdRecord = recordCreatedEventArgs.Record;
-
-                //if (createdRecord.DirectoryId != directoryViewModel.SelectedNode.Id)
-                //{
-                //    return;
-                //}
-
                 var existingRecord = Records.FirstOrDefault(x => x.EntryId == createdRecord.EntryId);
 
                 if (existingRecord != null)
                 {
                     existingRecord.CloneProperties(createdRecord);
+                    RefreshRecords(directoryViewModel.SelectedNode.Id);
                 }
                 else
                 {

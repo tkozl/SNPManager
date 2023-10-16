@@ -5,6 +5,7 @@ using SNPM.Core.Api.Interfaces;
 using SNPM.Core.BusinessLogic;
 using SNPM.Core.BusinessLogic.Interfaces;
 using SNPM.MVVM.Models.Interfaces;
+using SNPM.MVVM.Models;
 
 namespace SNPM.Test.MVVM.Models
 {

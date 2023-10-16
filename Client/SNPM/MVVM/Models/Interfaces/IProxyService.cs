@@ -11,7 +11,7 @@ namespace SNPM.MVVM.Models.Interfaces
 
         Task Login(IUiAccount uiAccount);
 
-        Task<IEnumerable<IDirectory>> GetDirectories(int directoryId);
+        Task<IEnumerable<IUiDirectory>> GetDirectories(int directoryId, bool forceRefresh);
 
         Task<int> CreateDirectory(int directoryId, string name);
 
@@ -23,6 +23,6 @@ namespace SNPM.MVVM.Models.Interfaces
 
         Task<IUiRecord> CreateRecord(IUiRecord createdRecord, int? currentId);
 
-        Task<bool> DeleteRecord(IUiRecord uiRecord);
+        Task DeleteRecord(IUiRecord uiRecord);
     }
 }

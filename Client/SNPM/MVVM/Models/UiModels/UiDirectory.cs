@@ -28,14 +28,12 @@ namespace SNPM.MVVM.Models.UiModels
 
         public string OldName { get; set; }
 
-        public UiDirectory(int Id, int ParentId, string name, PropertyChangedEventHandler propertyChangedEventHandler)
+        public UiDirectory(int id, int parentId, string name)
         {
-            this.Id = Id;
-            this.ParentId = ParentId;
+            this.Id = id;
+            this.ParentId = parentId;
             this.name = name;
             OldName = name;
-
-            PropertyChanged += propertyChangedEventHandler;
 
             Children = new ObservableCollection<IUiDirectory>();
         }

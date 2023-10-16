@@ -15,8 +15,17 @@ namespace SNPM.MVVM.Models.UiModels
         private DateTime lifetime;
         private ObservableCollection<RelatedWindow> relatedWindows;
         private string note;
+        private int directoryId;
 
-        public int DirectoryId { get; set; }
+        public int DirectoryId
+        {
+            get => directoryId;
+            set
+            {
+                directoryId = value;
+                OnPropertyChanged(nameof(DirectoryId));
+            }
+        }
 
         public int EntryId { get; set; }
 
@@ -56,8 +65,11 @@ namespace SNPM.MVVM.Models.UiModels
             {
                 password = value;
                 OnPropertyChanged(nameof(Password));
+                OnPropertyChanged(nameof(IsPasswordNotEmpty));
             }
         }
+
+        public bool IsPasswordNotEmpty => Password?.Length > 0;
 
         public DateTime Lifetime
         {
@@ -88,6 +100,8 @@ namespace SNPM.MVVM.Models.UiModels
                 OnPropertyChanged(nameof(Note));
             }
         }
+
+        public bool IsExpired => Lifetime.ToUniversalTime() < DateTime.UtcNow;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
