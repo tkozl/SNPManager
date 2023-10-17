@@ -1,9 +1,9 @@
-from src.utils.db import SNPMDB, CryptoDB
+from src.utils.db import SNPMDBView, CryptoDB
 from src.models import db
 
 
 
-class UserDirectoryView(db.Model, SNPMDB):
+class UserDirectoryView(db.Model, SNPMDBView):
 
     __tablename__ = 'users_directories'
 

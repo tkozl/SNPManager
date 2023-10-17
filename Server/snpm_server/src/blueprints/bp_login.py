@@ -29,23 +29,23 @@ def login():
     password = request.json.get('password')
     if mail == None or password == None:
         abort(400)
-    
+
     # Random delay
     delay = uniform(0.05, 0.15)
     sleep(delay)
-    
+
     # Veryfing user email
     email_hash = SHA512.new(data=bytes(mail, 'utf-8'))
-    user = models.User.query.filter_by(email_hash=email_hash.digest()).first()
+    user = models.User.query.filter_by(email_hash=email_hash.digest(), deleted_at=None).first()
     if user == None:
         return '', 401
-    
+
     # Checking if user is not blocked
     last_block = models.ActivityLog.query.filter_by(user_id=user.id, activity_type_id=3).order_by(desc(models.ActivityLog.ocurred_at)).first()
     if last_block != None and (datetime.now() - last_block.ocurred_at).total_seconds() < 60 * 60:
         # User is currently blocked
         return '', 401
-    
+
     # Veryfing user password
     user.crypto = CryptoDB(user.encryption_type_id)
     incorrect_login = False
@@ -80,12 +80,12 @@ def login():
         models.db.session.commit()
 
         return '', 401
-    
+
     # Checking if 2fa is required
     required_2fa = False
     if user.secret_2fa != None:
         required_2fa = True
-    
+
     # Generating access token and sending it to client
     token = AccessToken()
     token.generate_token(
@@ -107,7 +107,7 @@ def login():
     incorrect_login_log = models.ActivityLog(user, 1, request.remote_addr, public_ip=False)
     models.db.session.add(incorrect_login_log)
     models.db.session.commit()
-    
+
     return rsp
 
 
@@ -122,14 +122,14 @@ def login_2fa(user :models.User, token :AccessToken):
         abort(400)
     if user.secret_2fa == None or token.twofa_passed:
         return '', 422
-    
+
     # Verifying passcode
     totp = pyotp.TOTP(user.secret_2fa)
     correct = totp.verify(passcode)
     correct = True
     if not correct:
         return '', 401
-    
+
     # Creating new token
     token.pass_2fa()
     token.renew_token(Config.ACCESS_TOKEN_LIFETIME)

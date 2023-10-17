@@ -1,9 +1,9 @@
-from src.utils.db import SNPMDB, CryptoDB
+from src.utils.db import SNPMDBView, CryptoDB
 from src.models import db
 
 
 
-class UserLastIncorrectLoginView(db.Model, SNPMDB):
+class UserLastIncorrectLoginView(db.Model, SNPMDBView):
 
     __tablename__ = 'last_incorrect_logins'
 

@@ -34,24 +34,40 @@ class Directory(db.Model, SNPMDB):
         self.special_directory_id = special_directory_id
         self.__deleted_at = null()
         self.__deleted_by = null()
-    
-    def delete(self, user_ip :str) -> None:
+
+    def change_crypto(self, new_crypto :CryptoDB) -> None:
+        """Encrypts table with new crypto"""
+        directory_name = self.name
+        deleted_by = self.deleted_by
+        self.crypto = new_crypto
+        self.name = directory_name
+        self.deleted_by = deleted_by
+
+    def delete(self, user_ip :str=None) -> None:
         """Deletes directory"""
+        self.__name = b''
         self.deleted_at = datetime.now()
-        self.deleted_by = user_ip
+        if user_ip != None:
+            self.deleted_by = user_ip
 
     @property
     def name(self) -> str:
         return self.crypto.decrypt(self.__name)
-    
+
     @name.setter
     def name(self, name :str) -> None:
         self.__name = self.crypto.encrypt(name)
 
     @property
     def deleted_by(self) -> str:
-        return self.crypto.decrypt(self.__deleted_by)
-    
+        if self.__deleted_by == None:
+            return None
+        else:
+            return self.crypto.decrypt(self.__deleted_by)
+
     @deleted_by.setter
     def deleted_by(self, deleted_by :str) -> None:
-        self.__deleted_by = self.crypto.encrypt(deleted_by)
+        if deleted_by == None:
+            self.__deleted_by = null()
+        else:
+            self.__deleted_by = self.crypto.encrypt(deleted_by)

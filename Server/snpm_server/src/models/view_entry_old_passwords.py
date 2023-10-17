@@ -1,9 +1,9 @@
-from src.utils.db import SNPMDB, CryptoDB
+from src.utils.db import SNPMDBView, CryptoDB
 from src.models import db
 
 
 
-class EntryOldPasswordView(db.Model, SNPMDB):
+class EntryOldPasswordView(db.Model, SNPMDBView):
 
     __tablename__ = 'entry_old_passwords'
 

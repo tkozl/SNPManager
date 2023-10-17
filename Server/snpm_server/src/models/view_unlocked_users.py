@@ -1,9 +1,9 @@
-from src.utils.db import SNPMDB, CryptoDB
+from src.utils.db import SNPMDBView, CryptoDB
 from src.models import db
 
 
 
-class UnlockedUserView(db.Model, SNPMDB):
+class UnlockedUserView(db.Model, SNPMDBView):
 
     __tablename__ = 'unlocked_users'
 

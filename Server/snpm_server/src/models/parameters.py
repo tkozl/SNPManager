@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy.sql import null
 
 from src.utils.db import SNPMDB, CryptoDB
 from src.models import db
@@ -33,7 +34,7 @@ class EntryParameter(db.Model, SNPMDB):
     @property
     def name(self) -> str:
         return self.crypto.decrypt(self.__name)
-    
+
     @name.setter
     def name(self, name :str) -> None:
         self.__name = self.crypto.encrypt(name)
@@ -41,20 +42,40 @@ class EntryParameter(db.Model, SNPMDB):
     @property
     def value(self) -> str:
         return self.crypto.decrypt(self.__value)
-    
+
     @value.setter
     def value(self, value :str) -> None:
         self.__value = self.crypto.encrypt(value)
 
     @property
     def deleted_by(self) -> str:
-        return self.crypto.decrypt(self.__deleted_by)
-    
+        if self.__deleted_by == None:
+            return None
+        else:
+            return self.crypto.decrypt(self.__deleted_by)
+
     @deleted_by.setter
     def deleted_by(self, deleted_by :str) -> None:
-        self.__deleted_by = self.crypto.encrypt(deleted_by)
+        if deleted_by == None:
+            self.__deleted_by = null()
+        else:
+            self.__deleted_by = self.crypto.encrypt(deleted_by)
 
-    def delete(self, ip :str) -> None:
+    def delete(self, ip :str=None) -> None:
         """Deletes entry parameter"""
+        self.__name = b''
+        self.__value = b''
         self.deleted_at = datetime.now()
-        self.deleted_by = ip
+        if ip != None:
+            self.deleted_by = ip
+
+    def change_crypto(self, new_crypto :CryptoDB) -> None:
+        """Encrypts table with new crypto"""
+        parameter_name = self.name
+        parameter_value = self.value
+        deleted_by = self.deleted_by
+
+        self.crypto = new_crypto
+        self.name = parameter_name
+        self.value = parameter_value
+        self.deleted_by = deleted_by
