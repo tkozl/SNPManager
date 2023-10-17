@@ -30,7 +30,7 @@ class Password(db.Model, SNPMDB):
 
     def delete(self) -> None:
         """Deletes item"""
-        self.__value = ''
+        self.__value = b''
         self.deleted_at = datetime.now()
 
     def change_crypto(self, new_crypto :CryptoDB) -> None:

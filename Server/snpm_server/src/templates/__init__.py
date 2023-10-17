@@ -17,7 +17,7 @@ def account_del_mail(url :str) -> str:
     Args:
         url (str): account delete url
     """
-    return tr.read_template('email_verification_message.html', {'((url))': url})
+    return tr.read_template('email_delete_account_confirmation.html', {'((url))': url})
 
 
 def url_success_page(message :str) -> str:

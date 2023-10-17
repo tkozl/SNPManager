@@ -185,6 +185,8 @@ def get_account_info(user :models.User, token :AccessToken):
     password_changed = models.ActivityLog.query.filter_by(user_id=user.id, activity_type_id=5).order_by(desc(models.ActivityLog.ocurred_at)).first()
     if password_changed == None:
         password_changed = user.created_at
+    else:
+        password_changed = password_changed.ocurred_at
     password_changed = int(mktime(password_changed.timetuple()))
 
     # Loading and and sending to client rest of data
@@ -239,24 +241,28 @@ def modify_account(user :models.User, token :AccessToken):
             return errors.json, 400
 
         user_email = user.crypto.decrypt(user.encrypted_email)
+        if new_mail == None:
+            new_mail = user_email
+        if new_password == None:
+            new_password = current_password
 
         # Changing user password and encrypting all users elements with new cryptographic key
-        if new_password != None and new_password != current_password or new_encryption_type_id != user.encryption_type_id:
+        if new_password != current_password or new_encryption_type_id != user.encryption_type_id or new_mail != user_email:
 
             new_crypto = CryptoDB(new_encryption_type_id)
-            new_crypto.create_key(new_password, user_email)
+            new_crypto.create_key(new_password, new_mail)
 
             # Table "directories"
-            directories = models.UserDirectoryView(user_id=user.id).all()
+            directories = models.UserDirectoryView.query.filter_by(user_id=user.id).all()
             for directory in directories:
                 directory = models.Directory.query.filter_by(id=directory.directory_id).first()
                 directory.crypto = user.crypto
                 directory.change_crypto(new_crypto)
 
             # Table "entries"
-            entries = models.UserEntryView(user_id=user.id).all()
+            entries = models.UserEntryView.query.filter_by(user_id=user.id).all()
             for entry in entries:
-                entry = models.Entry(id=entry.id).first()
+                entry = models.Entry.query.filter_by(id=entry.entry_id).first()
                 entry.crypto = user.crypto
                 entry.change_crypto(new_crypto)
 
@@ -287,28 +293,26 @@ def modify_account(user :models.User, token :AccessToken):
             # Table "users"
             user.change_crypto(new_crypto)
 
-            # Saving info in logs
-            activity_log = models.ActivityLog(user=user.id, activity_type_id=5, ip_address=request.remote_addr, public_ip=False)
-            models.db.session.add(activity_log)
+            # Changing email address
+            if new_mail != user_email:
+                user.encrypted_email = user.crypto.encrypt(new_mail)
+                user.email_hash = user.hash_email(new_mail)
+                user.email_verified = False
 
-        # Changing user email
-        if new_mail != None and new_mail != user_email:
-            user.encrypted_email = user.crypto.encrypt(new_mail)
-            user.email_hash = user.hash_email(new_mail)
-            user.email_verified = False
+            # Saving info in logs
+            activity_log = models.ActivityLog(user=user, activity_type_id=5, ip_address=request.remote_addr, public_ip=False)
+            models.db.session.add(activity_log)
 
         # Saving changes into db
         models.db.session.commit()
 
         # Creating new access token based on modified data (the old one is now inactive)
-        if new_password != None:
-            current_password = new_password
         new_token = AccessToken()
         new_token.generate_token(
             user_id=user.id,
             user_ip=request.remote_addr,
             user_email=user.crypto.decrypt(user.encrypted_email),
-            user_password=current_password,
+            user_password=new_password,
             algorithm_id=user.encryption_type_id,
             lifetime=Config.ACCESS_TOKEN_LIFETIME,
             total_lifetime=Config.ACCESS_TOKEN_TOTAL_LIFETIME,
@@ -341,6 +345,7 @@ def create_delete_account_request(user :models.User, token :AccessToken):
             break
     user.user_del_token = token_hash
     user.user_del_token_exp = datetime.now() + timedelta(hours=1)
+    models.db.session.commit()
     url = f'{Config.SERVER_ADDRESS}/token/delete-account/{token}'
 
     # Sending confirmation email

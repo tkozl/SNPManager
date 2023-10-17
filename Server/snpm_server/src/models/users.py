@@ -106,8 +106,8 @@ class User(db.Model, SNPMDB):
 
     def delete(self) -> None:
         """Deletes item"""
-        self.email_hash = ''
-        self.encrypted_email = ''
+        self.email_hash = b''
+        self.encrypted_email = b''
         self.secret_2fa = None
         self.email_verify_token = None
         self.email_verify_token_exp = None

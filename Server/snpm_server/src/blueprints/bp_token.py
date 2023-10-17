@@ -32,7 +32,7 @@ def verify_email_token(token :str):
 
 
 @bp_token.route('/delete-account/<token>', methods=['GET'])
-def verify_email_token(token :str):
+def delete_account(token :str):
     """Deletes account"""
 
     # Validating token
@@ -42,20 +42,20 @@ def verify_email_token(token :str):
     user = models.User.query.filter_by(user_del_token=token_hash, deleted_at=None).first()
     if user == None:
         return templates.url_error_page('It seems that url is broken. Please request new url in your app.'), 400
-    if user.email_verify_token_exp <= datetime.now():
+    if user.user_del_token_exp <= datetime.now():
         return templates.url_error_page('It seems that url has expired. Please request new url in your app.'), 400
 
     # Token is correct - removing all user data
     # Table "directories"
-    directories = models.UserDirectoryView(user_id=user.id).all()
+    directories = models.UserDirectoryView.query.filter_by(user_id=user.id).all()
     for directory in directories:
         directory = models.Directory.query.filter_by(id=directory.directory_id).first()
         directory.delete()
 
     # Table "entries"
-    entries = models.UserEntryView(user_id=user.id).all()
+    entries = models.UserEntryView.query.filter_by(user_id=user.id).all()
     for entry in entries:
-        entry = models.Entry(id=entry.id).first()
+        entry = models.Entry.query.filter_by(id=entry.entry_id).first()
         entry.delete()
 
         # Table "related_windows"

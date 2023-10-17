@@ -86,18 +86,24 @@ class Entry(db.Model, SNPMDB):
 
     @property
     def deleted_by(self) -> str:
-        return self.crypto.decrypt(self.__deleted_by)
+        if self.__deleted_by == None:
+            return None
+        else:
+            return self.crypto.decrypt(self.__deleted_by)
 
     @deleted_by.setter
     def deleted_by(self, deleted_by :str) -> None:
-        self.__deleted_by = self.crypto.encrypt(deleted_by)
+        if deleted_by == None:
+            self.__deleted_by = null()
+        else:
+            self.__deleted_by = self.crypto.encrypt(deleted_by)
 
     def delete(self) -> None:
         """Deletes item"""
-        self.__name = ''
-        self.__username = ''
-        self.__note = ''
-        self.__pass_lifetime = ''
+        self.__name = b''
+        self.__username = b''
+        self.__note = b''
+        self.__pass_lifetime = b''
         self.deleted_at = datetime.now()
 
     def change_crypto(self, new_crypto :CryptoDB) -> None:
