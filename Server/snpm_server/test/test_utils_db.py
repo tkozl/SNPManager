@@ -20,7 +20,7 @@ def test_cryptodb_keys():
 
 
 def test_cryptodb_encrypt_decrypt():
-    for algorithm in (CryptoDB.AES256, CryptoDB.AES192, CryptoDB.AES128):
+    for algorithm in (CryptoDB.AES256, CryptoDB.AES192, CryptoDB.AES128, CryptoDB.CAMELLIA128, CryptoDB.CAMELLIA192, CryptoDB.CAMELLIA256):
         crypto = CryptoDB(algorithm)
         crypto.create_key('sample password', 'mail@example.org')
 

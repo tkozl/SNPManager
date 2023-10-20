@@ -2,6 +2,7 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Hash import SHA512
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from abc import abstractmethod
 
 
@@ -18,9 +19,9 @@ class CryptoDB:
     AES256 = 1
     AES192 = 2
     AES128 = 3
-    TWOFISH256 = 4
-    TWOFISH192 = 5
-    TWOFISH128 = 6
+    CAMELLIA256 = 4
+    CAMELLIA192 = 5
+    CAMELLIA128 = 6
     SERPENT256 = 7
     SERPENT192 = 8
     SERPENT128 = 9
@@ -32,9 +33,9 @@ class CryptoDB:
             str(self.AES256): (256, 128),
             str(self.AES192): (192, 128),
             str(self.AES128): (128, 128),
-            str(self.TWOFISH256): (256, 128),
-            str(self.TWOFISH192): (192, 128),
-            str(self.TWOFISH128): (128, 128),
+            str(self.CAMELLIA256): (256, 128),
+            str(self.CAMELLIA192): (192, 128),
+            str(self.CAMELLIA128): (128, 128),
             str(self.SERPENT256): (256, 128),
             str(self.SERPENT192): (192, 128),
             str(self.SERPENT128): (128, 128),
@@ -70,6 +71,11 @@ class CryptoDB:
             cipher = AES.new(self.__key, AES.MODE_CBC, iv=self.__iv)
             ciphertext = cipher.encrypt(pad(bytes(data, 'utf-8'), AES.block_size))
 
+        elif self.__algorithm_id in (CryptoDB.CAMELLIA256, CryptoDB.CAMELLIA192, CryptoDB.CAMELLIA128):
+            cipher = Cipher(algorithms.Camellia(self.__key), modes.CBC(self.__iv))
+            encryptor = cipher.encryptor()
+            ciphertext = encryptor.update(pad(bytes(data, 'utf-8'), algorithms.Camellia.block_size)) + encryptor.finalize()
+
         return ciphertext
 
     def decrypt(self, ciphertext :bytes) -> str:
@@ -87,6 +93,11 @@ class CryptoDB:
         if self.__algorithm_id in (CryptoDB.AES256, CryptoDB.AES192, CryptoDB.AES128):
             cipher = AES.new(self.__key, AES.MODE_CBC, iv=self.__iv)
             plaintext = unpad(cipher.decrypt(ciphertext), AES.block_size)
+
+        elif self.__algorithm_id in (CryptoDB.CAMELLIA256, CryptoDB.CAMELLIA192, CryptoDB.CAMELLIA128):
+            cipher = Cipher(algorithms.Camellia(self.__key), modes.CBC(self.__iv))
+            decryptor = cipher.decryptor()
+            plaintext = unpad(decryptor.update(ciphertext), algorithms.Camellia.block_size) + decryptor.finalize()
 
         return plaintext.decode('utf-8')
 
