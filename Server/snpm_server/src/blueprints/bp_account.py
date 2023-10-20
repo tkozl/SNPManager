@@ -66,6 +66,9 @@ def create_account():
     models.db.session.add(trash_dir)
     models.db.session.commit()
 
+    # Sending verification email
+    user.send_verify_mail()
+
     return '', 201
 
 
@@ -121,17 +124,7 @@ def create_email_verification(user :models.User, token :AccessToken):
     if user.email_verified:
         abort(403)
 
-    while True:
-        token = ''.join(random.choice(string.ascii_letters+string.digits) for _ in range(128))
-        token_hash = SHA512.new(data=bytes(token, 'utf-8')).hexdigest()
-        users = models.User.query.filter_by(email_verify_token=token_hash, email_verified=False).all()
-        if len(users) == 0:
-            break
-    user.email_verify_token = token_hash
-    user.email_verify_token_exp = datetime.now() + timedelta(hours=1)
-    url = f'{Config.SERVER_ADDRESS}/token/email-verify/{token}'
-    user.send_mail(subject='Account verification', message_html=templates.email_verification_mail(url))
-    models.db.session.commit()
+    user.send_verify_mail()
     return '', 204
 
 

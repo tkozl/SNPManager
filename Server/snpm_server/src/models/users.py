@@ -1,9 +1,12 @@
 from Crypto.Hash import SHA512
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import mktime
 from sqlalchemy.sql import null
+import random
+import string
 
 from config import Config
+import src.templates as templates
 from src.utils.db import SNPMDB, CryptoDB
 from src.utils.mail import Mail
 from src.schemas.entry import EntryJSON
@@ -245,3 +248,17 @@ class User(db.Model, SNPMDB):
             mail.send(mail_address, 'SNPManager', subject, message_html, is_html=True)
         except:
             pass
+
+    def send_verify_mail(self) -> None:
+        """Sends verification email"""
+        while True:
+            token = ''.join(random.choice(string.ascii_letters+string.digits) for _ in range(128))
+            token_hash = SHA512.new(data=bytes(token, 'utf-8')).hexdigest()
+            users = self.query.filter_by(email_verify_token=token_hash, email_verified=False).all()
+            if len(users) == 0:
+                break
+        self.email_verify_token = token_hash
+        self.email_verify_token_exp = datetime.now() + timedelta(hours=1)
+        url = f'{Config.SERVER_ADDRESS}/token/email-verify/{token}'
+        self.send_mail(subject='Account verification', message_html=templates.email_verification_mail(url))
+        db.session.commit()
