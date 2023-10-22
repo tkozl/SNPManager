@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, abort
+from datetime import datetime
 
 import src.models as models
 import src.models.errors as e
@@ -234,6 +235,7 @@ def edit_directory(user :models.User, token :AccessToken, directory_id :str):
             child.special_directory_id = new_special_dir_id
 
     # Saving changes
+    directory.moved_at = datetime.now()
     models.db.session.commit()
     return '', 204
 

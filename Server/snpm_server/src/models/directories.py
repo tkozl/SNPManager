@@ -17,6 +17,7 @@ class Directory(db.Model, SNPMDB):
     __name = db.Column('directory_name', db.LargeBinary, nullable=False)
     deleted_at = db.Column(db.DateTime, nullable=True)
     __deleted_by = db.Column('deleted_by', db.LargeBinary, nullable=True)
+    __moved_at = db.Column('moved_at', db.LargeBinary, nullable=True)
 
     def __repr__(self):
         return f'<Directory {self.id}>'
@@ -34,14 +35,17 @@ class Directory(db.Model, SNPMDB):
         self.special_directory_id = special_directory_id
         self.__deleted_at = null()
         self.__deleted_by = null()
+        self.moved_at = datetime.now()
 
     def change_crypto(self, new_crypto :CryptoDB) -> None:
         """Encrypts table with new crypto"""
         directory_name = self.name
         deleted_by = self.deleted_by
+        moved_at = self.moved_at
         self.crypto = new_crypto
         self.name = directory_name
         self.deleted_by = deleted_by
+        self.moved_at = moved_at
 
     def delete(self, user_ip :str=None) -> None:
         """Deletes directory"""
@@ -71,3 +75,16 @@ class Directory(db.Model, SNPMDB):
             self.__deleted_by = null()
         else:
             self.__deleted_by = self.crypto.encrypt(deleted_by)
+
+    @property
+    def moved_at(self) -> str:
+        if self.__moved_at == None:
+            return datetime.now()
+        else:
+            return datetime.strptime(self.crypto.decrypt(self.__moved_at), '%Y-%m-%d %H:%M:%S')
+
+    @moved_at.setter
+    def moved_at(self, moved_at :datetime) -> None:
+        if moved_at == None:
+            moved_at = datetime.now()
+        self.__moved_at = self.crypto.encrypt(moved_at.strftime('%Y-%m-%d %H:%M:%S'))

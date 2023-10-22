@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from src.utils.db import SNPMDBView, CryptoDB
 from src.models import db
 
@@ -14,6 +16,7 @@ class UserDirectoryView(db.Model, SNPMDBView):
     __name = db.Column('directory_name', db.LargeBinary, primary_key=True)
     deleted_at = db.Column(db.DateTime, primary_key=True)
     deleted_by = db.Column(db.String, primary_key=True)
+    __moved_at = db.Column('moved_at', db.LargeBinary, primary_key=True)
 
     def __repr__(self):
         return f'<User {self.user_id}, directory {self.directory_id}>'
@@ -21,3 +24,10 @@ class UserDirectoryView(db.Model, SNPMDBView):
     @property
     def name(self) -> str:
         return self.crypto.decrypt(self.__name)
+
+    @property
+    def moved_at(self) -> str:
+        if self.__moved_at == None:
+            return datetime.now()
+        else:
+            return datetime.strptime(self.crypto.decrypt(self.__moved_at), '%Y-%m-%d %H:%M:%S')

@@ -22,6 +22,7 @@ class Entry(db.Model, SNPMDB):
     __pass_lifetime = db.Column('pass_lifetime', db.LargeBinary, nullable=False)
     deleted_at = db.Column(db.DateTime, nullable=True)
     __deleted_by = db.Column('deleted_by', db.LargeBinary, nullable=True)
+    __moved_at = db.Column('moved_at', db.LargeBinary, nullable=True)
 
     def __init__(self, crypto :CryptoDB, user_id :int, directory_id :int, special_directory_id :int, name :str, username :str, note :str, pass_lifetime :str) -> None:
         self.crypto = crypto
@@ -43,6 +44,7 @@ class Entry(db.Model, SNPMDB):
         self.pass_lifetime = pass_lifetime
         self.__deleted_at = null()
         self.__deleted_by = null()
+        self.moved_at = self.created_at
 
     @property
     def name(self) -> str:
@@ -98,6 +100,19 @@ class Entry(db.Model, SNPMDB):
         else:
             self.__deleted_by = self.crypto.encrypt(deleted_by)
 
+    @property
+    def moved_at(self) -> str:
+        if self.__moved_at == None:
+            return self.created_at
+        else:
+            return datetime.strptime(self.crypto.decrypt(self.__moved_at), '%Y-%m-%d %H:%M:%S')
+
+    @moved_at.setter
+    def moved_at(self, moved_at :datetime) -> None:
+        if moved_at == None:
+            moved_at = self.created_at
+        self.__moved_at = self.crypto.encrypt(moved_at.strftime('%Y-%m-%d %H:%M:%S'))
+
     def delete(self) -> None:
         """Deletes item"""
         self.__name = b''
@@ -115,6 +130,7 @@ class Entry(db.Model, SNPMDB):
         pass_lifetime = self.pass_lifetime
         deleted_by = self.deleted_by
         deleted_by = self.deleted_by
+        moved_at = self.moved_at
 
         self.crypto = new_crypto
         self.name = entry_name
@@ -123,6 +139,7 @@ class Entry(db.Model, SNPMDB):
         self.created_at = created_at
         self.pass_lifetime = pass_lifetime
         self.deleted_by = deleted_by
+        self.moved_at = moved_at
 
     def move(self, directory_id :int, special_directory_id :int, entry_name :str) -> None:
         """
@@ -148,3 +165,5 @@ class Entry(db.Model, SNPMDB):
                 self.directory_id = directory_id
 
         self.name = entry_name
+
+        self.moved_at = datetime.now()
