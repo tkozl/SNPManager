@@ -225,7 +225,11 @@ def edit_entry(user :models.User, token :AccessToken, entry_id :str):
         return errors.json, 400
     
     # Moving entry to new location if required
-    if entry_data.directory_id != None:
+    if entry_data.directory_id != None or entry_data.entry_name != None:
+        if entry_data.directory_id == None:
+            entry_data.directory_id = entry.directory_id
+        if entry_data.entry_name == None:
+            entry_data.entry_name = entry.name
         if entry_data.directory_id in (ApiSpecialDir.ROOT, ApiSpecialDir.TRASH):
             new_directory_id = None
             if entry_data.directory_id == ApiSpecialDir.ROOT:
@@ -244,7 +248,6 @@ def edit_entry(user :models.User, token :AccessToken, entry_id :str):
                 abort(403)
         
         if new_directory_id != entry.directory_id or new_special_dir_id != entry.special_directory_id or entry_data.entry_name != entry.name:
-            print('hejo')
             try:
                 entry.move(new_directory_id, new_special_dir_id, entry_data.entry_name)
             except e.EntryAlreadyExists:
