@@ -52,7 +52,7 @@ namespace SNPM.Core.BusinessLogic
                     throw new Exception(success);
             }
 
-            var directories = DeserializeJsonIntoDirectories(serializedJson);
+            var directories = DeserializeJsonIntoObject<List<Directory>>(serializedJson);
             specialDirectories = await GetSpecialDirectories();
 
             var sdirs = new List<IDirectory>();
@@ -82,7 +82,9 @@ namespace SNPM.Core.BusinessLogic
                     throw new Exception(success);
             }
 
-            return DeserializeJsonIntoId(serializedJson);
+            await RefreshDirectoryCache();
+
+            return DeserializeJsonIntoObject<int>(serializedJson);
         }
 
         public async Task MoveDirectory(int directoryId, string newName, int parentId)
@@ -101,6 +103,8 @@ namespace SNPM.Core.BusinessLogic
                 default:
                     throw new Exception(success);
             }
+
+            await RefreshDirectoryCache();
         }
 
         public async Task DeleteDirectory(int id)
@@ -114,6 +118,8 @@ namespace SNPM.Core.BusinessLogic
             var trashId = GetTrashDirectoryId();
 
             await MoveDirectory(id, directory.Name, trashId);
+
+            await RefreshDirectoryCache();
         }
 
         public async Task<IDirectory> GetDirectory(int id, bool forceRefresh = true)
@@ -159,6 +165,11 @@ namespace SNPM.Core.BusinessLogic
 
         private async void OnLogin(object? sender, EventArgs e)
         {
+            await RefreshDirectoryCache();
+        }
+
+        private async Task RefreshDirectoryCache()
+        {
             await GetDirectories(0, true);
             DirectoriesLoaded.Invoke(this, new EventArgs());
         }
@@ -178,26 +189,11 @@ namespace SNPM.Core.BusinessLogic
             return DeserializeJsonIntoObject<Dictionary<string, int>>(serializedJson);
         }
 
-        private IEnumerable<IDirectory> DeserializeJsonIntoDirectories(string serializedJson)
-        {
-            var result = JsonConvert.DeserializeObject<List<Directory>>(serializedJson) ?? throw new Exception("Directory deserialization failed");
-
-            return result;
-        }
-
         private T DeserializeJsonIntoObject<T>(string serializedJson)
         {
             var result = JsonConvert.DeserializeObject<T>(serializedJson) ?? throw new Exception("Deserialization failed");
 
             return result;
-        }
-
-        private int DeserializeJsonIntoId(string serializedJson)
-        {
-            var result = JsonConvert.DeserializeObject<Dictionary<string, int>>(serializedJson) ?? throw new Exception("Directory deserialization failed");
-            result.TryGetValue("id", out var id);
-            
-            return id;
         }
     }
 }

@@ -218,7 +218,7 @@ namespace SNPM.Core.Api
                 string responseBody = await response.Content.ReadAsStringAsync();
                 return (response.StatusCode!.ToString(), responseBody);
             }
-            else
+            else    
             {
                 throw new Exception("Something went wrong with http client");
             }

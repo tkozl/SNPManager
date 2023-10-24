@@ -1,5 +1,9 @@
 ﻿using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
+using SNPM.MVVM.Models.UiModels;
+using SNPM.MVVM.ViewModels.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -15,24 +19,35 @@ namespace SNPM.Core.BusinessLogic
         private static ModifierKeys AccordKey = ModifierKeys.None;
 
         private static Keys QuickLookupKey = Keys.F4;
-        private static Keys FullLookupKey = Keys.F3;
+        private static Keys ComboLookupKey = Keys.F2;
 
         private readonly IHotkeyService hotkeyService;
         private readonly IRecordBlService recordBlService;
         private readonly IDialogService dialogService;
+        private readonly IChoiceViewModel choiceViewModel;
 
-        public KeySenderService(IHotkeyService hotkeyService, IRecordBlService recordBlService, IDialogService dialogService)
+        private string previousWindowTitle;
+        private IRecord? chosenRecord;
+
+        public KeySenderService(
+            IHotkeyService hotkeyService,
+            IRecordBlService recordBlService,
+            IDialogService dialogService,
+            IChoiceViewModel choiceViewModel)
         {
             this.hotkeyService = hotkeyService;
             this.recordBlService = recordBlService;
             this.dialogService = dialogService;
+            this.choiceViewModel = choiceViewModel;
             this.hotkeyService.HotKeyPressed += async (s, e) => await OnHotKeyPressed(s, e);
+
+            previousWindowTitle = string.Empty;
         }
 
         public void Initialize()
         {
             hotkeyService.RegisterHotKey(AccordKey, QuickLookupKey);
-            hotkeyService.RegisterHotKey(AccordKey, FullLookupKey);
+            hotkeyService.RegisterHotKey(AccordKey, ComboLookupKey);
         }
 
         private async Task OnHotKeyPressed(object? sender, KeyPressedEventArgs e)
@@ -41,39 +56,50 @@ namespace SNPM.Core.BusinessLogic
 
             if (e.Key == QuickLookupKey)
             {
-                await QuickLookup();
+                await QuickLookup(false);
             }
-            else if (e.Key == FullLookupKey)
+            else if (e.Key == ComboLookupKey)
             {
-                FullLookup();
+                await QuickLookup(true);
             }
 
             hotkeyService.IsHotkeyEnabled = true;
         }
 
-        private void FullLookup()
-        {
-            
-        }
-
-        private async Task QuickLookup()
+        private async Task QuickLookup(bool usernameCombo)
         {
             var windowTitle = GetActiveWindowTitle();
-            var allPasswords = await recordBlService.GetCompatibleRecordPasswords(windowTitle);
 
-            if (allPasswords.Count() == 0)
+            if (windowTitle == previousWindowTitle && chosenRecord != null)
             {
-                await dialogService.CreateDialogWindow("No password found", "123", "zxc");
+                SendKeys.SendWait(PreparePassword(chosenRecord.Password));
+
+                previousWindowTitle = string.Empty;
+                chosenRecord = null;
+                return;
             }
-            else if (allPasswords.Count() == 1)
+            else
             {
-                var password = allPasswords.First();
+                previousWindowTitle = string.Empty;
+            }
+
+            var allRecords = await recordBlService.GetRecordsMatchingTitle(windowTitle);
+
+            if (allRecords.Count() == 0)
+            {
+                await dialogService.CreateDialogWindow("No password found matching the title", "Please ensure the regular expression is correct", "Ok");
+            }
+            else if (allRecords.Count() == 1)
+            {
+                var password = allRecords.First().Password;
 
                 SendKeys.SendWait(PreparePassword(password));
             }
             else
             {
-                throw new NotImplementedException();
+                previousWindowTitle = windowTitle;
+
+                choiceViewModel.Initialize(RecordsToChoices(allRecords), OnChoiceMade);
             }
         }
 
@@ -85,6 +111,14 @@ namespace SNPM.Core.BusinessLogic
 
         [DllImport("user32.dll")]
         public static extern bool SetKeyboardState(byte[] lpKeyState);
+
+        private void OnChoiceMade(object chosen)
+        {
+            if (chosen is IRecord record)
+            {
+                chosenRecord = record;
+            }
+        }
 
         private string GetActiveWindowTitle()
         {
@@ -121,5 +155,17 @@ namespace SNPM.Core.BusinessLogic
             return endStr.ToString();
         }
 
+        private IEnumerable<IChoiceItem> RecordsToChoices(IEnumerable<IRecord> records)
+        {
+            var choices = new List<IChoiceItem>();
+
+            foreach (var record in records)
+            {
+                var choice = new ChoiceItem(record, record.EntryId, record.Name);
+                choices.Add(choice);
+            }
+
+            return choices;
+        }
     }
 }

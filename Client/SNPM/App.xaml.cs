@@ -5,6 +5,7 @@ using SNPM.Core.BusinessLogic;
 using SNPM.Core.BusinessLogic.Interfaces;
 using SNPM.MVVM.Models;
 using SNPM.MVVM.Models.Interfaces;
+using SNPM.MVVM.Models.UiModels;
 using SNPM.MVVM.ViewModels;
 using SNPM.MVVM.ViewModels.Interfaces;
 using SNPM.MVVM.Views;
@@ -65,6 +66,7 @@ namespace SNPM
             services.AddSingleton<IToken, Token>();
             services.AddSingleton<IGlobalVariables, GlobalVariables>();
             services.AddSingleton<IKeySenderService, KeySenderService>();
+            services.AddSingleton<IChoiceItem, ChoiceItem>();
         }
 
         private void ConfigureViewModels(IServiceCollection services)
@@ -76,6 +78,7 @@ namespace SNPM
             services.AddSingleton<IRecordFormViewModel, RecordFormViewModel>();
             services.AddSingleton<IPreferencesViewModel, PreferencesViewModel>();
             services.AddSingleton<IDirectoryViewModel, DirectoryViewModel>();
+            services.AddSingleton<IChoiceViewModel, ChoiceViewModel>();
         }
 
         private void ConfigureViews(IServiceCollection services)

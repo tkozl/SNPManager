@@ -82,7 +82,8 @@ namespace SNPM.MVVM.ViewModels
             ReloadDirectories().Await();
 
             SelectedDirectory = Directories.First(x => x.Id == directoryId);
-
+            
+            CreatedRecord.Clear();
             CreatedRecord.DirectoryId = directoryId;
             CreatedRecord.Lifetime = DateTime.UtcNow;
             currentId = null;

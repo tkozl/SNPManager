@@ -113,24 +113,26 @@ namespace SNPM.Core.BusinessLogic
                 verifiedRecord.DirectoryName = directoryBlService.GetCachedDirectoryName(verifiedRecord.DirectoryId);
             }
 
+            cachedRecords.Add(verifiedRecord);
+
             return verifiedRecord;
         }
 
-        public async Task<IEnumerable<string>> GetCompatibleRecordPasswords(string targetString)
+        public async Task<IEnumerable<IRecord>> GetRecordsMatchingTitle(string targetString)
         {
             var records = GetComptaibleRecords(targetString);
 
-            var passwords = new List<string>();
+            var result = new List<IRecord>();
 
             // We take no more than 10 records to avoid DoS-ing the server
             foreach (var record in records.Take(10))
             {
                 var fullRecord = await GetRecord(record.EntryId);
 
-                passwords.Add(fullRecord.Password);
+                result.Add(fullRecord);
             }
 
-            return passwords;
+            return result;
         }
 
         public async Task DeleteRecord(int recordId)
@@ -140,6 +142,8 @@ namespace SNPM.Core.BusinessLogic
             var deletedName = record.Name + $"_D_{DateTime.UtcNow.ToFileTimeUtc()}";
 
             await MoveRecord(recordId, trashId, deletedName);
+
+            await RefreshCachedRecords();
         }
 
         public async Task MoveRecord(int recordId, int targetDirectoryId, string nameOverride = "")
@@ -153,7 +157,7 @@ namespace SNPM.Core.BusinessLogic
 
             var body = new
             {
-                targetDirectoryID = targetDirectoryId,
+                directoryID = targetDirectoryId,
                 entryName = nameOverride ?? record.Name
             };
 
@@ -166,6 +170,8 @@ namespace SNPM.Core.BusinessLogic
                 default:
                     break;
             }
+
+            await RefreshCachedRecords();
         }
 
         private IEnumerable<IRecord> GetComptaibleRecords(string targetString)
@@ -196,6 +202,11 @@ namespace SNPM.Core.BusinessLogic
         }
 
         private async void OnDirectoriesLoaded(object? sender, EventArgs e)
+        {
+            await RefreshCachedRecords();
+        }
+
+        private async Task RefreshCachedRecords()
         {
             var allRecords = await GetRecordsFromDirectory(0);
             cachedRecords = new List<IRecord>(allRecords);

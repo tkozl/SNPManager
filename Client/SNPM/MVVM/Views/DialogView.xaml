@@ -11,9 +11,11 @@
         Width="400"
         ResizeMode="NoResize">
     <Window.Resources>
-        <Style TargetType="Label">
+        <Style TargetType="TextBlock">
             <Setter Property="Margin" Value="5,2" />
             <Setter Property="FontSize" Value="20"/>
+            <Setter Property="TextWrapping" Value="WrapWithOverflow" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
         </Style>
 
         <Style TargetType="Button">
@@ -23,26 +25,25 @@
         </Style>
     </Window.Resources>
     
-    <Grid>
+    <Grid HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition />
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="7*"/>
             <RowDefinition Height="7*"/>
-            <RowDefinition Height="6*"/>
+            <RowDefinition Height="2*"/>
             <RowDefinition Height="10*"/>
         </Grid.RowDefinitions>
 
-        <Label Name="MainMessage"
+        <TextBlock Name="MainMessage"
                Grid.Row="0" 
-               Content="{Binding MainMessage}"
-               HorizontalAlignment="Stretch"/>
-        
-        <Label Name="SupportiveMessage"
+               Text="{Binding MainMessage}"
+               HorizontalAlignment="Stretch" />
+
+        <TextBlock Name="SupportiveMessage"
                Grid.Row="1" 
-               Content="{Binding SupportiveMessage}"
-               HorizontalAlignment="Stretch"/>
+               Text="{Binding SupportiveMessage}" />
 
         <Grid Name="Buttons"
                     Grid.Row="3"

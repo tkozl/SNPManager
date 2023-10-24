@@ -53,7 +53,7 @@
                     <ColumnDefinition Width="4*" />
                     <ColumnDefinition Width="14*" />
                 </Grid.ColumnDefinitions>
-                <Label Content="Record Name:" HorizontalAlignment="Right" Grid.Column="0"/>
+                <Label Content="Directory:" HorizontalAlignment="Right" Grid.Column="0"/>
                 <ComboBox ItemsSource="{Binding Directories}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedDirectory, Mode=TwoWay}" Grid.Column="1"/>
             </Grid>
 

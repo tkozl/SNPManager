@@ -131,7 +131,15 @@ namespace SNPM.MVVM.Models.UiModels
 
         public void Clear()
         {
+            this.EntryId = 0;
+            this.DirectoryId = 0;
+            this.DirectoryName = string.Empty;
+            this.Name = string.Empty;
+            this.Username = string.Empty;
             this.Password = string.Empty;
+            this.Lifetime = DateTime.UtcNow;
+            this.RelatedWindows.Clear();
+            this.Note = string.Empty;
         }
 
         public void CloneProperties(IUiRecord uiRecord)

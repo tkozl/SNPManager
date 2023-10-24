@@ -15,7 +15,7 @@ namespace SNPM.Core.BusinessLogic.Interfaces
 
         Task DeleteRecord(int recordId);
 
-        Task<IEnumerable<string>> GetCompatibleRecordPasswords(string targetString);
+        Task<IEnumerable<IRecord>> GetRecordsMatchingTitle(string targetString);
 
         Task MoveRecord(int recordId, int targetDirectoryId, string nameOverride = null);
     }
