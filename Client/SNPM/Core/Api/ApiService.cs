@@ -78,6 +78,11 @@ namespace SNPM.Core.Api
             return await RequestAsync("/login", body, Interfaces.HttpMethod.Post);
         }
 
+        public async Task<(string, string)> RefreshToken(string sessionToken)
+        {
+            return await RequestAsync("/account/token", null, Interfaces.HttpMethod.Post, sessionToken);
+        }
+
         public Task<bool> ModifyAccount(string currentPassword, string? newMail, string? newPassword)
         {
             throw new NotImplementedException();

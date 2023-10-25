@@ -102,12 +102,37 @@ namespace SNPM.Core.BusinessLogic
             }
         }
 
-        private DateTime RefreshToken(IToken token)
+        private async Task<DateTime> RefreshToken(IToken token)
         {
-            return DateTime.UtcNow + TimeSpan.FromMinutes(20);
+            var (succes, serializedJson) = await apiService.RefreshToken(token.SessionToken);
+
+            switch (succes)
+            {
+                case "OK":
+                    // Login succesful
+                    break;
+                case "Forbidden":
+                    throw new Exception("Token can not be prolonged. Relaunch the application.");
+                default:
+                    throw new Exception("Something unexpected happened");
+            }
+
+            var res = DeserializeJson(serializedJson);
+
+            if (res.TryGetValue("token", out var newToken) && res.TryGetValue("expiration", out var expiration))
+            {
+                //var aa = (int)expiration;
+                var expirationDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expiration.ToString()!)).DateTime;
+                token.SessionToken = (string)newToken;
+
+                return expirationDate;
+            }
+            else
+            {
+                return DateTime.UtcNow;
+            }
         }
 
-        // TODO: works but make it better
         static AccountError GetEnumFromEnumMemberValue(string input)
         {
             foreach (AccountError value in Enum.GetValues(typeof(AccountError)))

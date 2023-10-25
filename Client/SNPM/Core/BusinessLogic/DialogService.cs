@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SNPM.Core.BusinessLogic.Interfaces;
-using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.ViewModels.Interfaces;
-using SNPM.MVVM.Views.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

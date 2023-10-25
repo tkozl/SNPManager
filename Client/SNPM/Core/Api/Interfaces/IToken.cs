@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace SNPM.Core.Api.Interfaces
 {
     public interface IToken : IDisposable
     {
-        delegate DateTime RefreshTokenDelegate(IToken token);
+        delegate Task<DateTime> RefreshTokenDelegate(IToken token);
 
         string SessionToken { get; set; }
 

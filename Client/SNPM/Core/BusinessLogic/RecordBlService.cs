@@ -142,7 +142,6 @@ namespace SNPM.Core.BusinessLogic
             var deletedName = record.Name + $"_D_{DateTime.UtcNow.ToFileTimeUtc()}";
 
             await MoveRecord(recordId, trashId, deletedName);
-
             await RefreshCachedRecords();
         }
 

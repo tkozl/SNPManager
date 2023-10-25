@@ -1,6 +1,7 @@
 ﻿using SNPM.Core.Api.Interfaces;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using static SNPM.Core.Api.Interfaces.IToken;
 
 namespace SNPM.Core.Api
@@ -8,17 +9,14 @@ namespace SNPM.Core.Api
     public class Token : IToken
     {
         private static int UpdateInterval = 5;
+        private bool tokenLock;
 
         private Timer updateTimer;
         
-        public string SessionToken { 
+        public string SessionToken {
             get => authenthicationToken;
-            
-            set
-            {
-                ExpirationTime = DateTime.UtcNow + TimeSpan.FromMinutes(19);
-                authenthicationToken = value;
-            }
+
+            set => authenthicationToken = value;
         }
         private string authenthicationToken;
 
@@ -26,28 +24,23 @@ namespace SNPM.Core.Api
 
         public RefreshTokenDelegate? RefreshTokenMethod { get; set; }
 
-        //public Token(string SessionToken, DateTime ExpirationTime, RefreshTokenMethod refreshTokenMethod)
-        //{
-        //    authenthicationToken = string.Empty;
-
-        //    this.SessionToken = SessionToken;
-        //    this.ExpirationTime = ExpirationTime;
-        //    this.RefreshTokenMethod = refreshTokenMethod;
-
-        //    updateTimer = new Timer((e) => UpdateToken(), null, 0, UpdateInterval);
-        //}
-
         public Token()
         {
             authenthicationToken = string.Empty;
-            updateTimer = new Timer((e) => UpdateToken(), null, 0, UpdateInterval * 1000);
+            updateTimer = new Timer(async (e) => await UpdateToken(), null, 0, UpdateInterval * 1000);
+
+            tokenLock = false;
         }
 
-        void UpdateToken()
+        async Task UpdateToken()
         {
-            if (DateTime.UtcNow.Subtract(ExpirationTime).TotalSeconds < 120 && RefreshTokenMethod != null)
+            if (ExpirationTime.Subtract(DateTime.UtcNow).TotalSeconds < 30 && RefreshTokenMethod != null && !tokenLock)
             {
-                RefreshTokenMethod(this);
+                tokenLock = true;
+
+                ExpirationTime = await RefreshTokenMethod(this);
+
+                tokenLock = false;
             }
         }
 

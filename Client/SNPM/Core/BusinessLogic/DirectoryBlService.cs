@@ -84,7 +84,9 @@ namespace SNPM.Core.BusinessLogic
 
             await RefreshDirectoryCache();
 
-            return DeserializeJsonIntoObject<int>(serializedJson);
+            var deserialized = DeserializeJsonIntoObject<Dictionary<string, int>>(serializedJson);
+
+            return deserialized["id"];
         }
 
         public async Task MoveDirectory(int directoryId, string newName, int parentId)
@@ -116,8 +118,9 @@ namespace SNPM.Core.BusinessLogic
 
             var directory = await GetDirectory(id);
             var trashId = GetTrashDirectoryId();
+            var newName = $"{directory.Name}_D_{DateTime.UtcNow.ToFileTimeUtc()}";
 
-            await MoveDirectory(id, directory.Name, trashId);
+            await MoveDirectory(id, newName, trashId);
 
             await RefreshDirectoryCache();
         }

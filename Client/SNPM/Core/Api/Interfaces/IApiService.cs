@@ -31,6 +31,8 @@ namespace SNPM.Core.Api.Interfaces
 
         Task<(string, string)> Login(string mail, string password);
 
+        Task<(string, string)> RefreshToken(string sessionToken);
+
         Task<(string, string)> CreateDirectory(int parentId, string name, string sessionToken);
 
         Task<(string, string)> GetDirectories(int directoryId, string sessionToken);
