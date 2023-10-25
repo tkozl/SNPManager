@@ -136,7 +136,7 @@ class Entry(db.Model, SNPMDB):
         self.special_directory_id = special_directory_id
 
         if directory_id != self.directory_id:
-            directory_entries = Entry.query.filter_by(directory_id=directory_id).all()
+            directory_entries = Entry.query.filter_by(directory_id=directory_id, special_directory_id=special_directory_id).all()
             for directory_entry in directory_entries:
                 directory_entry.crypto = self.crypto
                 if directory_entry.name == entry_name:
