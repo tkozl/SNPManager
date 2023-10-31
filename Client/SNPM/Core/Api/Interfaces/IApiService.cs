@@ -50,5 +50,6 @@ namespace SNPM.Core.Api.Interfaces
         Task<(string, string)> CreateRecord(dynamic body, string sessionToken, string id);
 
         Task<(string, string)> GetRecord(int recordId, string sessionToken);
+        Task<(string, string)> GetAccountActivity(string sessionToken);
     }
 }

@@ -112,5 +112,10 @@ namespace SNPM.MVVM.Models
         {
             await recordBlService.DeleteRecord(uiRecord.EntryId);
         }
+
+        public IAccountActivity GetAccountActivity()
+        {
+            return accountBlService.AccountActivity;
+        }
     }
 }

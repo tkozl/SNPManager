@@ -8,10 +8,12 @@ using Microsoft.Extensions.DependencyInjection;
 using SNPM.Core.BusinessLogic.Interfaces;
 using SNPM.Core.Api.Interfaces;
 using SNPM.MVVM.Models.Interfaces;
+using SNPM.Core.Helpers.Interfaces;
+using SNPM.MVVM.Models;
 
 namespace SNPM.Core.BusinessLogic
 {
-    internal class Error
+    public class Error
     {
         [JsonProperty("errorID")]
         public string ErrorId;
@@ -28,10 +30,13 @@ namespace SNPM.Core.BusinessLogic
 
     internal class AccountBlService : IAccountBlService
     {
+        public IAccountActivity AccountActivity { get; set; }
+
         public IToken? ActiveToken { get; set; }
 
         private readonly IApiService apiService;
         private readonly IServiceProvider serviceProvider;
+        private readonly IJsonHelper jsonHelper;
         private static JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Include,
@@ -40,10 +45,11 @@ namespace SNPM.Core.BusinessLogic
 
         public event EventHandler AccountLoggedIn;
 
-        public AccountBlService(IApiService apiService, IServiceProvider serviceProvider)
+        public AccountBlService(IApiService apiService, IServiceProvider serviceProvider, IJsonHelper jsonHelper)
         {
             this.apiService = apiService;
             this.serviceProvider = serviceProvider;
+            this.jsonHelper = jsonHelper;
         }
 
         public async Task CreateAccount(IAccount account)
@@ -53,7 +59,7 @@ namespace SNPM.Core.BusinessLogic
             account.Errors.Clear();
             if (serializedJson.Length > 0)
             {
-                var errors = DeserializeJsonIntoErrors(serializedJson);
+                var errors = jsonHelper.DeserializeJsonIntoErrors(serializedJson);
 
                 foreach (var error in errors)
                 {
@@ -82,7 +88,7 @@ namespace SNPM.Core.BusinessLogic
 
             if (serializedJson.Length > 0)
             {
-                var result = DeserializeJson(serializedJson);
+                var result = jsonHelper.DeserializeJsonIntoDictionary(serializedJson);
 
                 account.Errors.Clear();
 
@@ -98,8 +104,25 @@ namespace SNPM.Core.BusinessLogic
                     account.Errors.Add(AccountError.RequiresSecondFactor, "Second authethincation required to login");
                 }
 
+                AccountActivity = await GetAccountActivity(ActiveToken.SessionToken);
+
                 AccountLoggedIn.Invoke(this, new EventArgs());
             }
+        }
+
+        public async Task<IAccountActivity> GetAccountActivity(string sessionToken)
+        {
+            var (succes, serializedJson) = await apiService.GetAccountActivity(sessionToken);
+
+            switch (succes)
+            {
+                case "OK":
+                    break;
+                default:
+                    throw new Exception("Something unexpected happened");
+            }
+
+            return jsonHelper.DeserializeJsonIntoObject<AccountActivity>(serializedJson);
         }
 
         private async Task<DateTime> RefreshToken(IToken token)
@@ -109,7 +132,6 @@ namespace SNPM.Core.BusinessLogic
             switch (succes)
             {
                 case "OK":
-                    // Login succesful
                     break;
                 case "Forbidden":
                     throw new Exception("Token can not be prolonged. Relaunch the application.");
@@ -117,7 +139,7 @@ namespace SNPM.Core.BusinessLogic
                     throw new Exception("Something unexpected happened");
             }
 
-            var res = DeserializeJson(serializedJson);
+            var res = jsonHelper.DeserializeJsonIntoDictionary(serializedJson);
 
             if (res.TryGetValue("token", out var newToken) && res.TryGetValue("expiration", out var expiration))
             {
@@ -152,43 +174,6 @@ namespace SNPM.Core.BusinessLogic
             var enumMemberAttribute = (EnumMemberAttribute)Attribute.GetCustomAttribute(memberInfo, typeof(EnumMemberAttribute));
 
             return enumMemberAttribute?.Value ?? value.ToString();
-        }
-
-        private ICollection<Error> DeserializeJsonIntoErrors(string serializedJson)
-        {
-            ICollection<Error> result;
-            //Dictionary<string, ICollection<Error>> result = new();
-            try
-            {
-                var deserializationResult = JsonConvert.DeserializeObject<Dictionary<string, ICollection<Error>>>(serializedJson);
-                if (deserializationResult is null)
-                {
-                    throw new Exception("Deserialization failed");
-                }
-                else if (deserializationResult.Count != 1)
-                {
-                    throw new Exception("Unexpected deserialization result");
-                }
-                else
-                {
-                    deserializationResult.TryGetValue("errors", out result!);
-                }
-            }
-            catch (JsonException e)
-            {
-                // TODO: Handle unexpected server response
-
-                throw new JsonException("Serialization failed - possible misunderstood server response");
-            }
-
-            return result;
-        }
-
-        private IDictionary<string, object> DeserializeJson(string serializedJson)
-        {
-            var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(serializedJson, JsonSerializerSettings);
-
-            return result ?? new Dictionary<string, object>();
         }
     }
 }

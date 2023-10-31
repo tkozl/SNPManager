@@ -9,6 +9,7 @@ using SNPM.Core.Events;
 using SNPM.Core.Api.Interfaces;
 using SNPM.MVVM.Models.Interfaces;
 using System.Text.RegularExpressions;
+using SNPM.Core.Helpers.Interfaces;
 
 namespace SNPM.Core.BusinessLogic
 {
@@ -17,16 +18,19 @@ namespace SNPM.Core.BusinessLogic
         private readonly IApiService apiService;
         private readonly IAccountBlService accountBlService;
         private readonly IDirectoryBlService directoryBlService;
+        private readonly IJsonHelper jsonHelper;
         private ICollection<IRecord> cachedRecords;
 
         public RecordBlService(
             IApiService apiService,
             IAccountBlService accountBlService,
-            IDirectoryBlService directoryBlService)
+            IDirectoryBlService directoryBlService,
+            IJsonHelper jsonHelper)
         {
             this.apiService = apiService;
             this.accountBlService = accountBlService;
             this.directoryBlService = directoryBlService;
+            this.jsonHelper = jsonHelper;
             cachedRecords = new List<IRecord>();
             this.directoryBlService.DirectoriesLoaded += OnDirectoriesLoaded;
         }
@@ -48,7 +52,7 @@ namespace SNPM.Core.BusinessLogic
                     throw new Exception(success);
             }
 
-            var records = DeserializeJsonIntoObject<IEnumerable<Record>>(serializedJson);
+            var records = jsonHelper.DeserializeJsonIntoObject<IEnumerable<Record>>(serializedJson);
             foreach (var record in records)
             {
                 record.DirectoryName = directoryBlService.GetCachedDirectoryName(record.DirectoryId);
@@ -75,7 +79,7 @@ namespace SNPM.Core.BusinessLogic
                     throw new Exception(success);
             }
 
-            return DeserializeJsonIntoObject<Record>(serializedJson);
+            return jsonHelper.DeserializeJsonIntoObject<Record>(serializedJson);
         }
 
         public async Task<IRecord> CreateRecord(IRecord createdRecord, int? id)
@@ -107,7 +111,7 @@ namespace SNPM.Core.BusinessLogic
                         throw new Exception(success);
                 }
 
-                DeserializeJsonIntoObject<Dictionary<string, int>>(serializedJson).TryGetValue("id", out var recordId);
+                jsonHelper.DeserializeJsonIntoObject<Dictionary<string, int>>(serializedJson).TryGetValue("id", out var recordId);
 
                 verifiedRecord.EntryId = recordId;
                 verifiedRecord.DirectoryName = directoryBlService.GetCachedDirectoryName(verifiedRecord.DirectoryId);
@@ -209,13 +213,6 @@ namespace SNPM.Core.BusinessLogic
         {
             var allRecords = await GetRecordsFromDirectory(0);
             cachedRecords = new List<IRecord>(allRecords);
-        }
-
-        private T DeserializeJsonIntoObject<T>(string serializedJson)
-        {
-            var result = JsonConvert.DeserializeObject<T>(serializedJson) ?? throw new Exception("Deserialization failed");
-
-            return result;
         }
     }
 }

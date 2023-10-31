@@ -11,13 +11,17 @@ namespace SNPM.Core
         public string Password { get; set; }
         
         public IToken? AuthenthicationToken { get; set; }
+
         public bool IsAuthenticated => AuthenthicationToken != null;
 
         public EncryptionType Encryption => EncryptionType.Aes256;
 
         public IDictionary<AccountError, string> Errors { get; }
 
+        public IAccountActivity AccountActivity { get; set; }
+
         public Account() : this(string.Empty, string.Empty) { }
+
         private Account(string username, string password)
         {
             Username = username;

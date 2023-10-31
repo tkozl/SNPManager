@@ -45,5 +45,7 @@ namespace SNPM.MVVM.Models.Interfaces
         EncryptionType Encryption { get; }
 
         IDictionary<AccountError, string> Errors { get; }
+
+        IAccountActivity AccountActivity { get; set; }
     }
 }

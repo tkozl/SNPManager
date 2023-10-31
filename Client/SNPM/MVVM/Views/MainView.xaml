@@ -10,9 +10,6 @@
         d:DataContext="{d:DesignInstance Type=viewModel:IMainViewModel}"
         Title="{Binding Title}" Height="750" Width="1200"
         Background="#fafafa">
-    <!--<Window.DataContext>
-        <viewModel:MainViewModel/>
-    </Window.DataContext>-->
 
     <Window.Resources>
         <Style TargetType="MenuItem">
@@ -76,7 +73,7 @@
                         Grid.Column="0"
                         Grid.ColumnSpan="3"
                         Margin="10"
-                        Content="{Binding RecordsViewModel}"/>
+                        Content="{Binding ActivityViewModel}"/>
 
         <ContentControl x:Name="DirectoryTree"
                         Grid.Row="2"

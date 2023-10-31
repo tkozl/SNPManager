@@ -12,13 +12,13 @@ namespace SNPM.MVVM.ViewModels
 {
     class MainViewModel : ObservableObject, IMainViewModel
     {
-        private IRecordsViewModel _recordsView;
+        private IRecordsViewModel recordsViewModel;
 
         public IRecordsViewModel RecordsViewModel
         {
-            get { return _recordsView; }
+            get { return recordsViewModel; }
             set {
-                _recordsView = value;
+                recordsViewModel = value;
                 OnPropertyChanged();
             }
         }
@@ -35,6 +35,8 @@ namespace SNPM.MVVM.ViewModels
             get { return _preferencesView; }
             set { _preferencesView = value; }
         }
+
+        public IActivityViewModel ActivityViewModel { get; set; }
 
         public IntPtr MainWindowHandle { get; }
 
@@ -59,6 +61,7 @@ namespace SNPM.MVVM.ViewModels
             RecordsViewModel = serviceProvider.GetService<IRecordsViewModel>() ?? throw new Exception("ViewModel not registered");
             PreferencesViewModel = serviceProvider.GetService<IPreferencesViewModel>() ?? throw new Exception("ViewModel not registered");
             DirectoryTreeViewModel = serviceProvider.GetService<IDirectoryViewModel>() ?? throw new Exception("ViewModel not registered");
+            ActivityViewModel = serviceProvider.GetService<IActivityViewModel>() ?? throw new Exception("ViewModel not registered");
 
             PreferencesView = new PreferencesView
             {
@@ -117,6 +120,7 @@ namespace SNPM.MVVM.ViewModels
         private void RefreshRecords()
         {
             DirectoryTreeViewModel.RebuildDirectoryTree();
+            ActivityViewModel.Refresh();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using SNPM.Core.Api.Interfaces;
 using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.Core.Helpers.Interfaces;
 using SNPM.MVVM.Models.UiModels;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using System;
@@ -17,15 +18,15 @@ namespace SNPM.Core.BusinessLogic
 
         private readonly IApiService apiService;
         private readonly IAccountBlService accountBlService;
-
+        private readonly IJsonHelper jsonHelper;
         private Dictionary<string, int> specialDirectories;
         private IEnumerable<IDirectory> cachedDirectories;
 
-        public DirectoryBlService(IApiService apiService, IAccountBlService accountBlService)
+        public DirectoryBlService(IApiService apiService, IAccountBlService accountBlService, IJsonHelper jsonHelper)
         {
             this.apiService = apiService;
             this.accountBlService = accountBlService;
-
+            this.jsonHelper = jsonHelper;
             cachedDirectories = Enumerable.Empty<IDirectory>();
             this.accountBlService.AccountLoggedIn += OnLogin;
         }
@@ -52,7 +53,7 @@ namespace SNPM.Core.BusinessLogic
                     throw new Exception(success);
             }
 
-            var directories = DeserializeJsonIntoObject<List<Directory>>(serializedJson);
+            var directories = jsonHelper.DeserializeJsonIntoObject<List<Directory>>(serializedJson);
             specialDirectories = await GetSpecialDirectories();
 
             var sdirs = new List<IDirectory>();
@@ -84,7 +85,7 @@ namespace SNPM.Core.BusinessLogic
 
             await RefreshDirectoryCache();
 
-            var deserialized = DeserializeJsonIntoObject<Dictionary<string, int>>(serializedJson);
+            var deserialized = jsonHelper.DeserializeJsonIntoObject<Dictionary<string, int>>(serializedJson);
 
             return deserialized["id"];
         }
@@ -147,7 +148,7 @@ namespace SNPM.Core.BusinessLogic
                     throw new Exception(success);
             }
 
-            var directory = DeserializeJsonIntoObject<Directory>(serializedJson);
+            var directory = jsonHelper.DeserializeJsonIntoObject<Directory>(serializedJson);
             directory.Id = id;
             return directory;
         }
@@ -189,14 +190,7 @@ namespace SNPM.Core.BusinessLogic
                     throw new Exception(success);
             }
 
-            return DeserializeJsonIntoObject<Dictionary<string, int>>(serializedJson);
-        }
-
-        private T DeserializeJsonIntoObject<T>(string serializedJson)
-        {
-            var result = JsonConvert.DeserializeObject<T>(serializedJson) ?? throw new Exception("Deserialization failed");
-
-            return result;
+            return jsonHelper.DeserializeJsonIntoObject<Dictionary<string, int>>(serializedJson);
         }
     }
 }

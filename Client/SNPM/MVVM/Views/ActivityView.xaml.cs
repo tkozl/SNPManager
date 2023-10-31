@@ -18,9 +18,9 @@ namespace SNPM.MVVM.Views
     /// <summary>
     /// Logika interakcji dla klasy ActivityLogView.xaml
     /// </summary>
-    public partial class ActivityLogView : UserControl
+    public partial class ActivityView : UserControl
     {
-        public ActivityLogView()
+        public ActivityView()
         {
             InitializeComponent();
         }

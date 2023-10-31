@@ -13,9 +13,11 @@ namespace SNPM.Core.BusinessLogic.Interfaces
         event EventHandler AccountLoggedIn;
 
         IToken? ActiveToken { get; }
+        IAccountActivity AccountActivity { get; set; }
 
         Task CreateAccount(IAccount account);
 
         Task Login(IAccount account);
+        Task<IAccountActivity> GetAccountActivity(string sessionToken);
     }
 }

@@ -26,6 +26,10 @@
                 <view:DirectoryView />
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type viewModel:ActivityViewModel}" >
+                <view:ActivityView />
+            </DataTemplate>
+
             <sys:Double x:Key="TextSize">14</sys:Double>
 
             <Style TargetType="{x:Type Control}" x:Key="BaseTextStyle">

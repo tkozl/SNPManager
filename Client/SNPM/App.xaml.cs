@@ -3,6 +3,8 @@ using SNPM.Core.Api;
 using SNPM.Core.Api.Interfaces;
 using SNPM.Core.BusinessLogic;
 using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.Core.Helpers;
+using SNPM.Core.Helpers.Interfaces;
 using SNPM.MVVM.Models;
 using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.Models.UiModels;
@@ -67,6 +69,9 @@ namespace SNPM
             services.AddSingleton<IGlobalVariables, GlobalVariables>();
             services.AddSingleton<IKeySenderService, KeySenderService>();
             services.AddSingleton<IChoiceItem, ChoiceItem>();
+            services.AddSingleton<IAccountActivity, AccountActivity>();
+
+            services.AddTransient<IJsonHelper, JsonHelper>();
         }
 
         private void ConfigureViewModels(IServiceCollection services)
@@ -79,6 +84,7 @@ namespace SNPM
             services.AddSingleton<IPreferencesViewModel, PreferencesViewModel>();
             services.AddSingleton<IDirectoryViewModel, DirectoryViewModel>();
             services.AddSingleton<IChoiceViewModel, ChoiceViewModel>();
+            services.AddSingleton<IActivityViewModel, ActivityViewModel>();
         }
 
         private void ConfigureViews(IServiceCollection services)
