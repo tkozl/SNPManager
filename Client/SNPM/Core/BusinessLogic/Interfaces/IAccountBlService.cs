@@ -1,9 +1,6 @@
 ﻿using SNPM.Core.Api.Interfaces;
 using SNPM.MVVM.Models.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SNPM.Core.BusinessLogic.Interfaces
@@ -18,6 +15,11 @@ namespace SNPM.Core.BusinessLogic.Interfaces
         Task CreateAccount(IAccount account);
 
         Task Login(IAccount account);
+
+        Task<bool> AuthorizeSecondFactor(string code);
+
         Task<IAccountActivity> GetAccountActivity(string sessionToken);
+
+        Task<string> Toggle2Fa();
     }
 }

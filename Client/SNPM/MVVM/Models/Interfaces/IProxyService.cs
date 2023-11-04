@@ -24,6 +24,10 @@ namespace SNPM.MVVM.Models.Interfaces
         Task<IUiRecord> CreateRecord(IUiRecord createdRecord, int? currentId);
 
         Task DeleteRecord(IUiRecord uiRecord);
+
         IAccountActivity GetAccountActivity();
+
+        Task<string> Toggle2Fa();
+        Task<bool> AuthorizeSecondFactor(string code);
     }
 }

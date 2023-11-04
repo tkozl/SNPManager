@@ -23,6 +23,16 @@
             <Setter Property="Margin" Value="5, 15" />
             <Setter Property="Width" Value="80" />
         </Style>
+
+        <DataTemplate x:Key="Form">
+            <TextBox Text="{Binding FormText, Mode=TwoWay}"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="Dialog">
+            <TextBlock Name="SupportiveMessage"
+               Grid.Row="1" 
+               Text="{Binding SupportiveMessage}" />
+        </DataTemplate>
     </Window.Resources>
     
     <Grid HorizontalAlignment="Stretch">
@@ -41,9 +51,22 @@
                Text="{Binding MainMessage}"
                HorizontalAlignment="Stretch" />
 
-        <TextBlock Name="SupportiveMessage"
+        <!--<TextBlock Name="SupportiveMessage"
                Grid.Row="1" 
-               Text="{Binding SupportiveMessage}" />
+               Text="{Binding SupportiveMessage}" />-->
+
+        <ContentControl Content="{Binding}" Grid.Row="1">
+            <ContentControl.Style>
+                <Style TargetType="{x:Type ContentControl}">
+                    <Setter Property="ContentTemplate" Value="{StaticResource Dialog}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding InputRequired}" Value="True" >
+                            <Setter Property="ContentTemplate" Value="{StaticResource Form}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ContentControl.Style>
+        </ContentControl>
 
         <Grid Name="Buttons"
                     Grid.Row="3"

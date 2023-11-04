@@ -10,6 +10,7 @@ using SNPM.Core.Api.Interfaces;
 using SNPM.MVVM.Models.Interfaces;
 using SNPM.Core.Helpers.Interfaces;
 using SNPM.MVVM.Models;
+using System.Security;
 
 namespace SNPM.Core.BusinessLogic
 {
@@ -37,6 +38,7 @@ namespace SNPM.Core.BusinessLogic
         private readonly IApiService apiService;
         private readonly IServiceProvider serviceProvider;
         private readonly IJsonHelper jsonHelper;
+        private string Username;
         private static JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Include,
@@ -96,18 +98,45 @@ namespace SNPM.Core.BusinessLogic
                 ActiveToken.SessionToken = result["token"].ToString()!;
                 ActiveToken.ExpirationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(result["expiration"].ToString()!)).DateTime;
                 ActiveToken.RefreshTokenMethod = RefreshToken;
+                Username = account.Username;
 
-                var twoFa = result["is2faRequired"].ToString() == "false";
+                result.TryGetValue("is2faRequired", out var twoFa);
 
-                if (twoFa)
+                if ((bool)twoFa!)
                 {
                     account.Errors.Add(AccountError.RequiresSecondFactor, "Second authethincation required to login");
                 }
+                else
+                {
+                    AccountActivity = await GetAccountActivity(ActiveToken.SessionToken);
 
-                AccountActivity = await GetAccountActivity(ActiveToken.SessionToken);
-
-                AccountLoggedIn.Invoke(this, new EventArgs());
+                    AccountLoggedIn.Invoke(this, new EventArgs());
+                }
             }
+        }
+
+        public async Task<bool> AuthorizeSecondFactor(string code)
+        {
+            var (succes, serializedJson) = await apiService.AuthorizeSecondFactor(code, ActiveToken.SessionToken);
+            switch (succes)
+            {
+                case "OK":
+                    break;
+                default:
+                    return false;
+            }
+
+            var result = jsonHelper.DeserializeJsonIntoDictionary(serializedJson);
+
+            ActiveToken = serviceProvider.GetService<IToken>() ?? throw new Exception("Model not registered");
+            ActiveToken.SessionToken = result["token"].ToString()!;
+            ActiveToken.ExpirationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(result["expiration"].ToString()!)).DateTime;
+            ActiveToken.RefreshTokenMethod = RefreshToken;
+
+            AccountActivity = await GetAccountActivity(ActiveToken.SessionToken);
+
+            AccountLoggedIn.Invoke(this, new EventArgs());
+            return true;
         }
 
         public async Task<IAccountActivity> GetAccountActivity(string sessionToken)
@@ -123,6 +152,53 @@ namespace SNPM.Core.BusinessLogic
             }
 
             return jsonHelper.DeserializeJsonIntoObject<AccountActivity>(serializedJson);
+        }
+
+        public async Task<string> Toggle2Fa()
+        {
+            if (AccountActivity.Active2fa)
+            {
+                Disable2Fa();
+                return string.Empty;
+            }
+            else
+            {
+                return await Enable2Fa();
+            }
+        }
+
+        private async Task<string> Enable2Fa()
+        {
+            var (succes, serializedJson) = await apiService.Enable2Fa(ActiveToken.SessionToken);
+
+            switch (succes)
+            {
+                case "Created":
+                    break;
+                default:
+                    throw new Exception("Something unexpected happened");
+            }
+
+            var res = jsonHelper.DeserializeJsonIntoDictionary(serializedJson);
+            res.TryGetValue("secretCode", out var token);
+            var secretCode = token as string ?? throw new Exception("Deserialization failed");
+
+            var uri = $"otpauth://totp/SNPM:{Username}?secret={secretCode}";
+
+            return uri;
+        }
+
+        private async Task Disable2Fa()
+        {
+            var (succes, _) = await apiService.Disable2Fa(ActiveToken.SessionToken);
+
+            switch (succes)
+            {
+                case "OK":
+                    break;
+                default:
+                    throw new Exception("Something unexpected happened");
+            }
         }
 
         private async Task<DateTime> RefreshToken(IToken token)

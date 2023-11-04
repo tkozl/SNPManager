@@ -78,6 +78,16 @@ namespace SNPM.Core.Api
             return await RequestAsync("/login", body, Interfaces.HttpMethod.Post);
         }
 
+        public async Task<(string, string)> AuthorizeSecondFactor(string code, string sessionToken)
+        {
+            var body = new
+            {
+                passcode = code,
+            };
+
+            return await RequestAsync("/login/2fa", body, Interfaces.HttpMethod.Post, sessionToken);
+        }
+
         public async Task<(string, string)> GetAccountActivity(string sessionToken)
         {
             return await RequestAsync("/account", null, Interfaces.HttpMethod.Get, sessionToken);
@@ -193,6 +203,20 @@ namespace SNPM.Core.Api
             return await RequestAsync(route, body, id == string.Empty ? Interfaces.HttpMethod.Post : Interfaces.HttpMethod.Put, sessionToken);
         }
 
+        public async Task<(string, string)> Disable2Fa(string sessionToken)
+        {
+            var route = "/accoutn/2fa";
+
+            return await RequestAsync(route, null, Interfaces.HttpMethod.Delete);
+        }
+
+        public async Task<(string, string)> Enable2Fa(string sessionToken)
+        {
+            var route = "/account/2fa";
+
+            return await RequestAsync(route, null, Interfaces.HttpMethod.Post, sessionToken);
+        }
+
         private async Task<(string, string)> RequestAsync(string route, object body, Interfaces.HttpMethod httpMethod, string sessionToken)
         {
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
@@ -218,6 +242,9 @@ namespace SNPM.Core.Api
                 case Interfaces.HttpMethod.Put:
                     response = await PutAsync(route, body);
                     break;
+                case Interfaces.HttpMethod.Delete:
+                    response = await DeleteAsync(route, body);
+                    break;
                 default:
                     response = null;
                     break;
@@ -228,7 +255,7 @@ namespace SNPM.Core.Api
                 string responseBody = await response.Content.ReadAsStringAsync();
                 return (response.StatusCode!.ToString(), responseBody);
             }
-            else    
+            else
             {
                 throw new Exception("Something went wrong with http client");
             }
@@ -240,6 +267,13 @@ namespace SNPM.Core.Api
             var path = $"{serverString}{route}?{parameters}";
 
             return await httpClient.GetAsync(path);
+        }
+
+        private async Task<HttpResponseMessage?> DeleteAsync(string route, object body)
+        {
+            var jsonBody = JsonConvert.SerializeObject(body, jsonSerializerSettings);
+
+            return await httpClient.DeleteAsync($"{serverString}{route}");
         }
 
         private async Task<HttpResponseMessage> PostAsync(string route, object body)

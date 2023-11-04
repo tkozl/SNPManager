@@ -16,6 +16,7 @@ namespace SNPM.MVVM.ViewModels.Interfaces
         IActivityViewModel ActivityViewModel { get; }
 
         IntPtr MainWindowHandle { get; }
+        string StatusMessage { get; }
 
         void SubscribeToPreferenceUpdate(PreferenceHandler handler);
     }

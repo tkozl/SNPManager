@@ -12,13 +12,6 @@ namespace SNPM.MVVM.Views
         public LoginView()
         {
             InitializeComponent();
-
-            //DataContextChanged += OnDataContextChanged;
-            //if (DataContext is LoginViewModel viewModel)
-            //{
-            //    viewModel.LoginView = this;
-            //    viewModel.LoginSuccessfulEvent += loginSuccessfulHandler;
-            //}
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -26,9 +19,9 @@ namespace SNPM.MVVM.Views
             System.Windows.Application.Current.Shutdown(); // TODO: (PrzemeK) Should call ApplicationLogic
         }
 
-        //private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
-        //{
-        //    ((LoginViewModel)sender).LoginView = this;
-        //}
+        private void Password_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

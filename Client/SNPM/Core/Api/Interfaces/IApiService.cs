@@ -31,6 +31,8 @@ namespace SNPM.Core.Api.Interfaces
 
         Task<(string, string)> Login(string mail, string password);
 
+        Task<(string, string)> AuthorizeSecondFactor(string code, string sessionToken);
+
         Task<(string, string)> RefreshToken(string sessionToken);
 
         Task<(string, string)> CreateDirectory(int parentId, string name, string sessionToken);
@@ -50,6 +52,11 @@ namespace SNPM.Core.Api.Interfaces
         Task<(string, string)> CreateRecord(dynamic body, string sessionToken, string id);
 
         Task<(string, string)> GetRecord(int recordId, string sessionToken);
+
         Task<(string, string)> GetAccountActivity(string sessionToken);
+
+        Task<(string, string)> Disable2Fa(string sessionToken);
+
+        Task<(string, string)> Enable2Fa(string sessionToken);
     }
 }

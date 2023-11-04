@@ -33,7 +33,7 @@ namespace SNPM.Core.BusinessLogic
             return await CreateDialogWindow(MainMessage, SupportiveMessage, AffirmativeMessage, string.Empty);
         }
 
-        public Task<bool> CreateDialogWindow(string MainMessage, string SupportiveMessage, string AffirmativeMessage, string NegativeMessage)
+        public async Task<bool> CreateDialogWindow(string MainMessage, string SupportiveMessage, string AffirmativeMessage, string NegativeMessage)
         {
             var dialogViewModel = serviceProvider.GetService<IDialogViewModel>();
 
@@ -47,9 +47,34 @@ namespace SNPM.Core.BusinessLogic
             dialogViewModel.AffirmativeMessage = AffirmativeMessage;
             dialogViewModel.NegativeMessage = NegativeMessage;
 
+            dialogViewModel.Initialize(false);
             dialogViewModel.ShowView();
 
-            return Task.FromResult(false);
+            return await Task.FromResult(false);
+        }
+
+        public async Task<string> CreateFormWindow(string MainMessage, string AffirmativeMessage, string NegativeMessage)
+        {
+            var dialogViewModel = serviceProvider.GetService<IDialogViewModel>();
+
+            if (dialogViewModel == null)
+            {
+                throw new Exception("DialogViewModel not registered in ServiceProvider");
+            }
+
+            var finished = new TaskCompletionSource<object>();
+
+            dialogViewModel.MainMessage = MainMessage;
+            dialogViewModel.AffirmativeMessage = AffirmativeMessage;
+            dialogViewModel.NegativeMessage = NegativeMessage;
+
+            dialogViewModel.Initialize(true, finished);
+
+            dialogViewModel.ShowView();
+
+            var res = await finished.Task;
+
+            return (string)res;
         }
     }
 }

@@ -5,6 +5,8 @@ namespace SNPM.MVVM.Models.UiModels
 {
     internal class UiAccount : IUiAccount
     {
+        public bool Is2FaRequired { get; set; }
+
         public string Username { get; set; }
         public string Password { get; set; }
 
@@ -15,6 +17,8 @@ namespace SNPM.MVVM.Models.UiModels
             Username = "";
             Password = "";
             Errors = new();
+
+            Is2FaRequired = false;
         }
 
         // TODO: Perform only simple sanity checks on UI layer, move rest to BL

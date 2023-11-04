@@ -10,5 +10,6 @@ namespace SNPM.Core.BusinessLogic.Interfaces
         Task<bool> CreateDialogWindow(string MainMessage, string SupportiveMessage, string AffirmativeActionMessage);
 
         Task<bool> CreateErrorDialog(string MainMessage, ICollection<string> ErrorMessages);
+        Task<string> CreateFormWindow(string MainMessage, string AffirmativeMessage, string NegativeMessage);
     }
 }

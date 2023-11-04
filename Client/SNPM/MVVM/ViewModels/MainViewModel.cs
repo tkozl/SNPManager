@@ -43,6 +43,8 @@ namespace SNPM.MVVM.ViewModels
         public string Title { get; }
         public Action CloseAction { get; set; }
 
+        public string StatusMessage => ActivityViewModel.StatusMessage;
+
         public ICommand PreferencesCommand { get; set; }
 
         private MainView mainView;

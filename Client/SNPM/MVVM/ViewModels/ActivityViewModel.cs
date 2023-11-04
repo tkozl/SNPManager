@@ -12,6 +12,13 @@ namespace SNPM.MVVM.ViewModels
     internal class ActivityViewModel : IActivityViewModel
     {
         public ObservableCollection<LoginAttempt> ServerMessages { get; set; }
+        public string StatusMessage
+        {
+            get
+            {
+                return "No problems found, but dynamically!";
+            }
+        }
 
         private readonly IProxyService proxyService;
 

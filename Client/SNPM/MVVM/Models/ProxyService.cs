@@ -36,7 +36,14 @@ namespace SNPM.MVVM.Models
 
             await accountBlService.Login(domainAccount);
 
+            uiAccount.Is2FaRequired = domainAccount.Errors.ContainsKey(AccountError.RequiresSecondFactor);
+
             HandleErrors(uiAccount, domainAccount);
+        }
+
+        public async Task<bool> AuthorizeSecondFactor(string code)
+        {
+            return await accountBlService.AuthorizeSecondFactor(code);
         }
 
         public async Task CreateAccount(IUiAccount uiAccount)
@@ -50,16 +57,6 @@ namespace SNPM.MVVM.Models
             await accountBlService.CreateAccount(domainAccount);
 
             HandleErrors(uiAccount, domainAccount);
-        }
-
-        private void HandleErrors(IUiAccount uiAccount, IAccount domainAccount)
-        {
-            uiAccount.Errors.Clear();
-            foreach (var error in domainAccount.Errors)
-            {
-                // TODO: Replace ugly "ERROR: " with an icon
-                uiAccount.Errors.Add($"ERROR: {error.Key.GetDescription()}");
-            }
         }
 
         public async Task<IEnumerable<IUiDirectory>> GetDirectories(int directoryId, bool forceRefresh = false)
@@ -116,6 +113,26 @@ namespace SNPM.MVVM.Models
         public IAccountActivity GetAccountActivity()
         {
             return accountBlService.AccountActivity;
+        }
+
+        public async Task<string> Toggle2Fa()
+        {
+            var res = await accountBlService.Toggle2Fa();
+
+            return res;
+        }
+
+        private static void HandleErrors(IUiAccount uiAccount, IAccount domainAccount)
+        {
+            uiAccount.Errors.Clear();
+            foreach (var error in domainAccount.Errors)
+            {
+                // TODO: Replace ugly "ERROR: " with an icon
+                if (error.Key != AccountError.RequiresSecondFactor)
+                {
+                    uiAccount.Errors.Add($"ERROR: {error.Key.GetDescription()}");
+                }
+            }
         }
     }
 }

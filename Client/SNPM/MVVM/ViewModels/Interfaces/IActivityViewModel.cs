@@ -7,6 +7,8 @@ namespace SNPM.MVVM.ViewModels.Interfaces
     {
         ObservableCollection<LoginAttempt> ServerMessages { get; set; }
 
+        string StatusMessage { get; }
+
         void Refresh();
     }
 }
