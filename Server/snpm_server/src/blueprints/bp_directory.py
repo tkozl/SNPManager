@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, abort
+from datetime import datetime
 
 import src.models as models
 import src.models.errors as e
@@ -41,7 +42,7 @@ def create_directory(user :models.User, token :AccessToken):
     if parent_id == ApiSpecialDir.TRASH:
         return '', 403
     if parent_id != ApiSpecialDir.ROOT:
-        parent_dir = models.UserDirectoryView.query.filter_by(directory_id=parent_id, user_id=user.id).first()
+        parent_dir = models.UserDirectoryView.query.filter_by(directory_id=parent_id, user_id=user.id, deleted_at=None).first()
         if parent_dir == None:
             abort(404)
         if parent_dir.special_directory_id == models.SpecialDir.TRASH_ID:
@@ -86,7 +87,7 @@ def get_directories(user :models.User, token :AccessToken):
     trash = False
     if parent_id not in (ApiSpecialDir.ROOT, ApiSpecialDir.TRASH):
         # Checks if parent directory exists
-        parent_dir = models.UserDirectoryView.query.filter_by(directory_id=parent_id, user_id=user.id).first()
+        parent_dir = models.UserDirectoryView.query.filter_by(directory_id=parent_id, user_id=user.id, deleted_at=None).first()
         if parent_dir == None:
             abort(404)
         if parent_dir.special_directory_id == user.trash_id:
@@ -234,6 +235,7 @@ def edit_directory(user :models.User, token :AccessToken, directory_id :str):
             child.special_directory_id = new_special_dir_id
 
     # Saving changes
+    directory.moved_at = datetime.now()
     models.db.session.commit()
     return '', 204
 

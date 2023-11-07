@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from src.utils.db import SNPMDBView, CryptoDB
 from src.models import db
 
@@ -18,6 +20,7 @@ class UserEntryView(db.Model, SNPMDBView):
     __pass_lifetime = db.Column('pass_lifetime', db.LargeBinary, primary_key=True)
     deleted_at = db.Column(db.DateTime, primary_key=True)
     __deleted_by = db.Column('deleted_by', db.LargeBinary, primary_key=True)
+    __moved_at = db.Column('moved_at', db.LargeBinary, primary_key=True)
 
     @property
     def name(self) -> str:
@@ -32,8 +35,8 @@ class UserEntryView(db.Model, SNPMDBView):
         return self.crypto.decrypt(self.__note)
 
     @property
-    def created_at(self) -> str:
-        return self.crypto.decrypt(self.__created_at)
+    def created_at(self) -> datetime:
+        return datetime.strptime(self.crypto.decrypt(self.__created_at), '%Y-%m-%d %H:%M:%S')
 
     @property
     def pass_lifetime(self) -> int:
@@ -42,3 +45,10 @@ class UserEntryView(db.Model, SNPMDBView):
     @property
     def deleted_by(self) -> str:
         return self.crypto.decrypt(self.__deleted_by)
+
+    @property
+    def moved_at(self) -> str:
+        if self.__moved_at == None:
+            return self.created_at
+        else:
+            return datetime.strptime(self.crypto.decrypt(self.__moved_at), '%Y-%m-%d %H:%M:%S')

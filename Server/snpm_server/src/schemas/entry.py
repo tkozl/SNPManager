@@ -196,7 +196,7 @@ class EntryJSON:
     @related_windows.setter
     def related_windows(self, value) -> None:
         if value == None:
-            self.__related_windows = []
+            self.__related_windows = None
         else:
             if type(value) != type([]):
                 raise ValueError('Related windows should be a list')
@@ -213,7 +213,7 @@ class EntryJSON:
     @parameters.setter
     def parameters(self, value) -> None:
         if value == None:
-            self.__parameters = []
+            self.__parameters = None
         else:
             if type(value) != type([]):
                 raise ValueError('Parameters should be a list of dicts')
