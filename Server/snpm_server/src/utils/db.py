@@ -135,7 +135,10 @@ class SNPMDBView:
 
     @property
     def crypto(self) -> CryptoDB:
-        return self.__crypto
+        try:
+            return self.__crypto
+        except AttributeError:
+            raise AttributeError('Cannot do it without crypto')
 
     @crypto.setter
     def crypto(self, crypto :CryptoDB) -> None:

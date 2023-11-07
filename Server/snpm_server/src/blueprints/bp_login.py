@@ -86,6 +86,19 @@ def login():
     if user.secret_2fa != None:
         required_2fa = True
 
+    # Removing old data from trash
+    entries_to_del = user.get_old_trashed_entries()
+    dirs_to_del = user.get_empty_trashed_dirs()
+
+    for del_entry_id in entries_to_del:
+        del_entry = models.Entry.query.filter_by(id=del_entry_id).first()
+        del_entry.crypto = user.crypto
+        del_entry.delete()
+    for del_dir_id in dirs_to_del:
+        del_dir = models.Directory.query.filter_by(id=del_dir_id).first()
+        del_dir.crypto = user.crypto
+        del_dir.delete()
+
     # Generating access token and sending it to client
     token = AccessToken()
     token.generate_token(
@@ -126,7 +139,6 @@ def login_2fa(user :models.User, token :AccessToken):
     # Verifying passcode
     totp = pyotp.TOTP(user.secret_2fa)
     correct = totp.verify(passcode)
-    correct = True
     if not correct:
         return '', 401
 

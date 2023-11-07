@@ -113,7 +113,7 @@ def get_entries(user :models.User, token :AccessToken):
             directory_id = int(directory_id)
         except ValueError:
             abort(404)
-        directory = models.UserDirectoryView.query.filter_by(user_id=user.id, directory_id=directory_id).first()
+        directory = models.UserDirectoryView.query.filter_by(user_id=user.id, directory_id=directory_id, deleted_at=None).first()
         if directory == None:
             abort(404)
         if directory.special_directory_id == user.trash_id:
@@ -148,14 +148,13 @@ def get_entry(user :models.User, token :AccessToken, entry_id :str):
         abort(404)
     
     # Loading entry
-    entry = models.EntryUserPasswordView.query.filter_by(entry_id=entry_id, user_id=user.id).first()
+    entry = models.EntryUserPasswordView.query.filter_by(entry_id=entry_id, user_id=user.id, deleted_at=None).first()
     if entry == None:
         abort(404)
     
     passwords = models.Password.query.filter_by(entry_id=entry_id)
     for password in passwords:
         password.crypto = user.crypto
-        print(password.value, password.created_at)
 
     entry.crypto = user.crypto
 
@@ -326,7 +325,7 @@ def get_entry_stats(user :models.User, token :AccessToken, entry_id :str):
         return '', 404
     
     # Loading data from db models
-    entry = models.EntryUserPasswordView.query.filter_by(user_id=user.id, entry_id=entry_id).first()
+    entry = models.EntryUserPasswordView.query.filter_by(user_id=user.id, entry_id=entry_id, deleted_at=None).first()
     if entry == None:
         return '', 404
     entry.crypto = user.crypto

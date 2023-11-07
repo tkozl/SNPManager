@@ -144,7 +144,7 @@ class User(db.Model, SNPMDB):
         else:
             special_dir = self.root_dir_id
 
-        directories = UserDirectoryView.query.filter_by(user_id=self.id, parent_id=parent_id, special_directory_id=special_dir).all()
+        directories = UserDirectoryView.query.filter_by(user_id=self.id, parent_id=parent_id, special_directory_id=special_dir, deleted_at=None).all()
         res = []
         for directory in directories:
             directory.crypto = self.crypto
@@ -178,7 +178,7 @@ class User(db.Model, SNPMDB):
         else:
             special_dir = self.root_dir_id
 
-        entries = EntryUserPasswordView.query.filter_by(user_id=self.id, directory_id=parent_dir_id, special_directory_id=special_dir).all()
+        entries = EntryUserPasswordView.query.filter_by(user_id=self.id, directory_id=parent_dir_id, special_directory_id=special_dir, deleted_at=None).all()
         res = []
         for entry in entries:
             entry.crypto = self.crypto
@@ -262,3 +262,36 @@ class User(db.Model, SNPMDB):
         url = f'{Config.SERVER_ADDRESS}/token/email-verify/{token}'
         self.send_mail(subject='Account verification', message_html=templates.email_verification_mail(url))
         db.session.commit()
+
+    def get_old_trashed_entries(self) -> list[int]:
+        """
+        Gets old trashed entries (older than 30 days)
+        Return:
+            list od enties ids
+        """
+
+        old_entries = []
+        trashed_entries = EntryUserPasswordView.query.filter_by(user_id=self.id, special_directory_id=self.trash_id, deleted_at=None).all()
+        for trashed_entry in trashed_entries:
+            trashed_entry.crypto = self.crypto
+            if (datetime.now() - trashed_entry.moved_at).days > 30:
+                old_entries.append(trashed_entry.entry_id)
+
+        return old_entries
+
+    def get_empty_trashed_dirs(self) -> list[int]:
+        """
+        Gets trashed directories without entries inside
+        Return:
+            list od dirs ids
+        """
+
+        empty_dirs = []
+        trashed_dirs = UserDirectoryView.query.filter_by(user_id=self.id, special_directory_id=self.trash_id, deleted_at=None).all()
+        for trashed_dir in trashed_dirs:
+            trashed_dir.crypto = self.crypto
+            entries = self.get_entries(trashed_dir.directory_id, recursive=True, trash=True)
+            if len(entries) == 0:
+                empty_dirs.append(trashed_dir.directory_id)
+
+        return empty_dirs
