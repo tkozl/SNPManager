@@ -7,7 +7,7 @@
         xmlns:viewModels="clr-namespace:SNPM.MVVM.ViewModels.Interfaces"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewModels:IRecordFormViewModel}"
-        Title="RecordFormView" Height="550" Width="500">
+        Title="RecordFormView" Height="550" Width="700">
     <Window.Resources>
         <Style TargetType="Label" >
             <Setter Property="VerticalAlignment" Value="Top" />
@@ -37,8 +37,12 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Vertical" DataContext="{Binding CreatedRecord}">
+        <StackPanel Orientation="Vertical" DataContext="{Binding CreatedRecord}" Grid.Column="0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="4*" />
@@ -124,7 +128,44 @@
 
         </StackPanel>
 
-        <StackPanel Grid.Row="1" HorizontalAlignment="Right" Orientation="Horizontal" Margin="5">
+        <Grid Grid.Column="1" Margin="5,5,5,5" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <DataGrid ItemsSource="{Binding CreatedRecord.Parameters}" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Width="*" Header="Parameter Name">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding Path=Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="Auto"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Width="*" Header="Value">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="Auto"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Button Grid.Row="1"
+                    Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.AddParameterCommand}"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    MinWidth="50"
+                    MinHeight="50">
+                <TextBlock Text="+" />
+            </Button>
+
+        </Grid>
+
+        <StackPanel Grid.Row="1" HorizontalAlignment="Right" Orientation="Horizontal" Margin="5" Grid.ColumnSpan="2">
             <Button Content="Cancel" IsCancel="True" Command="{Binding CancelCommand}"/>
             <Button Content="Confirm" IsDefault="True" Command="{Binding ConfirmCommand}"/>
         </StackPanel>

@@ -27,6 +27,7 @@ namespace SNPM.MVVM.Models.UiModels.Interfaces
 
         bool IsExpired { get; }
         bool IsPasswordNotEmpty { get; }
+        ObservableCollection<IUiParameter> Parameters { get; set; }
 
         void Clear();
 

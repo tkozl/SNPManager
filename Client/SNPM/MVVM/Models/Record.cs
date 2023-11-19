@@ -44,6 +44,24 @@ namespace SNPM.MVVM.Models
         [JsonProperty("lifetime")]
         public int DayLifetime{ get; set; }
 
+        [JsonProperty("parameters")]
+        public ICollection<Parameter> Parameters { get; set; }
+
+        //public IDictionary<string, string> ParametersDictionary
+        //{
+        //    get
+        //    {
+        //        var res = new Dictionary<string, string>();
+
+        //        foreach (var parameter in Parameters)
+        //        {
+        //            res.Add(parameter.Name, parameter.Value);
+        //        }
+
+        //        return res;
+        //    }
+        //}
+
         public ICollection<KeyValuePair<string, string>> Errors { get; }
 
         public Record()
@@ -65,6 +83,12 @@ namespace SNPM.MVVM.Models
             this.Lifetime = uiRecord.Lifetime;
             this.Note = uiRecord.Note;
             this.RelatedWindows = uiRecord.RelatedWindows.Where(x => x.WindowName != string.Empty).Select(x => x.WindowName).ToList();
+
+            this.Parameters = new List<Parameter>();
+            foreach (var uiParamter in uiRecord.Parameters)
+            {
+                this.Parameters.Add(new Parameter(uiParamter.Name, uiParamter.Value));
+            }
 
             Errors = new List<KeyValuePair<string, string>>();
         }

@@ -38,9 +38,6 @@ namespace SNPM.Core.Api
             };
 
             this.serverString = @"https://83.18.180.22:2137/api/v1";
-
-
-            //httpClient.BaseAddress = new Uri(@"https://83.18.180.22:2137/api/v1");
         }
 
         public async Task<string> CreateAccount(string mail, string password, EncryptionType encryptionType)
@@ -162,7 +159,7 @@ namespace SNPM.Core.Api
             var body = new
             {
                 directoryID = directoryId,
-                include = "entryName+username+note+passwordUpdateTime+directoryID+relatedWindows+lifetime",
+                include = "entryName+username+note+passwordUpdateTime+directoryID+relatedWindows+lifetime+parameters",
             };
 
             var route = "/entry";
@@ -190,7 +187,7 @@ namespace SNPM.Core.Api
                 note = createdRecord.Note,
                 lifetime = lifetime,
                 relatedWindows = windowArray,
-                paramteres = Array.Empty<string>(),
+                parameters = createdRecord.Parameters,
             };
 
             return await CreateRecord(body, sessionToken, id);
@@ -271,8 +268,6 @@ namespace SNPM.Core.Api
 
         private async Task<HttpResponseMessage?> DeleteAsync(string route, object body)
         {
-            var jsonBody = JsonConvert.SerializeObject(body, jsonSerializerSettings);
-
             return await httpClient.DeleteAsync($"{serverString}{route}");
         }
 

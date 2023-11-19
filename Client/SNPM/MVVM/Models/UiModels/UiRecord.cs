@@ -16,6 +16,7 @@ namespace SNPM.MVVM.Models.UiModels
         private ObservableCollection<RelatedWindow> relatedWindows;
         private string note;
         private int directoryId;
+        private ObservableCollection<IUiParameter> parameters;
 
         public int DirectoryId
         {
@@ -69,8 +70,6 @@ namespace SNPM.MVVM.Models.UiModels
             }
         }
 
-        public bool IsPasswordNotEmpty => Password?.Length > 0;
-
         public DateTime Lifetime
         {
             get => lifetime;
@@ -101,6 +100,18 @@ namespace SNPM.MVVM.Models.UiModels
             }
         }
 
+        public ObservableCollection<IUiParameter> Parameters
+        {
+            get => parameters;
+            set
+            {
+                parameters = value;
+                OnPropertyChanged(nameof(Parameters));
+            }
+        }
+
+        public bool IsPasswordNotEmpty => Password?.Length > 0;
+
         public bool IsExpired => Lifetime.ToUniversalTime() < DateTime.UtcNow;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -108,6 +119,7 @@ namespace SNPM.MVVM.Models.UiModels
         public UiRecord() : base()
         {
             RelatedWindows = new ObservableCollection<RelatedWindow>();
+            Parameters = new ObservableCollection<IUiParameter>();
         }
 
         public UiRecord(IRecord domainRecord)
@@ -121,9 +133,15 @@ namespace SNPM.MVVM.Models.UiModels
             this.Lifetime = domainRecord.Lifetime;
 
             this.RelatedWindows = new ObservableCollection<RelatedWindow>();
+            this.Parameters = new ObservableCollection<IUiParameter>();
             foreach (var windowName in domainRecord.RelatedWindows)
             {
                 this.RelatedWindows.Add(new RelatedWindow(windowName));
+            }
+
+            foreach (var parameter in domainRecord.Parameters)
+            {
+                this.Parameters.Add(new UiParameter(parameter.Name, parameter.Value));
             }
 
             this.Note = domainRecord.Note;
@@ -139,6 +157,7 @@ namespace SNPM.MVVM.Models.UiModels
             this.Password = string.Empty;
             this.Lifetime = DateTime.UtcNow;
             this.RelatedWindows.Clear();
+            this.Parameters.Clear();
             this.Note = string.Empty;
         }
 
@@ -152,6 +171,7 @@ namespace SNPM.MVVM.Models.UiModels
             this.Password = uiRecord.Password;
             this.Lifetime = uiRecord.Lifetime;
             this.RelatedWindows = new ObservableCollection<RelatedWindow>(uiRecord.RelatedWindows);
+            this.Parameters = new ObservableCollection<IUiParameter>(uiRecord.Parameters);
             this.Note = uiRecord.Note;
         }
 

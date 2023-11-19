@@ -23,6 +23,7 @@ namespace SNPM.MVVM.ViewModels.Interfaces
         ObservableCollection<IUiDirectory> Directories { get; }
 
         IUiDirectory SelectedDirectory { get; }
+        ICommand AddParameterCommand { get; }
 
         void OpenCreateDialog(int id);
 

@@ -54,6 +54,7 @@ namespace SNPM.MVVM.ViewModels
             CancelCommand = new RelayCommand(Cancel);
             ConfirmCommand = new RelayCommand(Create, CanCreate);
             AddRelatedWindowCommand = new RelayCommand(AddEmptyWindow);
+            AddParameterCommand = new RelayCommand(AddEmptyParamter);
             this.proxyService = proxyService;
 
             Directories = new ObservableCollection<IUiDirectory>();
@@ -66,6 +67,8 @@ namespace SNPM.MVVM.ViewModels
         public ICommand ConfirmCommand { get; }
 
         public ICommand AddRelatedWindowCommand { get; }
+
+        public ICommand AddParameterCommand { get; }
 
         public void HideView()
         {
@@ -137,6 +140,14 @@ namespace SNPM.MVVM.ViewModels
             if (CreatedRecord?.RelatedWindows != null)
             {
                 CreatedRecord.RelatedWindows.Add(new RelatedWindow());
+            }
+        }
+
+        private void AddEmptyParamter(object sender)
+        {
+            if (CreatedRecord?.Parameters != null)
+            {
+                CreatedRecord.Parameters.Add(new UiParameter(string.Empty, string.Empty));
             }
         }
     }

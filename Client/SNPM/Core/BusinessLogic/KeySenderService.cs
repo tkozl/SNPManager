@@ -72,7 +72,9 @@ namespace SNPM.Core.BusinessLogic
 
             if (windowTitle == previousWindowTitle && chosenRecord != null)
             {
-                SendKeys.SendWait(PreparePassword(chosenRecord.Password));
+                var strToSend = usernameCombo ? $"{PreparePassword(chosenRecord.Username)}{{TAB}}{PreparePassword(chosenRecord.Password)}" : PreparePassword(chosenRecord.Password);
+
+                SendKeys.SendWait(strToSend);
 
                 previousWindowTitle = string.Empty;
                 chosenRecord = null;
@@ -91,9 +93,14 @@ namespace SNPM.Core.BusinessLogic
             }
             else if (allRecords.Count() == 1)
             {
-                var password = allRecords.First().Password;
+                var record = allRecords.First();
 
-                SendKeys.SendWait(PreparePassword(password));
+                var strToSend = usernameCombo ?
+                    $"{PreparePassword(record.Username)}{{TAB}}{PreparePassword(record.Password)}" :
+                    PreparePassword(record.Password);
+
+
+                SendKeys.SendWait(strToSend);
             }
             else
             {

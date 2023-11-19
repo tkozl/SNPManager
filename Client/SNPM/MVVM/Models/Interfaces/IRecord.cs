@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace SNPM.MVVM.Models.Interfaces
 {
@@ -19,6 +20,8 @@ namespace SNPM.MVVM.Models.Interfaces
         string Password { get; set; }
 
         ICollection<string> RelatedWindows { get; set; }
+
+        ICollection<Parameter> Parameters { get; set; }
 
         string Note { get; set; }
 
