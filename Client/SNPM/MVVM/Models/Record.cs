@@ -1,67 +1,104 @@
-﻿using SNPM.Core;
-using SNPM.Core.Interfaces;
+﻿using Newtonsoft.Json;
+using SNPM.Core;
+using SNPM.Core.Converters;
+using SNPM.MVVM.Models.Interfaces;
+using SNPM.MVVM.Models.UiModels.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SNPM.MVVM.Models
 {
     public class Record : ObservableObject, IRecord
     {
-        private string _name;
+        [JsonProperty("entryID")]
+        public int EntryId { get; set; }
 
-        public string Name
+        [JsonProperty("directoryID")]
+        public int DirectoryId { get; set; }
+
+        public string DirectoryName { get; set; }
+
+        [JsonProperty("entryName")]
+        public string Name { get; set; }
+
+        [JsonProperty("username")]
+        public string Username { get; set; }
+
+        [JsonProperty("password")]
+        public string Password { get; set; }
+
+        [JsonProperty("relatedWindows")]
+        public ICollection<string> RelatedWindows { get; set; }
+
+        [JsonProperty("note")]
+        public string Note { get; set; }
+
+        public DateTime Lifetime { get; set; }
+
+        [JsonProperty("passwordUpdateTime")]
+        [JsonConverter(typeof(UtcDateTimeConverter))]
+        public DateTime LastUpdated { get; set; }
+
+        [JsonProperty("lifetime")]
+        public int DayLifetime{ get; set; }
+
+        [JsonProperty("parameters")]
+        public ICollection<Parameter> Parameters { get; set; }
+
+        public ICollection<KeyValuePair<string, string>> Errors { get; }
+
+        public Record()
         {
-            get { return _name; }
-            set { _name = value; }
+            Errors = new List<KeyValuePair<string, string>>();
         }
 
-        private string _location;
-
-        public string Location
+        public Record(IUiRecord uiRecord, int entryId) : this(uiRecord)
         {
-            get { return _location; }
-            set { _location = value; }
+            this.EntryId = entryId;
         }
 
-        private string _comment;
-
-        public string Comment
+        public Record(IUiRecord uiRecord)
         {
-            get { return _comment; }
-            set { _comment = value; }
+            this.DirectoryId = uiRecord.DirectoryId;
+            this.Name = uiRecord.Name;
+            this.Username = uiRecord.Username;
+            this.Password = uiRecord.Password;
+            this.Lifetime = uiRecord.Lifetime;
+            this.Note = uiRecord.Note;
+            this.RelatedWindows = uiRecord.RelatedWindows.Where(x => x.WindowName != string.Empty).Select(x => x.WindowName).ToList();
+
+            this.Parameters = new List<Parameter>();
+            foreach (var uiParamter in uiRecord.Parameters)
+            {
+                this.Parameters.Add(new Parameter(uiParamter.Name, uiParamter.Value));
+            }
+
+            Errors = new List<KeyValuePair<string, string>>();
         }
 
-        private string _username;
-
-        public string Username
+        public void AddError(string propertyName, string errorMessage)
         {
-            get { return _username; }
-            set { _username = value; }
+            Errors.Add(new KeyValuePair<string, string>(propertyName, errorMessage));
         }
 
-        private DateTime _lastAccess;
-
-        public DateTime LastAccess
+        public void ClearErrors()
         {
-            get { return _lastAccess; }
-            set { _lastAccess = value; }
+            Errors.Clear();
         }
 
-        public Record(
-            string name,
-            string location,
-            string username,
-            string comment
-        )
+        public void CloneProperties(IRecord record)
         {
-            Name = name;
-            Location = location;
-            Username = username;
-            Comment = comment;
-            LastAccess = DateTime.Now;
+            this.EntryId = record.EntryId;
+            this.DirectoryId = record.DirectoryId;
+            this.DirectoryName = record.DirectoryName;
+            this.Name = record.Name;
+            this.Username = record.Username;
+            this.Password = record.Password;
+            this.Lifetime = record.Lifetime;
+            this.RelatedWindows = new ObservableCollection<string>(record.RelatedWindows);
+            this.Note = record.Note;
         }
     }
 }

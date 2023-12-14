@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SNPM.MVVM.Views.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,8 +9,15 @@ namespace SNPM.MVVM.ViewModels.Interfaces
 {
     internal interface IMainViewModel : IViewModel
     {
-        public Action CloseAction { get; set; }
+        Action CloseAction { get; set; }
+        
+        IDirectoryViewModel DirectoryTreeViewModel { get; }
 
-        public void SubscribeToPreferenceUpdate(PreferenceHandler handler);
+        IActivityViewModel ActivityViewModel { get; }
+
+        IntPtr MainWindowHandle { get; }
+        string StatusMessage { get; }
+
+        void SubscribeToPreferenceUpdate(PreferenceHandler handler);
     }
 }

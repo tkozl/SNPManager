@@ -1,15 +1,20 @@
 ﻿using Newtonsoft.Json;
-using SNPM.Core.Interfaces;
-using SNPM.Core.Interfaces.Api;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using SNPM.Core.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.Core.Api.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
+using SNPM.Core.Helpers.Interfaces;
+using SNPM.MVVM.Models;
+using System.Security;
 
 namespace SNPM.Core.BusinessLogic
 {
-    internal class Error
+    public class Error
     {
         [JsonProperty("errorID")]
         public string ErrorId;
@@ -27,15 +32,27 @@ namespace SNPM.Core.BusinessLogic
     internal class AccountBlService : IAccountBlService
     {
         private readonly IApiService apiService;
-        private static JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
-        {
-            NullValueHandling = NullValueHandling.Include,
-            MissingMemberHandling = MissingMemberHandling.Error,
-        };
-        public AccountBlService(IApiService apiService)
+        private readonly IServiceProvider serviceProvider;
+        private readonly IPasswordVerifierService passwordVerifier;
+        
+        private readonly IJsonHelper jsonHelper;
+        private string Username;
+        public event EventHandler AccountLoggedIn;
+
+        public AccountBlService(
+            IApiService apiService,
+            IServiceProvider serviceProvider,
+            IJsonHelper jsonHelper,
+            IPasswordVerifierService passwordVerifier)
         {
             this.apiService = apiService;
+            this.serviceProvider = serviceProvider;
+            this.jsonHelper = jsonHelper;
+            this.passwordVerifier = passwordVerifier;
         }
+        public IAccountActivity AccountActivity { get; set; }
+
+        public IToken? ActiveToken { get; set; }
 
         public async Task CreateAccount(IAccount account)
         {
@@ -44,7 +61,7 @@ namespace SNPM.Core.BusinessLogic
             account.Errors.Clear();
             if (serializedJson.Length > 0)
             {
-                var errors = DeserializeJsonIntoErrors(serializedJson);
+                var errors = jsonHelper.DeserializeJsonIntoErrors(serializedJson);
 
                 foreach (var error in errors)
                 {
@@ -59,7 +76,6 @@ namespace SNPM.Core.BusinessLogic
 
         public async Task Login(IAccount account)
         {
-
             var (succes, serializedJson) = await apiService.Login(account.Username, account.Password);
 
             switch (succes)
@@ -74,21 +90,151 @@ namespace SNPM.Core.BusinessLogic
 
             if (serializedJson.Length > 0)
             {
-                var result = DeserializeJson(serializedJson);
+                var result = jsonHelper.DeserializeJsonIntoDictionary(serializedJson);
 
                 account.Errors.Clear();
-                account.TokenExpirationDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(result["expiration"].ToString()!)).DateTime;
-                account.SessionToken = result["token"].ToString()!;
-                var twoFa = result["is2faRequired"].ToString() == "false";
 
-                if (twoFa)
+                ActiveToken = serviceProvider.GetService<IToken>() ?? throw new Exception("Model not registered");
+                ActiveToken.SessionToken = result["token"].ToString()!;
+                ActiveToken.ExpirationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(result["expiration"].ToString()!)).DateTime;
+                ActiveToken.RefreshTokenMethod = RefreshToken;
+                Username = account.Username;
+
+                result.TryGetValue("is2faRequired", out var twoFa);
+
+                if ((bool)twoFa!)
                 {
                     account.Errors.Add(AccountError.RequiresSecondFactor, "Second authethincation required to login");
+                }
+                else
+                {
+                    AccountActivity = await GetAccountActivity(ActiveToken.SessionToken);
+
+                    AccountLoggedIn.Invoke(this, new EventArgs());
                 }
             }
         }
 
-        // TODO: works but make it better
+        public async Task<bool> AuthorizeSecondFactor(string code)
+        {
+            var (succes, serializedJson) = await apiService.AuthorizeSecondFactor(code, ActiveToken.SessionToken);
+            switch (succes)
+            {
+                case "OK":
+                    break;
+                default:
+                    return false;
+            }
+
+            var result = jsonHelper.DeserializeJsonIntoDictionary(serializedJson);
+
+            ActiveToken = serviceProvider.GetService<IToken>() ?? throw new Exception("Model not registered");
+            ActiveToken.SessionToken = result["token"].ToString()!;
+            ActiveToken.ExpirationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(result["expiration"].ToString()!)).DateTime;
+            ActiveToken.RefreshTokenMethod = RefreshToken;
+
+            AccountActivity = await GetAccountActivity(ActiveToken.SessionToken);
+
+            AccountLoggedIn.Invoke(this, new EventArgs());
+            return true;
+        }
+
+        public async Task<IAccountActivity> GetAccountActivity(string sessionToken)
+        {
+            var (succes, serializedJson) = await apiService.GetAccountActivity(sessionToken);
+
+            switch (succes)
+            {
+                case "OK":
+                    break;
+                default:
+                    throw new Exception("Something unexpected happened");
+            }
+
+            return jsonHelper.DeserializeJsonIntoObject<AccountActivity>(serializedJson);
+        }
+
+        public async Task<string> Toggle2Fa()
+        {
+            if (AccountActivity.Active2fa)
+            {
+                Disable2Fa();
+                return string.Empty;
+            }
+            else
+            {
+                return await Enable2Fa();
+            }
+        }
+
+        private async Task<string> Enable2Fa()
+        {
+            var (succes, serializedJson) = await apiService.Enable2Fa(ActiveToken.SessionToken);
+
+            switch (succes)
+            {
+                case "Created":
+                    break;
+                default:
+                    throw new Exception("Something unexpected happened");
+            }
+
+            var res = jsonHelper.DeserializeJsonIntoDictionary(serializedJson);
+            res.TryGetValue("secretCode", out var token);
+            var secretCode = token as string ?? throw new Exception("Deserialization failed");
+
+            var uri = $"otpauth://totp/SNPM:{Username}?secret={secretCode}";
+
+            return uri;
+        }
+
+        public async Task<PasswordQuality> VerifyPassword(string password)
+        {
+            return await passwordVerifier.VerifyPassword(password);
+        }
+
+        private async Task Disable2Fa()
+        {
+            var (succes, _) = await apiService.Disable2Fa(ActiveToken.SessionToken);
+
+            switch (succes)
+            {
+                case "OK":
+                    break;
+                default:
+                    throw new Exception("Something unexpected happened");
+            }
+        }
+
+        private async Task<DateTime> RefreshToken(IToken token)
+        {
+            var (succes, serializedJson) = await apiService.RefreshToken(token.SessionToken);
+
+            switch (succes)
+            {
+                case "OK":
+                    break;
+                case "Forbidden":
+                    throw new Exception("Token can not be prolonged. Relaunch the application.");
+                default:
+                    throw new Exception("Something unexpected happened");
+            }
+
+            var res = jsonHelper.DeserializeJsonIntoDictionary(serializedJson);
+
+            if (res.TryGetValue("token", out var newToken) && res.TryGetValue("expiration", out var expiration))
+            {
+                var expirationDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expiration.ToString()!)).DateTime;
+                token.SessionToken = (string)newToken;
+
+                return expirationDate;
+            }
+            else
+            {
+                return DateTime.UtcNow;
+            }
+        }
+
         static AccountError GetEnumFromEnumMemberValue(string input)
         {
             foreach (AccountError value in Enum.GetValues(typeof(AccountError)))
@@ -108,43 +254,6 @@ namespace SNPM.Core.BusinessLogic
             var enumMemberAttribute = (EnumMemberAttribute)Attribute.GetCustomAttribute(memberInfo, typeof(EnumMemberAttribute));
 
             return enumMemberAttribute?.Value ?? value.ToString();
-        }
-
-        private ICollection<Error> DeserializeJsonIntoErrors(string serializedJson)
-        {
-            ICollection<Error> result;
-            //Dictionary<string, ICollection<Error>> result = new();
-            try
-            {
-                var deserializationResult = JsonConvert.DeserializeObject<Dictionary<string, ICollection<Error>>>(serializedJson);
-                if (deserializationResult is null)
-                {
-                    throw new Exception("Deserialization failed");
-                }
-                else if (deserializationResult.Count != 1)
-                {
-                    throw new Exception("Unexpected deserialization result");
-                }
-                else
-                {
-                    deserializationResult.TryGetValue("errors", out result!);
-                }
-            }
-            catch (JsonException e)
-            {
-                // TODO: Handle unexpected server response
-
-                throw new JsonException("Serialization failed - possible misunderstood server response");
-            }
-
-            return result;
-        }
-
-        private IDictionary<string, object> DeserializeJson(string serializedJson)
-        {
-            var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(serializedJson, JsonSerializerSettings);
-
-            return result ?? new Dictionary<string, object>();
         }
     }
 }

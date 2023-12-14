@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SNPM.Core;
-using SNPM.Core.Interfaces;
+using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.Models.UiModels;
 using SNPM.MVVM.Models.UiModels.Interfaces;
 using SNPM.MVVM.ViewModels.Interfaces;
@@ -57,23 +58,29 @@ namespace SNPM.MVVM.ViewModels
             {
                 await proxyService.Login(Account);
 
-                if (!Account.Errors.Any())
-                {
-                    LoginView.Hide();
-                    LoginSuccessfulEvent?.Invoke();
-                }
-                else
-                {
-                    string mainMessage = "Login failed";
-                    string supportiveMessage = String.Empty;
-                    foreach (var error in Account.Errors)
+                if (!Account.Errors.Any() && Account.Is2FaRequired)
+                { 
+                    var res = false;
+                    while (!res)
                     {
-                        supportiveMessage += $"{error}{Environment.NewLine}";
-                    }
-                    string affirmativeMessage = "OK";
+                        var code = await dialogService.CreateFormWindow("Please provide second factor code from the authenthicator app", "Cancel", "Ok");
 
-                    await dialogService.CreateDialogWindow(mainMessage, supportiveMessage, affirmativeMessage);
+                        res = await proxyService.AuthorizeSecondFactor(code);
+
+                        if (!res)
+                        {
+                            await dialogService.CreateDialogWindow("Provided second factor code is incorrect.", "Please try again.", "Ok");
+                        }
+                    }
                 }
+                else if (Account.Errors.Any())
+                {
+                    await dialogService.CreateErrorDialog("Login failed", Account.Errors);
+                    return;
+                }
+
+                LoginView.Hide();
+                LoginSuccessfulEvent?.Invoke();
             }
         }
 
@@ -85,15 +92,15 @@ namespace SNPM.MVVM.ViewModels
 
                 if (!Account.Errors.Any())
                 {
-                    string mainMessage = "Account creation succeeded";
-                    string supportiveMessage = "You can now login.";
+                    string mainMessage = "Account creation succesful";
+                    string supportiveMessage = "Please check your email inbox. After email verification you will be able to login.";
                     string affirmativeMessage = "OK";
 
                     await dialogService.CreateDialogWindow(mainMessage, supportiveMessage, affirmativeMessage);
                 }
                 else
                 {
-                    // Account creation failed
+                    await dialogService.CreateErrorDialog("Registration failed", Account.Errors);
                 }
             }
         }

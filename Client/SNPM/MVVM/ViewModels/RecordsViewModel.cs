@@ -1,44 +1,99 @@
 ﻿using SNPM.Core;
-using SNPM.MVVM.Models;
-using System;
+using SNPM.Core.Events;
+using SNPM.MVVM.Models.Interfaces;
+using SNPM.MVVM.Models.UiModels.Interfaces;
+using SNPM.MVVM.ViewModels.Interfaces;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace SNPM.MVVM.ViewModels
 {
-    public class RecordsViewModel : ObservableObject
+    public class RecordsViewModel : ObservableObject, IRecordsViewModel
     {
-        public RelayCommand RowClick { get; set; }
+        private readonly IProxyService proxyService;
+        private readonly IDirectoryViewModel directoryViewModel;
+        private readonly IRecordFormViewModel recordFormViewModel;
 
-        private ObservableCollection<ObservableObject> _records;
+        public ObservableCollection<IUiRecord> Records { get; }
 
-        public ObservableCollection<ObservableObject> Records
+        public IUiRecord? SelectedRecord { get; set; }
+
+        public ICommand NewRecordCommand { get; }
+
+        public ICommand ModifyRecordCommand { get; }
+
+        public ICommand DeleteRecordCommand { get; }
+
+        public RecordsViewModel(IProxyService proxyService, IDirectoryViewModel directoryViewModel, IRecordFormViewModel recordFormViewModel)
         {
-            get => this._records;
-            set { 
-                _records = value;
+            this.proxyService = proxyService;
+            this.directoryViewModel = directoryViewModel;
+            this.recordFormViewModel = recordFormViewModel;
+
+            recordFormViewModel.RecordCreatedEvent += OnRecordCreated;
+            Records = new ObservableCollection<IUiRecord>();
+            NewRecordCommand = new RelayCommand(CreateNewRecord);
+            ModifyRecordCommand = new RelayCommand(ModifyRecord, CanModifyRecord);
+            DeleteRecordCommand = new RelayCommand(DeleteRecord, CanDeleteRecord);
+        }
+
+        public async Task RefreshRecords(int directoryId)
+        {
+            var records = await proxyService.GetDirectoryRecords(directoryId);
+
+            Records.Clear();
+            Records.AddRange(records);
+        }
+
+        private async void CreateNewRecord(object sender)
+        {
+            if (directoryViewModel.SelectedNode == null)
+            {
+                return;
+            }
+
+            recordFormViewModel.OpenCreateDialog(directoryViewModel.SelectedNode.Id);
+        }
+
+        private async void ModifyRecord(object sender)
+        {
+            if (sender is IUiRecord uiRecord)
+            {
+                recordFormViewModel.OpenCreateDialog(uiRecord);
             }
         }
 
-        public RecordsViewModel()
+        private bool CanModifyRecord(object sender) => SelectedRecord != null;
+        
+        private async void DeleteRecord(object sender)
         {
-            Records = new();
-            Populate();
-
-            RowClick = new RelayCommand(Row_MouseClick);
+            if (SelectedRecord != null)
+            {
+                await proxyService.DeleteRecord(SelectedRecord);
+            }
         }
 
-        private void Populate()
-        {
-            Records.Add(new Record("asd", "gdzies", "user", "lol"));
-            Records.Add(new Record("aaad", "gdzies", "user", "lol"));
-            Records.Add(new Record("cxz", "gdzies", "user", "lol"));
-            Records.Add(new Record("asd", "gdzies", "user", "lol"));
-        }
+        private bool CanDeleteRecord(object sender) => SelectedRecord != null;
 
-        private void Row_MouseClick(object sender)
+        private void OnRecordCreated(object? sender, System.EventArgs e)
         {
+            if (e is RecordCreatedEventArgs recordCreatedEventArgs)
+            {
+                var createdRecord = recordCreatedEventArgs.Record;
+                var existingRecord = Records.FirstOrDefault(x => x.EntryId == createdRecord.EntryId);
 
+                if (existingRecord != null)
+                {
+                    existingRecord.CloneProperties(createdRecord);
+                    RefreshRecords(directoryViewModel.SelectedNode.Id);
+                }
+                else
+                {
+                    Records.Add(createdRecord);
+                }
+            }
         }
     }
 }

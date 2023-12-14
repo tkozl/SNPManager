@@ -1,0 +1,78 @@
+﻿<UserControl x:Class="SNPM.MVVM.Views.DirectoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SNPM.MVVM.Views"
+             xmlns:viewModels="clr-namespace:SNPM.MVVM.ViewModels.Interfaces"
+             xmlns:uiModels="clr-namespace:SNPM.MVVM.Models.UiModels"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+             xmlns:r="clr-namespace:SNPM.Properties" xmlns:behaviors="clr-namespace:SNPM.Core.Behaviors"
+             x:Name="DirectoryTree"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=viewModels:IDirectoryViewModel}">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type TextBox}">
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+    </UserControl.Resources>
+    <Border BorderThickness="1"
+            CornerRadius="80">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <StackPanel
+            Style="{StaticResource CustomToolbar}"
+            Orientation="Horizontal"
+            Margin="5" >
+                <Button
+                Name="NewDirectory"
+                Command="{Binding NewDirectoryCommand}"
+                Style="{StaticResource ImageButton}">
+                    <Image Source="/Images/NewItem.png" />
+                </Button>
+                <!--<Button
+                Name="RenameDirectory"
+                Command="{Binding RenameDirectoryCommand}"
+                Style="{StaticResource ImageButton}">
+                <Image Source="/Images/Rename.png" />
+            </Button>-->
+                <Button
+                Name="DeleteDirectory"
+                Command="{Binding DeleteDirectoryCommand}"
+                Style="{StaticResource ImageButton}">
+                    <Image Source="/Images/Delete.png" />
+                </Button>
+            </StackPanel>
+            <TreeView 
+            Name="DirectoryTreeView" 
+            ItemsSource="{Binding RootNodes}"
+            SelectedItemChanged="DirectoryTreeView_SelectedItemChanged"
+            Grid.Row="1">
+                <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type uiModels:UiDirectory}" ItemsSource="{Binding Path=Children}">
+                        <TextBox
+                        Text="{Binding Path=Name, Mode=TwoWay}"
+                        MouseDoubleClick="TextBox_MouseDoubleClick"
+                        LostFocus="TextBox_LostFocus"
+                        IsReadOnly="True"
+                        Background="#e4e5f1">
+                            <i:Interaction.Behaviors>
+                                <behaviors:TextBoxEnterKeyUpdateBehavior />
+                            </i:Interaction.Behaviors>
+                            <i:Interaction.Triggers>
+                                <ei:DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type TextBox}}, Path=IsKeyboardFocused}" Value="True">
+                                    <ei:ChangePropertyAction TargetObject="{Binding RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"
+                                    PropertyName="IsSelected" Value="True"/>
+                                </ei:DataTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+                    </HierarchicalDataTemplate>
+                </TreeView.Resources>
+            </TreeView>
+        </Grid>
+    </Border>
+</UserControl>

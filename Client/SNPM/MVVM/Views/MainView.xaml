@@ -4,13 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SNPM.MVVM.Views"
-        xmlns:viewModel="clr-namespace:SNPM.MVVM.ViewModels"
+        xmlns:viewModel="clr-namespace:SNPM.MVVM.ViewModels.Interfaces"
         mc:Ignorable="d"
+        xmlns:uiModels="clr-namespace:SNPM.MVVM.Models.UiModels"
+        d:DataContext="{d:DesignInstance Type=viewModel:IMainViewModel}"
         Title="{Binding Title}" Height="750" Width="1200"
         Background="#fafafa">
-    <!--<Window.DataContext>
-        <viewModel:MainViewModel/>
-    </Window.DataContext>-->
 
     <Window.Resources>
         <Style TargetType="MenuItem">
@@ -20,8 +19,6 @@
 
     <Grid TextElement.Foreground="Black">
         <Grid.RowDefinitions>
-            <RowDefinition Height="4*"/>
-            <RowDefinition Height="6*"/>
             <RowDefinition Height="56*"/>
             <RowDefinition Height="30*"/>
             <RowDefinition Height="4*"/>
@@ -33,52 +30,48 @@
             <ColumnDefinition Width="40*"/>
         </Grid.ColumnDefinitions>
 
-        <Menu Background="#9394a5"
-              Grid.Row="0"
-              Grid.Column="0"
-              Grid.ColumnSpan="4"
-              Foreground="White">
-            <MenuItem Header="_File">
-                <MenuItem Header="_New Entry"/>
-                <MenuItem Header="_addsd"/>
-            </MenuItem>
-            
-            <MenuItem Header="_Find">
-                <MenuItem Header="_asd"/>
-                <MenuItem Header="_addsd"/>
-            </MenuItem>
-
-            <MenuItem Header="_Options">
-                <MenuItem Header="_User Preferences" Command="{Binding PreferencesCommand}"/>
-            </MenuItem>
-        </Menu>
-
         <ContentControl x:Name="RecordsViewModel"
-                        Grid.Row="2"
+                        Grid.Row="0"
                         Grid.Column="1"
+                        Grid.ColumnSpan="2"
                         Margin="10"
-                        Content="{Binding RecordsView}"/>
+                        Content="{Binding RecordsViewModel}"/>
 
         <TextBlock Background="#9394a5"
                    Grid.Column="0"
-                   Grid.Row="4"
+                   Grid.Row="2"
                    Grid.ColumnSpan="4"
-                   Text="No problems found"
+                   Text="{Binding StatusMessage}"
                    Foreground="White"
                    Padding="5"
                    VerticalAlignment="Center"/>
 
+        <StackPanel Name="Buttons"
+                    Grid.Column="2"
+                    Grid.Row="0"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Right"
+                    Margin="10">
+            <Button
+                Name="OpenPreferences"
+                Command="{Binding PreferencesCommand}"
+                Style="{StaticResource ImageButton}">
+                <Image Source="/Images/Settings.png" />
+            </Button>
+        </StackPanel>
+
         <ContentControl x:Name="ActivityViewModel"
-                        Grid.Row="3"
+                        Grid.Row="1"
                         Grid.Column="0"
                         Grid.ColumnSpan="3"
                         Margin="10"
-                        Content="{Binding RecordsView}"/>
+                        Content="{Binding ActivityViewModel}"/>
 
-        <ContentControl x:Name="FolderView"
-                        Grid.Row="2"
+        <ContentControl x:Name="DirectoryTree"
+                        Grid.Row="0"
                         Grid.Column="0"
                         Margin="10"
-                        Content="{Binding RecordsView}"/>
+                        Content="{Binding DirectoryTreeViewModel}" />
     </Grid>
 </Window>

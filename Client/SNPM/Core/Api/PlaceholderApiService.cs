@@ -1,6 +1,6 @@
-﻿using SNPM.Core.Interfaces;
-using SNPM.Core.Interfaces.Api;
-using SNPM.MVVM.Models;
+﻿using SNPM.Core.Api.Interfaces;
+using SNPM.Core.BusinessLogic;
+using SNPM.MVVM.Models.Interfaces;
 using System;
 using System.Threading.Tasks;
 

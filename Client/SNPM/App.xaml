@@ -5,6 +5,7 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:viewModel="clr-namespace:SNPM.MVVM.ViewModels"
              xmlns:view="clr-namespace:SNPM.MVVM.Views"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              ShutdownMode="OnExplicitShutdown"
              Exit="Application_Exit">
     <Application.Resources>
@@ -21,10 +22,35 @@
                 <view:RecordsView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type viewModel:DirectoryViewModel}" >
+                <view:DirectoryView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type viewModel:ActivityViewModel}" >
+                <view:ActivityView />
+            </DataTemplate>
+
             <sys:Double x:Key="TextSize">14</sys:Double>
 
             <Style TargetType="{x:Type Control}" x:Key="BaseTextStyle">
                 <Setter Property="FontSize" Value="{DynamicResource TextSize}" />
+            </Style>
+
+            <Style TargetType="{x:Type StackPanel}" x:Key="CustomToolbar" >
+                <Setter Property="Orientation" Value="Horizontal" />
+            </Style>
+
+            <Style TargetType="{x:Type Button}" x:Key="ImageButton" >
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="#AFA4AA" />
+                <Setter Property="Height" Value="25" />
+                <Setter Property="Width" Value="25" />
+            </Style>
+
+            <Style TargetType="{x:Type TreeView}" BasedOn="{StaticResource BaseTextStyle}">
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Background" Value="#e4e5f1" />
             </Style>
 
             <Style TargetType="{x:Type Button}" BasedOn="{StaticResource BaseTextStyle}" />

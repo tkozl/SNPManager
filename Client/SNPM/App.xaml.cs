@@ -1,10 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SNPM.Core;
 using SNPM.Core.Api;
+using SNPM.Core.Api.Interfaces;
 using SNPM.Core.BusinessLogic;
-using SNPM.Core.Interfaces;
-using SNPM.Core.Interfaces.Api;
+using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.Core.Helpers;
+using SNPM.Core.Helpers.Interfaces;
 using SNPM.MVVM.Models;
+using SNPM.MVVM.Models.Interfaces;
+using SNPM.MVVM.Models.UiModels;
 using SNPM.MVVM.ViewModels;
 using SNPM.MVVM.ViewModels.Interfaces;
 using SNPM.MVVM.Views;
@@ -51,13 +54,22 @@ namespace SNPM
 
         private void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IPasswordVerifier, PasswordVerifier>();
-            services.AddSingleton<IMainView, MainView>();
             services.AddSingleton<IApplicationLogic, ApplicationLogic>();
+            services.AddSingleton<IPasswordVerifierService, PasswordVerifierService>();
             services.AddSingleton<IApiService, ApiService>();
             services.AddSingleton<IProxyService, ProxyService>();
             services.AddSingleton<IAccountBlService, AccountBlService>();
             services.AddSingleton<IDialogService, DialogService>();
+            services.AddSingleton<IDirectoryBlService, DirectoryBlService>();
+            services.AddSingleton<IRecordBlService, RecordBlService>();
+            services.AddSingleton<IHotkeyService, HotkeyService>();
+            services.AddSingleton<IKeySenderService, KeySenderService>();
+
+            services.AddSingleton<IGlobalVariables, GlobalVariables>();
+            services.AddTransient<IJsonHelper, JsonHelper>();
+            services.AddSingleton<IChoiceItem, ChoiceItem>();
+            services.AddSingleton<IAccountActivity, AccountActivity>();
+            services.AddSingleton<IToken, Token>();
         }
 
         private void ConfigureViewModels(IServiceCollection services)
@@ -65,12 +77,20 @@ namespace SNPM
             services.AddSingleton<IMainViewModel, MainViewModel>();
             services.AddSingleton<ILoginViewModel, LoginViewModel>();
             services.AddSingleton<IDialogViewModel, DialogViewModel>();
+            services.AddSingleton<IRecordsViewModel, RecordsViewModel>();
+            services.AddSingleton<IRecordFormViewModel, RecordFormViewModel>();
+            services.AddSingleton<IPreferencesViewModel, PreferencesViewModel>();
+            services.AddSingleton<IDirectoryViewModel, DirectoryViewModel>();
+            services.AddSingleton<IChoiceViewModel, ChoiceViewModel>();
+            services.AddSingleton<IActivityViewModel, ActivityViewModel>();
         }
 
         private void ConfigureViews(IServiceCollection services)
         {
+            services.AddSingleton<IMainView, MainView>();
             services.AddSingleton<ILoginView, LoginView>();
             services.AddSingleton<IDialogView, DialogView>();
+            services.AddSingleton<IDirectoryView, DirectoryView>();
         }
 
         protected override void OnExit(ExitEventArgs e)
