@@ -21,5 +21,6 @@ namespace SNPM.Core.BusinessLogic.Interfaces
         Task<IAccountActivity> GetAccountActivity(string sessionToken);
 
         Task<string> Toggle2Fa();
+        Task<PasswordQuality> VerifyPassword(string password);
     }
 }

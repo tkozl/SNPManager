@@ -6,6 +6,7 @@ using SNPM.Core.BusinessLogic;
 using SNPM.Core.BusinessLogic.Interfaces;
 using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.Models;
+using SNPM.Core.Helpers.Interfaces;
 
 namespace SNPM.Test.MVVM.Models
 {
@@ -13,15 +14,15 @@ namespace SNPM.Test.MVVM.Models
     public class PasswordVerifierTest
     {
         private Task<bool> remoteVerifierMock(string password) => Task.FromResult(true);
-        private IPasswordVerifier PasswordVerifierService;
+        private IPasswordVerifierService PasswordVerifierService;
 
         [TestInitialize]
         public void Init()
         {
             var mockApiService = new Mock<IApiService>();
-            mockApiService.Setup(x => x.GetRemoteVerifier()).Returns(remoteVerifierMock);
+            //mockApiService.Setup(x => x.GetRemoteVerifier()).Returns(remoteVerifierMock);
 
-            PasswordVerifierService = new PasswordVerifier(mockApiService.Object);
+            PasswordVerifierService = new PasswordVerifierService(mockApiService.Object, Mock.Of<IJsonHelper>());
         }
 
         [DataTestMethod]

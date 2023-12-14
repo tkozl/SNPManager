@@ -47,21 +47,6 @@ namespace SNPM.MVVM.Models
         [JsonProperty("parameters")]
         public ICollection<Parameter> Parameters { get; set; }
 
-        //public IDictionary<string, string> ParametersDictionary
-        //{
-        //    get
-        //    {
-        //        var res = new Dictionary<string, string>();
-
-        //        foreach (var parameter in Parameters)
-        //        {
-        //            res.Add(parameter.Name, parameter.Value);
-        //        }
-
-        //        return res;
-        //    }
-        //}
-
         public ICollection<KeyValuePair<string, string>> Errors { get; }
 
         public Record()

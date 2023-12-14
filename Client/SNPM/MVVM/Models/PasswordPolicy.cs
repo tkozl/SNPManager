@@ -24,8 +24,7 @@ namespace SNPM.MVVM.Models
 
         public static PasswordQuality MaximumQuality => PasswordQuality.InvalidLength
                                                         | PasswordQuality.NotEnoughWordGroups
-                                                        | PasswordQuality.DictionaryFailed
-                                                        | PasswordQuality.ContainsCommonWord;
+                                                        | PasswordQuality.DictionaryFailed;
 
         public CharacterGroup RequiredCharacterGroups { get; set; }
 

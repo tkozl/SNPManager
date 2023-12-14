@@ -31,28 +31,28 @@ namespace SNPM.Core.BusinessLogic
 
     internal class AccountBlService : IAccountBlService
     {
-        public IAccountActivity AccountActivity { get; set; }
-
-        public IToken? ActiveToken { get; set; }
-
         private readonly IApiService apiService;
         private readonly IServiceProvider serviceProvider;
+        private readonly IPasswordVerifierService passwordVerifier;
+        
         private readonly IJsonHelper jsonHelper;
         private string Username;
-        private static JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
-        {
-            NullValueHandling = NullValueHandling.Include,
-            MissingMemberHandling = MissingMemberHandling.Error,
-        };
-
         public event EventHandler AccountLoggedIn;
 
-        public AccountBlService(IApiService apiService, IServiceProvider serviceProvider, IJsonHelper jsonHelper)
+        public AccountBlService(
+            IApiService apiService,
+            IServiceProvider serviceProvider,
+            IJsonHelper jsonHelper,
+            IPasswordVerifierService passwordVerifier)
         {
             this.apiService = apiService;
             this.serviceProvider = serviceProvider;
             this.jsonHelper = jsonHelper;
+            this.passwordVerifier = passwordVerifier;
         }
+        public IAccountActivity AccountActivity { get; set; }
+
+        public IToken? ActiveToken { get; set; }
 
         public async Task CreateAccount(IAccount account)
         {
@@ -188,6 +188,11 @@ namespace SNPM.Core.BusinessLogic
             return uri;
         }
 
+        public async Task<PasswordQuality> VerifyPassword(string password)
+        {
+            return await passwordVerifier.VerifyPassword(password);
+        }
+
         private async Task Disable2Fa()
         {
             var (succes, _) = await apiService.Disable2Fa(ActiveToken.SessionToken);
@@ -219,7 +224,6 @@ namespace SNPM.Core.BusinessLogic
 
             if (res.TryGetValue("token", out var newToken) && res.TryGetValue("expiration", out var expiration))
             {
-                //var aa = (int)expiration;
                 var expirationDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expiration.ToString()!)).DateTime;
                 token.SessionToken = (string)newToken;
 

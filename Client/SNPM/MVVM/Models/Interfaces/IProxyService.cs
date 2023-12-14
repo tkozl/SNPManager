@@ -11,6 +11,8 @@ namespace SNPM.MVVM.Models.Interfaces
 
         Task Login(IUiAccount uiAccount);
 
+        Task<PasswordQuality> VerifyPassword(string password);
+
         Task<IEnumerable<IUiDirectory>> GetDirectories(int directoryId, bool forceRefresh);
 
         Task<int> CreateDirectory(int directoryId, string name);
@@ -28,6 +30,7 @@ namespace SNPM.MVVM.Models.Interfaces
         IAccountActivity GetAccountActivity();
 
         Task<string> Toggle2Fa();
+
         Task<bool> AuthorizeSecondFactor(string code);
     }
 }

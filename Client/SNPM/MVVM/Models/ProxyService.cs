@@ -59,6 +59,11 @@ namespace SNPM.MVVM.Models
             HandleErrors(uiAccount, domainAccount);
         }
 
+        public async Task<PasswordQuality> VerifyPassword(string password)
+        {
+            return await accountBlService.VerifyPassword(password);
+        }
+
         public async Task<IEnumerable<IUiDirectory>> GetDirectories(int directoryId, bool forceRefresh = false)
         {
             var domainDirectories = await directoryBlService.GetDirectories(directoryId, forceRefresh);

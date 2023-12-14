@@ -1,5 +1,7 @@
 ﻿using SNPM.Core;
+using SNPM.Core.BusinessLogic.Interfaces;
 using SNPM.Core.Events;
+using SNPM.Core.Extensions;
 using SNPM.MVVM.Models.Interfaces;
 using SNPM.MVVM.Models.UiModels;
 using SNPM.MVVM.Models.UiModels.Interfaces;
@@ -16,6 +18,7 @@ namespace SNPM.MVVM.ViewModels
     internal class RecordFormViewModel : IRecordFormViewModel
     {
         private readonly IProxyService proxyService;
+        private readonly IDialogService dialogService;
         private int? currentId;
         private IUiDirectory selectedDirectory;
 
@@ -42,7 +45,7 @@ namespace SNPM.MVVM.ViewModels
             }
         }
 
-        public RecordFormViewModel(IProxyService proxyService)
+        public RecordFormViewModel(IProxyService proxyService, IDialogService dialogService)
         {
             View = new RecordFormView()
             {
@@ -56,7 +59,7 @@ namespace SNPM.MVVM.ViewModels
             AddRelatedWindowCommand = new RelayCommand(AddEmptyWindow);
             AddParameterCommand = new RelayCommand(AddEmptyParamter);
             this.proxyService = proxyService;
-
+            this.dialogService = dialogService;
             Directories = new ObservableCollection<IUiDirectory>();
         }
 
@@ -130,9 +133,21 @@ namespace SNPM.MVVM.ViewModels
 
         private async void Create(object sender)
         {
-            var record = await proxyService.CreateRecord(CreatedRecord, currentId);
-            RecordCreatedEvent.Invoke(this, new RecordCreatedEventArgs(record));
-            this.HideView();
+            var passwordQuality = await proxyService.VerifyPassword(CreatedRecord.Password);
+
+            var isStrong = !passwordQuality.GetUniqueFlags().Any();
+            var errors = passwordQuality.GetUniqueFlags().Select(x => x.ToString());
+
+            if (isStrong)
+            {
+                var record = await proxyService.CreateRecord(CreatedRecord, currentId);
+                RecordCreatedEvent.Invoke(this, new RecordCreatedEventArgs(record));
+                this.HideView();
+            }
+            else
+            {
+                await dialogService.CreateErrorDialog("Password too weak!", errors.ToList());
+            }
         }
 
         private void AddEmptyWindow(object sender)

@@ -59,9 +59,14 @@ namespace SNPM.Core.Api
             throw new NotImplementedException();
         }
 
-        public Func<string, Task<bool>> GetRemoteVerifier()
+        public async Task<(string, string)> CheckPasswordStrength(string password)
         {
-            return async _ => true;
+            var body = new
+            {
+                password = password,
+            };
+
+            return await RequestAsync("/check-password-strength", body, Interfaces.HttpMethod.Post);
         }
 
         public async Task<(string, string)> Login(string mail, string password)
@@ -93,16 +98,6 @@ namespace SNPM.Core.Api
         public async Task<(string, string)> RefreshToken(string sessionToken)
         {
             return await RequestAsync("/account/token", null, Interfaces.HttpMethod.Post, sessionToken);
-        }
-
-        public Task<bool> ModifyAccount(string currentPassword, string? newMail, string? newPassword)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> VerifyEmail()
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<(string, string)> GetDirectories(int directoryId, string sessionToken)

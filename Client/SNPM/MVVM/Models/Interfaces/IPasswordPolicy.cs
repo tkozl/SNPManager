@@ -10,7 +10,6 @@ namespace SNPM.MVVM.Models.Interfaces
         InvalidLength = 1,
         NotEnoughWordGroups = 2, // Uppercase, lowercase etc
         DictionaryFailed = 4, // Checked remotely
-        ContainsCommonWord = 8 // Password contains username, service name etc
     }
 
     public interface IPasswordPolicy

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace SNPM.Core.BusinessLogic.Interfaces
 {
-    public interface IPasswordVerifier
+    public interface IPasswordVerifierService
     {
         public Task<PasswordQuality> VerifyPassword(string password);
 

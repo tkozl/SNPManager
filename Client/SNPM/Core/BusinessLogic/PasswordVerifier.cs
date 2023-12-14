@@ -1,6 +1,8 @@
 ﻿using SNPM.Core;
 using SNPM.Core.Api.Interfaces;
 using SNPM.Core.BusinessLogic.Interfaces;
+using SNPM.Core.Extensions;
+using SNPM.Core.Helpers.Interfaces;
 using SNPM.MVVM.Models;
 using SNPM.MVVM.Models.Interfaces;
 using System;
@@ -27,8 +29,10 @@ namespace SNPM.Core.BusinessLogic
         SHA256
     }
 
-    public class PasswordVerifier : IPasswordVerifier
+    public class PasswordVerifierService : IPasswordVerifierService
     {
+        private IApiService apiService;
+        private readonly IJsonHelper jsonHelper;
         public static HashType HashType;
 
         private static readonly CharacterGroup DefaultGroups =
@@ -36,8 +40,6 @@ namespace SNPM.Core.BusinessLogic
             CharacterGroup.Uppercase |
             CharacterGroup.Numeric |
             CharacterGroup.Special;
-
-        private Func<string, Task<bool>> RemoteVerifier;
 
         private HashType RemoteHashType;
 
@@ -47,13 +49,14 @@ namespace SNPM.Core.BusinessLogic
            {CharacterGroup.Lowercase, new Regex(@"[a-z]") },
            {CharacterGroup.Uppercase, new Regex(@"[A-Z]") },
            {CharacterGroup.Numeric, new Regex(@"[0-9]") },
-           {CharacterGroup.Special, new Regex(@"[^a-zA-Z0-9]") } // TODO: (Przemek) Make a switch in preferences to allow whitespaces in passwords.
+           {CharacterGroup.Special, new Regex(@"[^a-zA-Z0-9]") } 
         };
 
-        public PasswordVerifier(IApiService ApiService)
+        public PasswordVerifierService(IApiService apiService, IJsonHelper jsonHelper)
         {
-            RemoteVerifier = ApiService.GetRemoteVerifier();
-            RemoteHashType = HashType; // TODO: (Przemek) We should load it from user preferences
+            this.apiService = apiService;
+            this.jsonHelper = jsonHelper;
+            RemoteHashType = HashType;
 
             PasswordPolicy = new PasswordPolicy(10, true);
         }
@@ -99,10 +102,16 @@ namespace SNPM.Core.BusinessLogic
 
         private async Task<bool> VerifyDictionary(string password)
         {
-            // TODO: (Przemek) Implement after server has dictionary verification implemented.
-            await Task.Delay(1);
+            var (succes, serializedJson) = await apiService.CheckPasswordStrength(password);
 
-            return false;
+            switch (succes)
+            {
+                case "OK":
+                    // Login succesful
+                    break;
+            }
+
+            return (bool)jsonHelper.DeserializeJsonIntoDictionary(serializedJson)["strong"];
         }
     }
 }

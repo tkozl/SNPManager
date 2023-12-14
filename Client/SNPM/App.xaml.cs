@@ -54,24 +54,22 @@ namespace SNPM
 
         private void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IPasswordVerifier, PasswordVerifier>();
-            services.AddSingleton<IMainView, MainView>();
             services.AddSingleton<IApplicationLogic, ApplicationLogic>();
+            services.AddSingleton<IPasswordVerifierService, PasswordVerifierService>();
             services.AddSingleton<IApiService, ApiService>();
             services.AddSingleton<IProxyService, ProxyService>();
             services.AddSingleton<IAccountBlService, AccountBlService>();
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IDirectoryBlService, DirectoryBlService>();
             services.AddSingleton<IRecordBlService, RecordBlService>();
-            services.AddSingleton<IWindowsIntegrationBlService, WindowsIntegrationBlService>();
             services.AddSingleton<IHotkeyService, HotkeyService>();
-            services.AddSingleton<IToken, Token>();
-            services.AddSingleton<IGlobalVariables, GlobalVariables>();
             services.AddSingleton<IKeySenderService, KeySenderService>();
+
+            services.AddSingleton<IGlobalVariables, GlobalVariables>();
+            services.AddTransient<IJsonHelper, JsonHelper>();
             services.AddSingleton<IChoiceItem, ChoiceItem>();
             services.AddSingleton<IAccountActivity, AccountActivity>();
-
-            services.AddTransient<IJsonHelper, JsonHelper>();
+            services.AddSingleton<IToken, Token>();
         }
 
         private void ConfigureViewModels(IServiceCollection services)
@@ -89,6 +87,7 @@ namespace SNPM
 
         private void ConfigureViews(IServiceCollection services)
         {
+            services.AddSingleton<IMainView, MainView>();
             services.AddSingleton<ILoginView, LoginView>();
             services.AddSingleton<IDialogView, DialogView>();
             services.AddSingleton<IDirectoryView, DirectoryView>();

@@ -19,15 +19,7 @@ namespace SNPM.Core.Api.Interfaces
 
     public interface IApiService
     {
-        Func<string, Task<bool>> GetRemoteVerifier();
-
         Task<string> CreateAccount(string mail, string password, EncryptionType encryptionType);
-
-        Task<bool> ModifyAccount(string currentPassword, string? newMail, string? newPassword);
-
-        Task<IAccount> GetAccountInfo(int correctCount, int incorrectCount);
-
-        Task<bool> VerifyEmail();
 
         Task<(string, string)> Login(string mail, string password);
 
@@ -58,5 +50,7 @@ namespace SNPM.Core.Api.Interfaces
         Task<(string, string)> Disable2Fa(string sessionToken);
 
         Task<(string, string)> Enable2Fa(string sessionToken);
+
+        Task<(string, string)> CheckPasswordStrength(string password);
     }
 }
