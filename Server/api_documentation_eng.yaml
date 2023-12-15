@@ -1,0 +1,791 @@
+openapi: 3.0.3
+info:
+  title: SNPManager - OpenAPI 3.0
+  description: |-
+    The SNPManager API allows client applications to communicate with the application server. The following documentation describes all supported API requests for secure access to client data.
+
+    Application repo:
+    [click here](https://github.com/tkozl/SNPManager.git)
+
+    ### Access to API resources
+    To access most resources, it is necessary to attach an access token to the request. This token is sent by the server in response to the valid user authorization data sent by client.
+
+    ### Error responses
+    Some requests may result in an error. In such situations, the server response may include an ID and descriptions of the reasons for rejecting the request. Information about possible errors is specified in the documentation for each request. Errors have their IDs and an optional description intended for developers. Here is a list of the most important error IDs used in the application:
+
+    - `invalid_email` - invalid email address format
+    - `wrong_password` - incorrect password, used after logging in for operations requiring password confirmation
+    - `too_low_password_complexity` - password complexity too low, the password is either too short or vulnerable to dictionary attacks
+    - `invalid_name` - the provided name contains disallowed characters
+    - `too_long_string` - the maximum allowable input data size has been exceeded
+    - `already_exists` - the specified resource already exists
+    - `unknown_encryption_type` - unrecognized encryption type
+    - `token_required` - access to the resource requires attaching an access token
+    - `invalid_token` - an invalid token was included in the request, for example, its expiration date has passed
+    - `2fa_required` - access to the resource requires passing through the second level of authentication (2FA)
+    - `email_validation_required` - access to the resource requires validating the email address
+
+  version: 1.0.0
+
+servers:
+  - url: https://83.18.180.22:2137/api/v1
+
+tags:
+  - name: Accounts
+    description: Authentication mechanisms and user account management
+  - name: Directories
+    description: Management of the directory tree on the user's account
+  - name: Entries
+    description: Management of user entries
+  - name: Passwords
+    description: Functions related to password handling
+
+paths:
+  /account:
+    post:
+      tags:
+        - Accounts
+      summary: Create a new user account
+      description: Register a new user account in the system by providing an email address, password, and a mechanism for encrypting the database (`aes-128`, `aes-192`, `aes-256`, `camellia-128`, `camellia-192`, `camellia-256`). To fully utilize the account, email confirmation is required.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mail:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: securepassword
+                encryptionType:
+                  type: string
+                  example: aes-256
+        required: true
+      responses:
+        '201':
+          description: Account created
+        '400':
+          description: Invalid email address (`invalid_email`), password does not meet complexity requirements (`too_low_password_complexity`), string length exceeds the limit (`too_long_string`), or unknown encryption algorithm (`unknown_encryption_type`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+
+    put:
+      tags:
+        - Accounts
+      summary: Modify user account
+      description: Allow changing the user's email address, password, or cryptographic algorithm. After changing the email address, verification is required before further use of the account. Any changes require providing the current password. Modifying the account invalidates the current access token and generates a new one.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+                newMail:
+                  type: string
+                newEncryptionType:
+                  type: string
+                newPassword:
+                  type: string
+        required: true
+      responses:
+        '201':
+          description: Changes saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
+        '400':
+          description:
+            Invalid input data. Possible error IDs include `invalid_email`, `wrong_password`, `too_low_password_complexity`, `unknown_encryption_type`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+      - BearerAuth: []
+
+    get:
+      tags:
+        - Accounts
+      summary: Information about the active account
+      description: Retrieve data about the account to which the user is currently logged in. Returns the email address, applied encryption algorithm, information about whether two-factor authentication is set up, whether the email address is confirmed, the account creation date, the date of the last password change, the number of entries, a list of the last successful logins, and a list of the last unsuccessful logins.
+      parameters:
+        - in: query
+          name: max_correct_logins
+          description: Maximum number of returned successful login attempts. Default is `10`.
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: max_incorrect_logins
+          description: Maximum number of returned unsuccessful login attempts. Default is `10`.
+          schema:
+            type: integer
+          required: false
+      responses:
+        '200':
+          description: Account data retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mail:
+                    type: string
+                    example: user@example.com
+                  encryptionType:
+                    type: string
+                    example: aes-256
+                  is2faActive:
+                    type: boolean
+                  isMailActive:
+                    type: boolean
+                  creationDate:
+                    type: integer
+                    example: 1681040805
+                  numberOfEntries:
+                    type: integer
+                  lastPasswordChange:
+                    type: integer
+                    example: 1681040805
+                  lastAccess:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        time:
+                          type: integer
+                          example: 1681044405
+                        ip:
+                          type: string
+                          example: 82.139.4.22
+                  lastLoginErrors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        time:
+                          type: integer
+                          example: 1681044345
+                        ip:
+                          type: string
+                          example: 82.139.4.22
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - BearerAuth: []
+
+  /account/verify-email:
+    post:
+      tags:
+        - Accounts
+      summary: Generate email verification code
+      description: After creating a user account, it is necessary to verify the account before using it. The code, once generated, is placed in a properly prepared link and then sent to the email address associated with the account. Without email verification, all requests in the `Directories` and `Entries` categories will return a `403 Forbidden` error.
+      responses:
+        '204':
+          description: Verification link sent to the email address
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Email address already verified
+      security:
+        - BearerAuth: []
+
+  /account/2fa:
+    post:
+      tags:
+        - Accounts
+      summary: Configure 2fa mechanism
+      description: This request allows the configuration of the 2fa mechanism. If 2fa is already set up, you must first disable the active mechanism using the `delete` method.
+      responses:
+        '201':
+          description: 2fa mechanism activated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secretCode:
+                    type: string
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: 2fa mechanism is already active
+      security:
+        - BearerAuth: []
+
+    delete:
+      tags:
+        - Accounts
+      summary: Disable 2fa mechanism
+      description: This request allows deactivation of the current 2fa mechanism on the account
+      responses:
+        '204':
+          description: 2fa mechanism disabled
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - BearerAuth: []
+
+  /account/delete:
+    post:
+      tags:
+        - Accounts
+      summary: Create a request to delete the account
+      description: To permanently delete the account, send this request containing the current password. The server will then send a link valid for 1 hour to the email address associated with the account. Clicking on the link will delete the account. If the email address is not confirmed, the account is deleted immediately.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+        required: true
+      responses:
+        '204':
+          description: Request accepted
+        '400':
+          description: Incorrect password. Error ID `wrong_password`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - BearerAuth: []
+
+  /account/token:
+    post:
+      tags:
+        - Accounts
+      summary: Generate a new access token
+      description: This request allows extending the validity of the access token until it exceeds the maximum validity time. If extension is possible, a new token is returned, and the attached token in the request header is invalidated.
+      responses:
+        '201':
+          description: New access token generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Unable to generate a new token - maximum allowed session time reached
+      security:
+        - BearerAuth: []
+
+  /login:
+    post:
+      tags:
+        - Accounts
+      summary: User account login
+      description: User account login requires sending the username and password. Upon successful login, an access token with an expiration date will be returned. The validity of the token can then be extended, but not indefinitely. Logging out of the account occurs on the client side by deleting the access token. The server response will also include information on whether two-factor authentication is required. If so, a separate request must be sent with the 2fa code.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mail:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: securepassword
+        required: true
+      responses:
+        '200':
+          description: Successfully logged in
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/AccessToken'
+                  - type: object
+                    properties:
+                      is2faRequired:
+                        type: boolean
+        '401':
+          description: Incorrect login credentials
+        '403':
+          description: Rejected due to security reasons
+
+  /login/2fa:
+    post:
+      tags:
+        - Accounts
+      summary: Two-factor authentication verification during login
+      description: This request allows sending the 2fa code when it is needed to access the account. In response, a new access token enabling the use of the account is generated.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                passcode:
+                  type: integer
+        required: true
+      responses:
+        '200':
+          description: Successfully logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
+        '401':
+          description: Incorrect code or the user is not logged into the system
+        '422':
+          description: Verification is not required
+      security:
+        - BearerAuth: []
+
+  /directory:
+    post:
+      tags:
+        - Directories
+      summary: Create a new directory
+      description: This request allows the creation of a new directory in the selected location. Returns the ID of the created directory.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Directory'
+        required: true
+      responses:
+        '201':
+          description: Directory created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+        '400':
+          description: Cannot create the directory because the directory name contains disallowed characters (`invalid_name`), the name is too long (`too_long_string`), or the specified directory already exists (`already_exists`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Creating subdirectories in the selected location is forbidden (trash)
+        '404':
+          description: Incorrect access path provided
+      security:
+        - BearerAuth: []
+
+    get:
+      tags:
+        - Directories
+      summary: Retrieve the structure of user directories
+      description: This request returns a list of directories from the selected parent directory. If you want to retrieve the contents of a special directory such as the trash or the main directory, use the ID returned by the `GET /directory/special` endpoint.
+      parameters:
+        - in: query
+          name: parentID
+          description: ID of the directory whose subdirectories are to be returned
+          schema:
+            type: integer
+          required: true
+        - in: query
+          name: recursive
+          description: Information whether the listing should be recursive. Default is `true`.
+          schema:
+            type: boolean
+          required: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        id:
+                          type: integer
+                    - $ref: '#/components/schemas/Directory'
+        '404':
+          description: Directory specified in the `parentID` parameter not found
+      security:
+          - BearerAuth: []
+
+  /directory/{id}:
+    get:
+      tags:
+        - Directories
+      summary: Retrieve directory data
+      description: Returns the name of the directory and the ID of its parent.
+      parameters:
+        - $ref: '#/components/parameters/DirectoryID'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Directory'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Special directory
+        '404':
+          description: Directory not found
+      security:
+        - BearerAuth: []
+
+    put:
+      tags:
+        - Directories
+      summary: Change the name or location of the directory
+      description: This request allows moving the directory and saving it in any location under the old or new name. It also allows moving it to the trash along with its contents.
+      parameters:
+        - $ref: '#/components/parameters/DirectoryID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Directory'
+        required: true
+      responses:
+        '204':
+          description: Directory moved
+        '403':
+          description: Specified directory cannot be the subject of this request
+        '400':
+          description: Cannot move the directory because the directory name contains disallowed characters (`invalid_name`), the name is too long (`too_long_string`), or the specified target directory already exists (`already_exists`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          description: Directory not found
+      security:
+        - BearerAuth: []
+
+  /directory/special:
+    get:
+      tags:
+        - Directories
+      summary: IDs of special directories
+      description: This request returns the IDs of special directories.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  root:
+                    type: integer
+                  trash:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - BearerAuth: []
+
+  /entry:
+    post:
+      tags:
+        - Entries
+      summary: Create a new entry
+      description: Creates an entry in the specified directory.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Entry'
+      responses:
+        '201':
+          description: Entry created, returns the entry ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+        '400':
+          description: Entry was not created. Possible errors include an invalid entry name (`invalid_name`), a string that is too long (`too_long_string`), or an entry with the specified name already exists (`already_exists`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          description: Forbidden location
+        '404':
+          description: Directory not found
+      security:
+          - BearerAuth: []
+
+    get:
+      tags:
+        - Entries
+      summary: Retrieve a list of entries based on specified criteria
+      description: Retrieves a list of entries from the user's database. Allows specifying the directory and criteria that the returned entries must meet. Information about the entries to be returned, in addition to the ID, can be specified in the `include` parameter.
+      parameters:
+        - in: query
+          name: directoryID
+          description: ID of the directory from which entries should be returned. It can be the ID of a user-created directory or the ID of a special directory returned by the `GET /directory/special` endpoint.
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: include
+          description: Entry data to be retrieved in addition to the ID, separated by a plus sign (`+`). Available options include entry ID (`entryID`), entry name (`entryName`), username (`username`), password (`password`), note (`note`), password lifetime in days (`lifetime`), UNIX time of the last password update (`passwordUpdateTime`), related windows (`relatedWindows`), and entry parameters (`parameters`).
+          required: false
+          schema:
+            type: string
+            example: entryName+directoryID+relatedWindows
+        - in: query
+          name: recursive
+          description: Indicates whether to search for entries in subdirectories as well, default is `true`.
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Returns a list of entries with the specified entry ID and each field selected in the `include` parameter.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        entryID:
+                          type: integer
+                    - $ref: '#/components/schemas/Entry'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          description: Directory not found as specified in the `directoryID` parameter.
+      security:
+          - BearerAuth: []
+
+  /entry/{id}:
+    get:
+      tags:
+        - Entries
+      summary: Retrieve entry data
+      description: Retrieve all data associated with the content of the entry.
+      parameters:
+        - $ref: '#/components/parameters/EntryID'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          description: Entry not found
+      security:
+        - BearerAuth: []
+
+    put:
+      tags:
+        - Entries
+      summary: Edit entry
+      description: Overwrite the entry with new data. Allows changing any entry data, including moving it to a new location, including the trash.
+      parameters:
+        - $ref: '#/components/parameters/EntryID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Entry'
+        required: true
+      responses:
+        '204':
+          description: Changes saved
+        '400':
+          description: Entry was not updated. Possible errors include an invalid entry name (`invalid_name`), a string that is too long (`too_long_string`), or an entry with the specified name already exists (`already_exists`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          description: Entry not found
+      security:
+        - BearerAuth: []
+
+  /entry/{id}/stats:
+    get:
+      tags:
+        - Entries
+      summary: Entry statistics
+      description: Retrieves the entry creation date, date of the last password change in the entry, and up to 5 last passwords.
+      parameters:
+        - $ref: '#/components/parameters/EntryID'
+        - in: query
+          name: oldPasswordsLimit
+          description: Limit of old passwords to be returned. Default is `5`.
+          schema:
+            type: integer
+            example: 10
+          required: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  creationDate:
+                    type: integer
+                  lastPassChange:
+                    type: integer
+                  oldPasswords:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        chDate:
+                          type: integer
+                        password:
+                          type: string
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          description: Entry not found
+      security:
+        - BearerAuth: []
+
+  /check-password-strength:
+    post:
+      tags:
+        - Passwords
+      summary: Generate password strength indicator
+      description: Verifies the strength of the password in terms of past data breaches. After sending the password, the server responds whether it has ever been leaked or not.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  strong:
+                    type: boolean
+
+components:
+  schemas:
+    Directory:
+      type: object
+      properties:
+        name:
+          type: string
+        parentID:
+          type: integer
+
+    Entry:
+      type: object
+      properties:
+        directoryID:
+          type: integer
+        entryName:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        note:
+          type: string
+        lifetime:
+          type: integer
+        relatedWindows:
+          type: array
+          items:
+            type: string
+        parameters:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              value:
+                type: string
+
+    AccessToken:
+      type: object
+      properties:
+        token:
+          type: string
+        expiration:
+          type: number
+          example: 1694256060
+
+    Errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              errorID:
+                type: string
+              description:
+                type: string
+
+  parameters:
+    DirectoryID:
+      in: path
+      name: id
+      description: ID of the directory that is the subject of the request
+      schema:
+        type: integer
+      required: true
+
+    EntryID:
+      in: path
+      name: id
+      description: ID of the entry that is the subject of the request
+      schema:
+        type: integer
+      required: true
+
+  responses:
+    401Unauthorized:
+      description: Access to the resource requires authorization
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
